@@ -147,7 +147,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <form className="space-y-4" onSubmit={login}>
-                <label htmlFor="login-id" className="block space-y-2"><span className="font-medium">아이디</span><Input id="login-id" value={loginId} onChange={(e) => setLoginId(e.target.value)} placeholder="teacher01" autoComplete="username" disabled={!configured || Boolean(sessionToken)} /></label>
+                <label htmlFor="login-id" className="block space-y-2"><span className="font-medium">아이디</span><Input id="login-id" value={loginId} onChange={(e) => setLoginId(e.target.value)} autoComplete="username" disabled={!configured || Boolean(sessionToken)} /></label>
                 <label htmlFor="login-password" className="block space-y-2"><span className="font-medium">비밀번호</span><Input id="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" disabled={!configured || Boolean(sessionToken)} /></label>
                 {sessionToken ? <Button type="button" variant="outline" className="h-11 w-full" onClick={logout}><LogOut /> 로그아웃</Button> : <Button type="submit" className="h-11 w-full" disabled={!configured || busy}>{busy ? '확인 중…' : '로그인'}</Button>}
                 <p aria-live="polite" className="rounded-xl bg-slate-50 p-3 text-sm leading-6 text-slate-700">{status}</p>
