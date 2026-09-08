@@ -1,6 +1,7 @@
 from http.server import BaseHTTPRequestHandler
 from io import BytesIO
 import json
+import math
 import os
 import re
 import urllib.error
@@ -65,16 +66,95 @@ def load_images(supabase_url: str, secret_key: str, bucket: str, textbook: str, 
     return images
 
 
+def draw_cover(c: canvas.Canvas, student: str, grade: str, page_width: float, page_height: float) -> None:
+    """Reproduce the calculus-themed cover used by the local generator."""
+    navy = (0.055, 0.13, 0.24)
+    blue = (0.10, 0.34, 0.62)
+    cyan = (0.18, 0.67, 0.76)
+    coral = (0.94, 0.34, 0.38)
+    violet = (0.43, 0.28, 0.76)
+    gold = (0.96, 0.64, 0.16)
+
+    c.setFillColorRGB(0.975, 0.985, 0.995)
+    c.rect(0, 0, page_width, page_height, stroke=0, fill=1)
+
+    c.saveState()
+    c.setStrokeColorRGB(0.82, 0.89, 0.95)
+    c.setLineWidth(0.25)
+    for x in range(-20, 241, 14):
+        c.line(x * mm, 0, x * mm, page_height)
+    for y in range(-20, 321, 14):
+        c.line(0, y * mm, page_width, y * mm)
+
+    c.setStrokeColorRGB(*cyan)
+    c.setLineWidth(1.8)
+    path = c.beginPath()
+    for index in range(181):
+        x = 15 * mm + index * (180 * mm / 180)
+        y = 247 * mm + (12 * math.sin(index / 16) + 0.055 * (index - 90)) * mm
+        path.moveTo(x, y) if index == 0 else path.lineTo(x, y)
+    c.drawPath(path, stroke=1, fill=0)
+
+    c.setStrokeColorRGB(*violet)
+    c.setLineWidth(1.5)
+    path = c.beginPath()
+    for index in range(121):
+        x = 69 * mm + index * (115 * mm / 120)
+        y = 226 * mm + (5 * math.exp(index / 50)) * mm
+        path.moveTo(x, y) if index == 0 else path.lineTo(x, y)
+    c.drawPath(path, stroke=1, fill=0)
+
+    c.setStrokeColorRGB(*coral)
+    c.setLineWidth(1.1)
+    c.setDash(4, 3)
+    c.line(41 * mm, 228 * mm, 171 * mm, 263 * mm)
+    c.setDash()
+    for x, y, color in ((78, 251, coral), (131, 258, gold), (166, 264, violet)):
+        c.setFillColorRGB(*color)
+        c.circle(x * mm, y * mm, 2.2 * mm, stroke=0, fill=1)
+        c.setFillColorRGB(1, 1, 1)
+        c.circle(x * mm, y * mm, 0.8 * mm, stroke=0, fill=1)
+    c.restoreState()
+
+    c.setFillColorRGB(*navy)
+    c.setFont("Helvetica", 70)
+    c.setFillAlpha(0.075)
+    c.drawString(20 * mm, 251 * mm, "f(x)")
+    c.setFillAlpha(1)
+
+    center_y = 145 * mm
+    c.setFillColorRGB(1, 1, 1)
+    c.setFillAlpha(0.92)
+    c.roundRect(19 * mm, center_y - 31 * mm, page_width - 38 * mm, 75 * mm, 7 * mm, stroke=0, fill=1)
+    c.setFillAlpha(1)
+    c.setFillColorRGB(*blue)
+    c.roundRect(page_width / 2 - 20 * mm, center_y + 34 * mm, 40 * mm, 4 * mm, 2 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(*navy)
+    c.setFont("HYSMyeongJo-Medium", 46)
+    c.drawCentredString(page_width / 2, center_y, "시너지 미적분")
+    c.setFillColorRGB(*violet)
+    c.setFont("HYSMyeongJo-Medium", 19)
+    c.drawCentredString(page_width / 2, center_y - 15 * mm, "오답을 실력으로 바꾸는 수학 기록")
+
+    card_x, card_y, card_w, card_h = 39 * mm, 31 * mm, page_width - 78 * mm, 25 * mm
+    c.setFillColorRGB(1, 1, 1)
+    c.setStrokeColorRGB(0.76, 0.84, 0.91)
+    c.setLineWidth(0.8)
+    c.roundRect(card_x, card_y, card_w, card_h, 4 * mm, stroke=1, fill=1)
+    c.setFillColorRGB(0.36, 0.43, 0.51)
+    c.setFont("Helvetica", 9)
+    c.drawString(card_x + 9 * mm, card_y + 9.5 * mm, "STUDENT")
+    c.setFillColorRGB(*navy)
+    c.setFont("HYSMyeongJo-Medium", 14)
+    c.drawRightString(card_x + card_w - 9 * mm, card_y + 8.5 * mm, f"{grade}  {student}")
+
+
 def create_pdf(student: str, grade: str, images: list[tuple[int, bytes]]) -> bytes:
     pdfmetrics.registerFont(UnicodeCIDFont("HYSMyeongJo-Medium"))
     output = BytesIO()
     page_width, page_height = A4
     c = canvas.Canvas(output, pagesize=A4, pageCompression=1)
-    c.setFillColorRGB(0.05, 0.14, 0.28)
-    c.setFont("HYSMyeongJo-Medium", 30)
-    c.drawCentredString(page_width / 2, page_height - 85 * mm, "시너지 미적분 오답노트")
-    c.setFont("HYSMyeongJo-Medium", 16)
-    c.drawCentredString(page_width / 2, page_height - 120 * mm, f"{grade}  {student}")
+    draw_cover(c, student, grade, page_width, page_height)
     c.showPage()
 
     side, bottom, gap = 10 * mm, 14 * mm, 5 * mm
