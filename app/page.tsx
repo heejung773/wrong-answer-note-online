@@ -67,18 +67,28 @@ export default function Home() {
   async function login(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!supabase) return;
+    if (!loginId.trim() || !password) {
+      setStatus('아이디와 비밀번호를 모두 입력해 주세요.');
+      return;
+    }
     setBusy(true);
     setStatus('로그인 확인 중…');
-    const email = loginId.includes('@') ? loginId : `${loginId}@${loginDomain}`;
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error || !data.session) {
-      setStatus('아이디 또는 비밀번호를 확인해 주세요.');
-    } else {
-      setSessionToken(data.session.access_token);
-      setPassword('');
-      setStatus('로그인되었습니다.');
+    try {
+      const normalizedId = loginId.trim();
+      const email = normalizedId.includes('@') ? normalizedId : `${normalizedId}@${loginDomain}`;
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error || !data.session) {
+        setStatus('아이디 또는 비밀번호가 틀렸습니다.');
+      } else {
+        setSessionToken(data.session.access_token);
+        setPassword('');
+        setStatus('로그인되었습니다.');
+      }
+    } catch {
+      setStatus('로그인 서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
   }
 
   async function logout() {
@@ -139,7 +149,8 @@ export default function Home() {
               <form className="space-y-4" onSubmit={login}>
                 <label htmlFor="login-id" className="block space-y-2"><span className="font-medium">아이디</span><Input id="login-id" value={loginId} onChange={(e) => setLoginId(e.target.value)} placeholder="teacher01" autoComplete="username" disabled={!configured || Boolean(sessionToken)} /></label>
                 <label htmlFor="login-password" className="block space-y-2"><span className="font-medium">비밀번호</span><Input id="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" disabled={!configured || Boolean(sessionToken)} /></label>
-                {sessionToken ? <Button type="button" variant="outline" className="h-11 w-full" onClick={logout}><LogOut /> 로그아웃</Button> : <Button className="h-11 w-full" disabled={!configured || busy}>로그인</Button>}
+                {sessionToken ? <Button type="button" variant="outline" className="h-11 w-full" onClick={logout}><LogOut /> 로그아웃</Button> : <Button type="submit" className="h-11 w-full" disabled={!configured || busy}>{busy ? '확인 중…' : '로그인'}</Button>}
+                <p aria-live="polite" className="rounded-xl bg-slate-50 p-3 text-sm leading-6 text-slate-700">{status}</p>
               </form>
               {!configured && <p className="mt-4 rounded-xl bg-amber-50 p-3 text-sm leading-6 text-amber-900">현재는 안전하게 연결값을 비워 둔 로컬 준비 상태입니다. 배포 전에 Supabase 환경 설정을 연결합니다.</p>}
             </CardContent>
