@@ -1,0 +1,20 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@theme inline {
+  --color-background: var(--background); --color-foreground: var(--foreground);
+  --color-card: var(--card); --color-card-foreground: var(--foreground);
+  --color-primary: var(--primary); --color-primary-foreground: white;
+  --color-secondary: var(--secondary); --color-secondary-foreground: var(--foreground);
+  --color-muted: var(--muted); --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border); --color-input: var(--border); --color-ring: var(--primary);
+  --color-destructive: #c43d4d; --radius-sm: .45rem; --radius-md: .65rem;
+  --radius-lg: .85rem; --radius-xl: 1rem;
+}
+
+:root { --background: #f2f6fb; --foreground: #13233b; --card: #fff; --primary: #1558a6; --secondary: #e8f1fb; --muted: #eef3f8; --muted-foreground: #617087; --border: #d9e2ec; }
+* { border-color: var(--border); }
+html { font-family: "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif; background: var(--background); }
+body { margin: 0; color: var(--foreground); background: radial-gradient(circle at 80% 0%, #dcecff 0, transparent 28rem), var(--background); }
+button, input, textarea, select { font: inherit; }
