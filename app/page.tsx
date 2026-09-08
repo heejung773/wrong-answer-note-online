@@ -169,7 +169,7 @@ export default function Home() {
                 <label htmlFor="numbers" className="space-y-2 sm:col-span-2"><span className="font-medium">문제번호</span><Textarea id="numbers" value={numbers} onChange={(e) => setNumbers(e.target.value)} placeholder="1, 5, 10 또는 1-10" required disabled={!sessionToken} /><span className="block text-sm text-muted-foreground">쉼표·띄어쓰기·연속 범위를 사용할 수 있습니다. 시험판은 한 번에 최대 20문제입니다.</span></label>
                 <div className="sm:col-span-2 flex flex-col gap-3 rounded-xl bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
                   <p aria-live="polite" className="flex items-center gap-2 text-sm text-slate-700"><CheckCircle2 className="size-4 text-primary" />{status}</p>
-                  <Button className="h-11 px-5" disabled={!sessionToken || busy}><FileDown /> PDF 만들기</Button>
+                  <Button type="submit" className="h-11 px-5" disabled={!sessionToken || busy}><FileDown /> {busy ? '만드는 중…' : 'PDF 만들기'}</Button>
                 </div>
               </form>
             </CardContent>
