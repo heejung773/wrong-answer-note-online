@@ -49,7 +49,8 @@ def verify_user(supabase_url: str, publishable_key: str, token: str) -> None:
 
 def load_images(supabase_url: str, secret_key: str, bucket: str, textbook: str, numbers: list[int]) -> list[tuple[int, bytes]]:
     images = []
-    headers = {"apikey": secret_key, "Authorization": f"Bearer {secret_key}"}
+    # Modern sb_secret_ keys are API keys, not JWTs. Send them only as apikey.
+    headers = {"apikey": secret_key}
     for number in numbers:
         object_path = urllib.parse.quote(f"{bucket}/{textbook}/{number:04d}.png", safe="/")
         url = f"{supabase_url}/storage/v1/object/authenticated/{object_path}"
