@@ -9,6 +9,7 @@ import urllib.parse
 import urllib.request
 
 from PIL import Image
+from pypdf import PdfReader
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
@@ -64,6 +65,24 @@ def load_images(supabase_url: str, secret_key: str, bucket: str, textbook: str, 
                 raise ValueError(f"{number:04d}번 문제가 서버에 없습니다.") from error
             raise
     return images
+
+
+def load_quick_answers(supabase_url: str, secret_key: str, bucket: str, textbook: str) -> dict[int, str]:
+    headers = {"apikey": secret_key}
+    object_path = urllib.parse.quote(f"{bucket}/{textbook}/quick-answer.pdf", safe="/")
+    pdf_data = request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
+    reader = PdfReader(BytesIO(pdf_data))
+    if len(reader.pages) < 7:
+        raise ValueError("빠른정답 PDF의 페이지 구성을 확인해 주세요.")
+    text = "\n".join((page.extract_text() or "") for page in reader.pages[1:7])
+    pattern = re.compile(
+        r"(?<!\d)(\d{4})[\s\x00-\x1f]*"
+        r"(해설참조|[①②③④⑤]|[-+]?\d+(?:\s*\(원\)|m)?)"
+    )
+    answers = {int(number): answer for number, answer in pattern.findall(text)}
+    if len(answers) < 1568:
+        raise ValueError("빠른정답 PDF에서 정답을 완전히 읽지 못했습니다.")
+    return answers
 
 
 def draw_cover(c: canvas.Canvas, student: str, grade: str, page_width: float, page_height: float) -> None:
@@ -149,7 +168,58 @@ def draw_cover(c: canvas.Canvas, student: str, grade: str, page_width: float, pa
     c.drawRightString(card_x + card_w - 9 * mm, card_y + 8.5 * mm, f"{grade}  {student}")
 
 
-def create_pdf(student: str, grade: str, images: list[tuple[int, bytes]]) -> bytes:
+def draw_footer(c: canvas.Canvas, page_number: int, page_width: float) -> None:
+    left = 10 * mm
+    right = page_width - 10 * mm
+    c.setStrokeColorRGB(0.72, 0.72, 0.72)
+    c.setLineWidth(0.45)
+    c.line(left, 9.5 * mm, right, 9.5 * mm)
+    c.setFillColorRGB(0.16, 0.16, 0.16)
+    c.setFont("HYSMyeongJo-Medium", 8)
+    c.drawString(left, 5.2 * mm, "강석수학")
+    c.drawRightString(right, 5.2 * mm, str(page_number))
+
+
+def draw_answer_page(c: canvas.Canvas, numbers: list[int], answers: dict[int, str], page_number: int, page_width: float, page_height: float) -> None:
+    left = 16 * mm
+    right = page_width - 16 * mm
+    top = page_height - 18 * mm
+    c.setFillColorRGB(0.12, 0.27, 0.48)
+    c.setFont("HYSMyeongJo-Medium", 22)
+    c.drawString(left, top, "빠른 정답")
+    c.setFillColorRGB(0.35, 0.35, 0.35)
+    c.setFont("HYSMyeongJo-Medium", 9)
+    c.drawRightString(right, top + 1 * mm, f"오답 {len(numbers)}문제")
+    c.setStrokeColorRGB(0.12, 0.27, 0.48)
+    c.setLineWidth(1.2)
+    c.line(left, top - 4 * mm, right, top - 4 * mm)
+
+    columns = 2 if len(numbers) <= 24 else 3 if len(numbers) <= 48 else 4
+    rows = (len(numbers) + columns - 1) // columns
+    area_top = top - 14 * mm
+    area_bottom = 19 * mm
+    row_height = min(11 * mm, (area_top - area_bottom) / max(rows, 1))
+    gap = 6 * mm
+    column_width = (right - left - gap * (columns - 1)) / columns
+    for index, number in enumerate(numbers):
+        column = index // rows
+        row = index % rows
+        x = left + column * (column_width + gap)
+        y = area_top - (row + 1) * row_height
+        c.setFillColorRGB(0.96, 0.97, 0.99) if row % 2 == 0 else c.setFillColorRGB(1, 1, 1)
+        c.rect(x, y, column_width, row_height, stroke=0, fill=1)
+        c.setFillColorRGB(0.18, 0.18, 0.18)
+        c.setFont("HYSMyeongJo-Medium", 12)
+        c.drawString(x + 3 * mm, y + (row_height - 12) / 2 + 1, f"{number:04d}")
+        c.drawRightString(x + column_width - 3 * mm, y + (row_height - 12) / 2 + 1, answers[number])
+
+    c.setFillColorRGB(0.45, 0.45, 0.45)
+    c.setFont("HYSMyeongJo-Medium", 7.5)
+    c.drawString(left, 13.5 * mm, "출처: [2022개정] 마플 시너지 미적분1 빠른정답")
+    draw_footer(c, page_number, page_width)
+
+
+def create_pdf(student: str, grade: str, images: list[tuple[int, bytes]], answers: dict[int, str]) -> bytes:
     pdfmetrics.registerFont(UnicodeCIDFont("HYSMyeongJo-Medium"))
     output = BytesIO()
     page_width, page_height = A4
@@ -161,7 +231,7 @@ def create_pdf(student: str, grade: str, images: list[tuple[int, bytes]]) -> byt
     cell_w = (page_width - side * 2 - gap) / 2
     cell_h = (page_height - 10 * mm - bottom - gap) / 2
     boxes = [(side, bottom + cell_h + gap), (side + cell_w + gap, bottom + cell_h + gap), (side, bottom), (side + cell_w + gap, bottom)]
-    for page_start in range(0, len(images), 4):
+    for page_index, page_start in enumerate(range(0, len(images), 4), start=1):
         for index, (number, data) in enumerate(images[page_start:page_start + 4]):
             x, y = boxes[index]
             c.roundRect(x, y, cell_w, cell_h, 2 * mm)
@@ -173,10 +243,10 @@ def create_pdf(student: str, grade: str, images: list[tuple[int, bytes]]) -> byt
             scale = min(available_w / iw, available_h / ih)
             dw, dh = iw * scale, ih * scale
             c.drawImage(reader, x + (cell_w - dw) / 2, y + cell_h - 10 * mm - dh, dw, dh, preserveAspectRatio=True)
-        c.setFont("HYSMyeongJo-Medium", 8)
-        c.drawString(side, 6 * mm, "강석수학")
-        if page_start + 4 < len(images):
-            c.showPage()
+        draw_footer(c, page_index, page_width)
+        c.showPage()
+    numbers = [number for number, _ in images]
+    draw_answer_page(c, numbers, answers, (len(images) + 3) // 4 + 1, page_width, page_height)
     c.save()
     return output.getvalue()
 
@@ -211,7 +281,13 @@ class handler(BaseHTTPRequestHandler):
                 raise ValueError("지원하지 않는 교재입니다.")
             numbers = parse_numbers(str(payload.get("numbers", "")))
             images = load_images(supabase_url, secret_key, bucket, textbook, numbers)
-            pdf = create_pdf(student, grade, images)
+            all_answers = load_quick_answers(supabase_url, secret_key, bucket, textbook)
+            missing_answers = [number for number in numbers if number not in all_answers]
+            if missing_answers:
+                listed = ", ".join(f"{number:04d}" for number in missing_answers)
+                raise ValueError(f"빠른정답에 없는 문제번호입니다: {listed}")
+            selected_answers = {number: all_answers[number] for number in numbers}
+            pdf = create_pdf(student, grade, images, selected_answers)
             if len(pdf) > 4_300_000:
                 raise ValueError("PDF가 시험판 다운로드 한도를 넘었습니다. 문제 수를 줄여 주세요.")
             self.send_response(200)
