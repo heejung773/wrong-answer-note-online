@@ -143,8 +143,97 @@ def load_quick_answers(supabase_url: str, secret_key: str, bucket: str, textbook
     return answers
 
 
+def draw_common_math_2_cover(c: canvas.Canvas, student: str, grade: str, page_width: float, page_height: float) -> None:
+    """Reproduce the approved Common Mathematics 2 cover from the local generator."""
+    charcoal = (0.08, 0.18, 0.17)
+    emerald = (0.08, 0.48, 0.38)
+    mint = (0.25, 0.72, 0.59)
+    orange = (0.95, 0.48, 0.20)
+    plum = (0.55, 0.25, 0.47)
+    gold = (0.94, 0.68, 0.18)
+
+    c.setFillColorRGB(0.975, 0.992, 0.982)
+    c.rect(0, 0, page_width, page_height, stroke=0, fill=1)
+
+    c.saveState()
+    c.setStrokeColorRGB(0.79, 0.91, 0.85)
+    c.setLineWidth(0.25)
+    for x in range(-20, 241, 14):
+        c.line(x * mm, 0, x * mm, page_height)
+    for y in range(-20, 321, 14):
+        c.line(0, y * mm, page_width, y * mm)
+
+    origin_x, origin_y = 106 * mm, 250 * mm
+    c.setStrokeColorRGB(*emerald)
+    c.setLineWidth(1.2)
+    c.line(25 * mm, origin_y, 190 * mm, origin_y)
+    c.line(origin_x, 218 * mm, origin_x, 282 * mm)
+    c.line(190 * mm, origin_y, 186 * mm, origin_y + 2 * mm)
+    c.line(190 * mm, origin_y, 186 * mm, origin_y - 2 * mm)
+    c.line(origin_x, 282 * mm, origin_x - 2 * mm, 278 * mm)
+    c.line(origin_x, 282 * mm, origin_x + 2 * mm, 278 * mm)
+
+    c.setStrokeColorRGB(*orange)
+    c.setLineWidth(2.0)
+    c.circle(78 * mm, 250 * mm, 18 * mm, stroke=1, fill=0)
+    c.setFillColorRGB(*orange)
+    c.circle(78 * mm, 250 * mm, 2.1 * mm, stroke=0, fill=1)
+
+    c.setStrokeColorRGB(*plum)
+    c.setLineWidth(1.8)
+    c.line(118 * mm, 225 * mm, 180 * mm, 275 * mm)
+    for x, y, color in ((132, 236, plum), (154, 254, gold), (173, 269, mint)):
+        c.setFillColorRGB(*color)
+        c.circle(x * mm, y * mm, 2.2 * mm, stroke=0, fill=1)
+        c.setFillColorRGB(1, 1, 1)
+        c.circle(x * mm, y * mm, 0.8 * mm, stroke=0, fill=1)
+
+    c.setStrokeColorRGB(*mint)
+    c.setLineWidth(1.2)
+    c.ellipse(28 * mm, 218 * mm, 50 * mm, 239 * mm, stroke=1, fill=0)
+    c.ellipse(57 * mm, 218 * mm, 79 * mm, 239 * mm, stroke=1, fill=0)
+    for source_y, target_y in ((233, 232), (228, 224)):
+        c.line(44 * mm, source_y * mm, 61 * mm, target_y * mm)
+    c.restoreState()
+
+    c.setFillColorRGB(*charcoal)
+    c.setFont("Helvetica-Bold", 48)
+    c.setFillAlpha(0.07)
+    c.drawString(21 * mm, 259 * mm, "x² + y²")
+    c.setFillAlpha(1)
+
+    center_y = 145 * mm
+    c.setFillColorRGB(1, 1, 1)
+    c.setFillAlpha(0.93)
+    c.roundRect(19 * mm, center_y - 31 * mm, page_width - 38 * mm, 75 * mm, 7 * mm, stroke=0, fill=1)
+    c.setFillAlpha(1)
+    c.setFillColorRGB(*emerald)
+    c.roundRect(page_width / 2 - 20 * mm, center_y + 34 * mm, 40 * mm, 4 * mm, 2 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(*charcoal)
+    c.setFont("HYSMyeongJo-Medium", 40)
+    c.drawCentredString(page_width / 2, center_y, "시너지 공통수학2")
+    c.setFillColorRGB(*plum)
+    c.setFont("HYSMyeongJo-Medium", 19)
+    c.drawCentredString(page_width / 2, center_y - 15 * mm, "오답을 실력으로 바꾸는 수학 기록")
+
+    card_x, card_y, card_w, card_h = 39 * mm, 31 * mm, page_width - 78 * mm, 25 * mm
+    c.setFillColorRGB(1, 1, 1)
+    c.setStrokeColorRGB(0.70, 0.85, 0.79)
+    c.setLineWidth(0.8)
+    c.roundRect(card_x, card_y, card_w, card_h, 4 * mm, stroke=1, fill=1)
+    c.setFillColorRGB(0.34, 0.43, 0.40)
+    c.setFont("Helvetica", 9)
+    c.drawString(card_x + 9 * mm, card_y + 9.5 * mm, "STUDENT")
+    c.setFillColorRGB(*charcoal)
+    c.setFont("HYSMyeongJo-Medium", 14)
+    c.drawRightString(card_x + card_w - 9 * mm, card_y + 8.5 * mm, f"{grade}  {student}")
+
+
 def draw_cover(c: canvas.Canvas, student: str, grade: str, page_width: float, page_height: float, textbook: str) -> None:
-    """Reproduce the calculus-themed cover used by the local generator."""
+    """Draw the textbook-specific cover used by the local generators."""
+    if textbook == "synergy-common-math-2":
+        draw_common_math_2_cover(c, student, grade, page_width, page_height)
+        return
     navy = (0.055, 0.13, 0.24)
     blue = (0.10, 0.34, 0.62)
     cyan = (0.18, 0.67, 0.76)
@@ -207,7 +296,7 @@ def draw_cover(c: canvas.Canvas, student: str, grade: str, page_width: float, pa
     c.setFillColorRGB(*blue)
     c.roundRect(page_width / 2 - 20 * mm, center_y + 34 * mm, 40 * mm, 4 * mm, 2 * mm, stroke=0, fill=1)
     c.setFillColorRGB(*navy)
-    c.setFont("HYSMyeongJo-Medium", 40 if textbook == "synergy-common-math-2" else 46)
+    c.setFont("HYSMyeongJo-Medium", 46)
     c.drawCentredString(page_width / 2, center_y, TEXTBOOKS[textbook]["title"])
     c.setFillColorRGB(*violet)
     c.setFont("HYSMyeongJo-Medium", 19)
