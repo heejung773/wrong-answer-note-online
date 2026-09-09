@@ -7,6 +7,7 @@ import re
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
 
 from PIL import Image
 from pypdf import PdfReader
@@ -69,8 +70,8 @@ def parse_numbers(raw: str) -> list[int]:
         result.extend(range(start, end + step, step))
     if not result:
         raise ValueError("문제번호를 입력하세요.")
-    if len(result) > 20:
-        raise ValueError("시험판은 한 번에 최대 20문제까지 만들 수 있습니다.")
+    if len(result) > 100:
+        raise ValueError("한 번에 최대 100문제까지 만들 수 있습니다.")
     return result
 
 
@@ -78,6 +79,73 @@ def request_bytes(url: str, headers: dict[str, str]) -> bytes:
     request = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(request, timeout=20) as response:
         return response.read()
+
+
+def upload_temporary_pdf(
+    supabase_url: str,
+    secret_key: str,
+    bucket: str,
+    pdf: bytes,
+) -> str:
+    """Upload a large PDF and return a short-lived private download URL."""
+    object_name = f"temporary-pdfs/{uuid.uuid4().hex}.pdf"
+    object_path = urllib.parse.quote(f"{bucket}/{object_name}", safe="/")
+    upload_request = urllib.request.Request(
+        f"{supabase_url}/storage/v1/object/{object_path}",
+        data=pdf,
+        headers={
+            "apikey": secret_key,
+            "Content-Type": "application/pdf",
+            "x-upsert": "false",
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(upload_request, timeout=30):
+        pass
+
+    sign_request = urllib.request.Request(
+        f"{supabase_url}/storage/v1/object/sign/{object_path}",
+        data=json.dumps({"expiresIn": 1800}).encode("utf-8"),
+        headers={
+            "apikey": secret_key,
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(sign_request, timeout=20) as response:
+            signed = json.loads(response.read())
+    except Exception:
+        delete_request = urllib.request.Request(
+            f"{supabase_url}/storage/v1/object/{object_path}",
+            headers={"apikey": secret_key},
+            method="DELETE",
+        )
+        try:
+            urllib.request.urlopen(delete_request, timeout=10).close()
+        except Exception:
+            pass
+        raise
+
+    signed_path = signed.get("signedURL") or signed.get("signedUrl")
+    if not isinstance(signed_path, str) or not signed_path:
+        raise ValueError("임시 PDF 다운로드 주소를 만들지 못했습니다.")
+    if signed_path.startswith("http://") or signed_path.startswith("https://"):
+        return signed_path
+    if signed_path.startswith("/object/"):
+        return f"{supabase_url}/storage/v1{signed_path}"
+    return f"{supabase_url}{signed_path if signed_path.startswith('/') else '/' + signed_path}"
+
+
+def pdf_image_reader(data: bytes, max_width: int, max_height: int) -> ImageReader:
+    """Resize only the PDF-embedded copy and encode it compactly for downloads."""
+    with Image.open(BytesIO(data)) as source:
+        image = source.convert("RGB")
+        image.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
+        compact = BytesIO()
+        image.save(compact, format="JPEG", quality=82, optimize=True, progressive=True)
+    compact.seek(0)
+    return ImageReader(compact)
 
 
 def verify_user(supabase_url: str, publishable_key: str, token: str) -> None:
@@ -384,7 +452,7 @@ def create_pdf(student: str, grade: str, images: list[tuple[int, bytes]], answer
             c.roundRect(x, y, cell_w, cell_h, 2 * mm)
             c.setFont("Helvetica-Bold", 9)
             c.drawString(x + 3 * mm, y + cell_h - 6 * mm, f"No. {number}")
-            reader = ImageReader(BytesIO(data))
+            reader = pdf_image_reader(data, 900, 1150)
             iw, ih = reader.getSize()
             available_w, available_h = cell_w - 6 * mm, cell_h - 14 * mm
             scale = min(available_w / iw, available_h / ih)
@@ -394,7 +462,12 @@ def create_pdf(student: str, grade: str, images: list[tuple[int, bytes]], answer
         c.showPage()
     if answers is not None:
         numbers = [number for number, _ in images]
-        draw_answer_page(c, numbers, answers, (len(images) + 3) // 4 + 1, page_width, page_height, textbook)
+        answer_chunks = [numbers[i:i + 60] for i in range(0, len(numbers), 60)]
+        first_answer_page = (len(images) + 3) // 4 + 1
+        for index, chunk in enumerate(answer_chunks):
+            draw_answer_page(c, chunk, answers, first_answer_page + index, page_width, page_height, textbook)
+            if index < len(answer_chunks) - 1:
+                c.showPage()
     c.save()
     return output.getvalue()
 
@@ -480,7 +553,7 @@ def create_olympus_pdf(student: str, grade: str, items: list[tuple[str, str, int
             c.roundRect(x, y, box_w, box_h, 2 * mm)
             c.setFont("HYSMyeongJo-Medium", 8.5)
             c.drawString(x + 3 * mm, y + box_h - 5.3 * mm, f"{unit} · {problem_type} · {number}번")
-            reader = ImageReader(BytesIO(data))
+            reader = pdf_image_reader(data, 1550 if wide else 900, 650 if wide else 1150)
             iw, ih = reader.getSize()
             scale = min((box_w - 6 * mm) / iw, (box_h - 14 * mm) / ih)
             dw, dh = iw * scale, ih * scale
@@ -494,7 +567,11 @@ def create_olympus_pdf(student: str, grade: str, items: list[tuple[str, str, int
     missing = [f"{unit} / {problem_type} / {number}번" for unit, problem_type, number, answer in selected if not answer]
     if missing:
         raise ValueError("빠른정답에 없는 문제번호입니다: " + ", ".join(missing))
-    draw_olympus_answer_page(c, selected, len(groups) + 1, width, height)
+    answer_chunks = [selected[i:i + 40] for i in range(0, len(selected), 40)]
+    for index, chunk in enumerate(answer_chunks):
+        draw_olympus_answer_page(c, chunk, len(groups) + index + 1, width, height)
+        if index < len(answer_chunks) - 1:
+            c.showPage()
     c.save()
     return output.getvalue()
 
@@ -533,13 +610,16 @@ def draw_olympus_answer_page(c: canvas.Canvas, items: list[tuple[str, str, int, 
 
 
 class handler(BaseHTTPRequestHandler):
-    def send_json(self, status: int, message: str) -> None:
-        body = json.dumps({"error": message}, ensure_ascii=False).encode("utf-8")
+    def send_json_data(self, status: int, payload: dict) -> None:
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
+
+    def send_json(self, status: int, message: str) -> None:
+        self.send_json_data(status, {"error": message})
 
     def do_GET(self):
         body = json.dumps(
@@ -586,8 +666,8 @@ class handler(BaseHTTPRequestHandler):
                         raise ValueError("올림포스 단원과 문제유형을 확인해 주세요.")
                     numbers = parse_numbers(str(item.get("numbers", "")))
                     total += len(numbers)
-                    if total > 20:
-                        raise ValueError("시험판은 전체 목록에서 최대 20문제까지 만들 수 있습니다.")
+                    if total > 100:
+                        raise ValueError("전체 목록에서 최대 100문제까지 만들 수 있습니다.")
                     images = load_olympus_images(supabase_url, secret_key, bucket, unit, problem_type, numbers)
                     olympus_items.extend((unit, problem_type, number, data) for number, data in images)
                 olympus_answers = load_olympus_answers(supabase_url, secret_key, bucket)
@@ -605,7 +685,14 @@ class handler(BaseHTTPRequestHandler):
                     selected_answers = {number: all_answers[number] for number in numbers}
                 pdf = create_pdf(student, grade, images, selected_answers, textbook)
             if len(pdf) > 4_300_000:
-                raise ValueError("PDF가 시험판 다운로드 한도를 넘었습니다. 문제 수를 줄여 주세요.")
+                download_url = upload_temporary_pdf(supabase_url, secret_key, bucket, pdf)
+                return self.send_json_data(
+                    200,
+                    {
+                        "downloadUrl": download_url,
+                        "expiresIn": 1800,
+                    },
+                )
             self.send_response(200)
             self.send_header("Content-Type", "application/pdf")
             self.send_header("Content-Disposition", 'attachment; filename="wrong-answer-note.pdf"')

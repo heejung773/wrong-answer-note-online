@@ -288,11 +288,25 @@ export default function Home() {
           .catch(() => ({ error: 'PDF 생성에 실패했습니다.' }));
         throw new Error(message.error);
       }
+      const contentType = response.headers.get('content-type') ?? '';
+      const filename = `${student || '학생'}_${grade}_${selectedTextbook.title}_오답노트.pdf`;
+      if (contentType.includes('application/json')) {
+        const result = (await response.json()) as { downloadUrl?: string };
+        if (!result.downloadUrl) {
+          throw new Error('임시 PDF 다운로드 주소를 받지 못했습니다.');
+        }
+        const separator = result.downloadUrl.includes('?') ? '&' : '?';
+        const link = document.createElement('a');
+        link.href = `${result.downloadUrl}${separator}download=${encodeURIComponent(filename)}`;
+        link.click();
+        setStatus('큰 PDF 다운로드가 시작되었습니다. 다운로드 주소는 30분 동안 유효합니다.');
+        return;
+      }
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${student || '학생'}_${grade}_${selectedTextbook.title}_오답노트.pdf`;
+      link.download = filename;
       link.click();
       URL.revokeObjectURL(url);
       setStatus('PDF 다운로드가 시작되었습니다.');
@@ -312,8 +326,8 @@ export default function Home() {
         (total, item) => total + item.count,
         0,
       );
-      if (currentCount + count > 20) {
-        throw new Error('시험판은 전체 목록에서 최대 20문제까지 추가할 수 있습니다.');
+      if (currentCount + count > 100) {
+        throw new Error('전체 목록에서 최대 100문제까지 추가할 수 있습니다.');
       }
       setOlympusItems((items) => [
         ...items,
@@ -568,7 +582,7 @@ export default function Home() {
                     <span className="block text-sm text-muted-foreground">
                       {textbook === 'olympus-calculus'
                         ? '선택한 단원과 문제유형 안에서 표시된 번호를 입력하세요.'
-                        : '쉼표·띄어쓰기·연속 범위를 사용할 수 있습니다. 시험판은 한 번에 최대 20문제입니다.'}
+                        : '쉼표·띄어쓰기·연속 범위를 사용할 수 있습니다. 한 번에 최대 100문제입니다.'}
                     </span>
                   </label>
                   {textbook === 'olympus-calculus' && (
@@ -587,7 +601,7 @@ export default function Home() {
                           <div>
                             <p className="font-medium">입력한 문제 목록</p>
                             <p className="text-sm text-slate-500">
-                              총 {olympusItems.reduce((total, item) => total + item.count, 0)} / 20문제
+                              총 {olympusItems.reduce((total, item) => total + item.count, 0)} / 100문제
                             </p>
                           </div>
                           {olympusItems.length > 0 && (
