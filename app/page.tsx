@@ -44,30 +44,40 @@ const textbooks: Array<{
   title: string;
   subject: string;
   available: boolean;
+  cardClass: string;
+  iconClass: string;
 }> = [
   {
     id: 'synergy-calculus',
     title: '시너지 미적분',
     subject: '미적분Ⅰ',
     available: true,
+    cardClass: 'border-indigo-200 bg-indigo-50 hover:border-indigo-500',
+    iconClass: 'bg-indigo-600 text-white',
   },
   {
     id: 'synergy-common-math-2',
     title: '시너지 공통수학2',
     subject: '공통수학2',
     available: true,
+    cardClass: 'border-emerald-200 bg-emerald-50 hover:border-emerald-500',
+    iconClass: 'bg-emerald-600 text-white',
   },
   {
     id: 'olympus-calculus',
     title: '올림푸스',
     subject: '미적분Ⅰ',
     available: true,
+    cardClass: 'border-amber-200 bg-amber-50 hover:border-amber-500',
+    iconClass: 'bg-amber-500 text-white',
   },
   {
     id: 'gojaengi-common-math-2',
     title: '고쟁이',
     subject: '공통수학2',
     available: true,
+    cardClass: 'border-rose-200 bg-rose-50 hover:border-rose-500',
+    iconClass: 'bg-rose-600 text-white',
   },
 ];
 
@@ -351,13 +361,19 @@ export default function Home() {
       <div className="mx-auto max-w-6xl">
         <header className="mb-6 flex items-center justify-between rounded-2xl border bg-white/90 px-5 py-4 shadow-sm">
           <div className="flex items-center gap-3">
-            <span className="grid size-10 place-items-center rounded-xl bg-primary text-primary-foreground">
+            <span
+              className={`grid size-10 place-items-center rounded-xl ${sessionToken ? 'bg-[#681c32] text-white' : 'bg-primary text-primary-foreground'}`}
+            >
               <BookOpen />
             </span>
             <div>
-              <p className="text-sm font-semibold text-primary">강석수학</p>
+              <p
+                className={`text-sm font-semibold ${sessionToken ? 'text-[#681c32]' : 'text-primary'}`}
+              >
+                {sessionToken ? '다산미래학원' : '강석수학'}
+              </p>
               <h1 className="text-xl font-bold tracking-tight">
-                온라인 오답노트
+                {sessionToken ? '온라인 오답노트 만들기' : '온라인 오답노트'}
               </h1>
             </div>
           </div>
@@ -467,10 +483,12 @@ export default function Home() {
                         : `${item.title} 전용 입력 화면입니다. 온라인 문제 자료 연결이 필요합니다.`,
                     );
                   }}
-                  className="group rounded-2xl border bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-primary hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  className={`group rounded-2xl border p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${item.cardClass}`}
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <span className="grid size-11 place-items-center rounded-xl bg-blue-50 text-primary">
+                    <span
+                      className={`grid size-11 place-items-center rounded-xl ${item.iconClass}`}
+                    >
                       <BookOpen />
                     </span>
                     <Badge variant={item.available ? 'secondary' : 'outline'}>
