@@ -6,8 +6,10 @@ import {
   BookOpen,
   CheckCircle2,
   FileDown,
+  GraduationCap,
   LockKeyhole,
   LogOut,
+  School,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -30,6 +32,8 @@ type TextbookId =
   | 'synergy-common-math-2'
   | 'olympus-calculus'
   | 'gojaengi-common-math-2';
+
+type Department = 'middle' | 'high';
 
 type OlympusItem = {
   id: number;
@@ -121,6 +125,7 @@ export default function Home() {
   const [student, setStudent] = useState('');
   const [grade, setGrade] = useState('1학년');
   const [numbers, setNumbers] = useState('1, 2, 3, 4');
+  const [department, setDepartment] = useState<Department | null>(null);
   const [textbook, setTextbook] = useState<TextbookId | null>(null);
   const [olympusUnit, setOlympusUnit] = useState(olympusUnits[0]);
   const [olympusType, setOlympusType] = useState('유형완성하기');
@@ -252,6 +257,8 @@ export default function Home() {
   async function logout() {
     await supabase?.auth.signOut();
     setSessionToken('');
+    setDepartment(null);
+    setTextbook(null);
     setStatus('로그아웃되었습니다.');
   }
 
@@ -460,15 +467,101 @@ export default function Home() {
               </CardContent>
             </Card>
           </section>
-        ) : !textbook ? (
+        ) : !department ? (
           <section className="mx-auto max-w-4xl">
-            <div className="mb-5">
+            <div className="mb-5 text-center sm:text-left">
               <h2 className="text-2xl font-bold tracking-tight">
-                교재를 선택하세요
+                학원부를 선택하세요
               </h2>
               <p className="mt-1 text-slate-600">
-                오답노트를 만들 교재를 선택하면 전용 입력 화면이 열립니다.
+                오답노트를 만들 학생의 학원부를 선택해 주세요.
               </p>
+            </div>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setDepartment('middle');
+                  setTextbook(null);
+                  setStatus('중등부 교재는 준비 중입니다.');
+                }}
+                className="group rounded-3xl border border-teal-200 bg-gradient-to-br from-teal-50 to-cyan-100 p-7 text-left shadow-sm transition hover:-translate-y-1 hover:border-teal-500 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600"
+              >
+                <span className="grid size-14 place-items-center rounded-2xl bg-teal-600 text-white shadow-sm">
+                  <School className="size-7" />
+                </span>
+                <h3 className="mt-7 text-2xl font-extrabold text-teal-950">
+                  중등부
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-teal-800">
+                  중학교 교재 오답노트
+                </p>
+                <Badge className="mt-6 bg-white/80 text-teal-800">교재 준비 중</Badge>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDepartment('high');
+                  setTextbook(null);
+                  setStatus('고등부 교재를 선택해 주세요.');
+                }}
+                className="group rounded-3xl border border-rose-200 bg-gradient-to-br from-rose-50 to-rose-100 p-7 text-left shadow-sm transition hover:-translate-y-1 hover:border-[#681c32] hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#681c32]"
+              >
+                <span className="grid size-14 place-items-center rounded-2xl bg-[#681c32] text-white shadow-sm">
+                  <GraduationCap className="size-7" />
+                </span>
+                <h3 className="mt-7 text-2xl font-extrabold text-[#4d1426]">
+                  고등부
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-[#7a2941]">
+                  고등학교 교재 오답노트
+                </p>
+                <Badge className="mt-6 bg-white/80 text-[#681c32]">4개 교재</Badge>
+              </button>
+            </div>
+          </section>
+        ) : department === 'middle' ? (
+          <section className="mx-auto max-w-3xl">
+            <Card className="border-teal-200 bg-gradient-to-br from-white to-teal-50 shadow-lg">
+              <CardHeader>
+                <div className="mb-3 grid size-12 place-items-center rounded-2xl bg-teal-600 text-white">
+                  <School />
+                </div>
+                <CardTitle className="text-2xl">중등부 교재</CardTitle>
+                <CardDescription className="text-base">
+                  앞으로 중등부 교재가 이곳에 추가됩니다.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setDepartment(null)}
+                >
+                  학원부 다시 선택
+                </Button>
+              </CardContent>
+            </Card>
+          </section>
+        ) : !textbook ? (
+          <section className="mx-auto max-w-4xl">
+            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-[#681c32]">고등부</p>
+                <h2 className="text-2xl font-bold tracking-tight">
+                  교재를 선택하세요
+                </h2>
+                <p className="mt-1 text-slate-600">
+                  오답노트를 만들 교재를 선택하면 전용 입력 화면이 열립니다.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDepartment(null)}
+              >
+                학원부 다시 선택
+              </Button>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               {textbooks.map((item) => (
