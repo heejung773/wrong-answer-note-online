@@ -84,3 +84,63 @@ class handler(BaseHTTPRequestHandler):
             self.send_json(401 if error.code in (401, 403) else 502, {"error": "로그인 또는 저장소 접근을 확인해 주세요."})
         except Exception:
             self.send_json(500, {"error": "파일 업로드 중 오류가 발생했습니다."})
+
+    def do_DELETE(self):
+        try:
+            cleanup_token = os.environ["CLEANUP_TOKEN"]
+            if self.headers.get("X-Cleanup-Token", "") != cleanup_token:
+                return self.send_json(401, {"error": "삭제 권한이 없습니다."})
+            supabase_url = os.environ["NEXT_PUBLIC_SUPABASE_URL"].rstrip("/")
+            secret_key = os.environ["SUPABASE_SECRET_KEY"]
+            bucket = os.environ.get("SUPABASE_STORAGE_BUCKET", "textbook-problems")
+            targets = (
+                "synergy-common-math-2",
+                "olympus-calculus",
+                "gojaengi-common-math-2",
+            )
+            headers = {"apikey": secret_key, "Content-Type": "application/json"}
+
+            def list_files(prefix: str) -> list[str]:
+                files: list[str] = []
+                offset = 0
+                while True:
+                    body = json.dumps({"prefix": prefix, "limit": 1000, "offset": offset}).encode("utf-8")
+                    request = urllib.request.Request(
+                        f"{supabase_url}/storage/v1/object/list/{bucket}",
+                        data=body,
+                        method="POST",
+                        headers=headers,
+                    )
+                    with urllib.request.urlopen(request, timeout=30) as response:
+                        items = json.loads(response.read())
+                    for item in items:
+                        path = f"{prefix}/{item['name']}" if prefix else item["name"]
+                        if item.get("id") is None:
+                            files.extend(list_files(path))
+                        else:
+                            files.append(path)
+                    if len(items) < 1000:
+                        break
+                    offset += len(items)
+                return files
+
+            deleted = 0
+            for target in targets:
+                paths = list_files(target)
+                for start in range(0, len(paths), 100):
+                    body = json.dumps({"prefixes": paths[start:start + 100]}).encode("utf-8")
+                    request = urllib.request.Request(
+                        f"{supabase_url}/storage/v1/object/{bucket}",
+                        data=body,
+                        method="DELETE",
+                        headers=headers,
+                    )
+                    with urllib.request.urlopen(request, timeout=30):
+                        pass
+                deleted += len(paths)
+            remaining = {target: len(list_files(target)) for target in targets}
+            self.send_json(200, {"deleted": deleted, "remaining": remaining})
+        except KeyError:
+            self.send_json(503, {"error": "삭제용 서버 설정이 없습니다."})
+        except Exception:
+            self.send_json(500, {"error": "임시 교재 자료 삭제 중 오류가 발생했습니다."})
