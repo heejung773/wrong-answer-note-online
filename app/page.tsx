@@ -381,7 +381,7 @@ export default function Home() {
               <p
                 className={`text-sm font-semibold ${sessionToken ? 'text-[#681c32]' : 'text-primary'}`}
               >
-                {sessionToken ? '다산미래학원' : '강석수학'}
+                다산미래학원
               </p>
               <h1 className="text-xl font-bold tracking-tight">
                 {sessionToken ? '온라인 오답노트 만들기' : '온라인 오답노트'}
