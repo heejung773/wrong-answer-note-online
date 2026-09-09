@@ -2,6 +2,7 @@
 
 import { SyntheticEvent, useEffect, useMemo, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import Image from 'next/image';
 import {
   BookOpen,
   CheckCircle2,
@@ -368,11 +369,14 @@ export default function Home() {
       <div className="mx-auto max-w-6xl">
         <header className="mb-6 flex items-center justify-between rounded-2xl border bg-white/90 px-5 py-4 shadow-sm">
           <div className="flex items-center gap-3">
-            <span
-              className={`grid size-10 place-items-center rounded-xl ${sessionToken ? 'bg-[#681c32] text-white' : 'bg-primary text-primary-foreground'}`}
-            >
-              <BookOpen />
-            </span>
+            <Image
+              src="/dasan-mirae-logo.png"
+              alt="다산미래학원 로고"
+              width={48}
+              height={48}
+              priority
+              className="size-12 shrink-0 rounded-full"
+            />
             <div>
               <p
                 className={`text-sm font-semibold ${sessionToken ? 'text-[#681c32]' : 'text-primary'}`}
