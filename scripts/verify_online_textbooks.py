@@ -45,7 +45,8 @@ def main() -> None:
         olympus_answers = generate.load_olympus_answers("https://local", "secret", "bucket")
         olympus_numbers = [1, 2]
         olympus_images = [(number, read(OLYMPUS / "3. 미분계수와 도함수" / "유형완성하기" / f"{number:04d}.png")) for number in olympus_numbers]
-        assert_pdf("olympus-calculus", generate.create_olympus_pdf("테스트", "2학년", "3. 미분계수와 도함수", "유형완성하기", olympus_images, olympus_answers), 3)
+        olympus_items = [("3. 미분계수와 도함수", "유형완성하기", number, data) for number, data in olympus_images]
+        assert_pdf("olympus-calculus", generate.create_olympus_pdf("테스트", "2학년", olympus_items, olympus_answers), 3)
 
         gojaengi_numbers = [1, 724]
         gojaengi_images = [(number, read(GOJAENGI / "문제이미지모음" / f"{number:04d}.png")) for number in gojaengi_numbers]

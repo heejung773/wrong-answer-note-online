@@ -31,6 +31,14 @@ type TextbookId =
   | 'olympus-calculus'
   | 'gojaengi-common-math-2';
 
+type OlympusItem = {
+  id: number;
+  unit: string;
+  problemType: string;
+  numbers: string;
+  count: number;
+};
+
 const textbooks: Array<{
   id: TextbookId;
   title: string;
@@ -75,6 +83,22 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? '';
 const loginDomain =
   process.env.NEXT_PUBLIC_LOGIN_EMAIL_DOMAIN ?? 'academy.local';
 
+function countProblemNumbers(raw: string) {
+  let count = 0;
+  for (const token of raw.trim().split(/[\s,]+/)) {
+    if (!token) continue;
+    if (/^\d+$/.test(token)) {
+      count += 1;
+      continue;
+    }
+    const range = token.match(/^(\d+)\s*[-~]\s*(\d+)$/);
+    if (!range) throw new Error(`알 수 없는 문제번호 입력: ${token}`);
+    count += Math.abs(Number(range[2]) - Number(range[1])) + 1;
+  }
+  if (!count) throw new Error('문제번호를 입력하세요.');
+  return count;
+}
+
 export default function Home() {
   const configured = Boolean(supabaseUrl && supabaseKey);
   const supabase = useMemo(
@@ -90,6 +114,7 @@ export default function Home() {
   const [textbook, setTextbook] = useState<TextbookId | null>(null);
   const [olympusUnit, setOlympusUnit] = useState(olympusUnits[0]);
   const [olympusType, setOlympusType] = useState('유형완성하기');
+  const [olympusItems, setOlympusItems] = useState<OlympusItem[]>([]);
   const [status, setStatus] = useState(
     configured ? '로그인이 필요합니다.' : 'Supabase 연결 설정 전입니다.',
   );
@@ -230,6 +255,10 @@ export default function Home() {
       );
       return;
     }
+    if (textbook === 'olympus-calculus' && olympusItems.length === 0) {
+      setStatus('문제번호를 입력한 뒤 목록에 추가해 주세요.');
+      return;
+    }
     setBusy(true);
     setStatus('오답노트를 만드는 중…');
     try {
@@ -246,6 +275,11 @@ export default function Home() {
           numbers,
           olympusUnit,
           olympusType,
+          olympusItems: olympusItems.map(({ unit, problemType, numbers }) => ({
+            unit,
+            problemType,
+            numbers,
+          })),
         }),
       });
       if (!response.ok) {
@@ -268,6 +302,33 @@ export default function Home() {
       );
     } finally {
       setBusy(false);
+    }
+  }
+
+  function addOlympusItem() {
+    try {
+      const count = countProblemNumbers(numbers);
+      const currentCount = olympusItems.reduce(
+        (total, item) => total + item.count,
+        0,
+      );
+      if (currentCount + count > 20) {
+        throw new Error('시험판은 전체 목록에서 최대 20문제까지 추가할 수 있습니다.');
+      }
+      setOlympusItems((items) => [
+        ...items,
+        {
+          id: Date.now(),
+          unit: olympusUnit,
+          problemType: olympusType,
+          numbers: numbers.trim(),
+          count,
+        },
+      ]);
+      setNumbers('');
+      setStatus(`${count}문제를 목록에 추가했습니다.`);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : '문제번호를 확인해 주세요.');
     }
   }
 
@@ -501,7 +562,7 @@ export default function Home() {
                       value={numbers}
                       onChange={(e) => setNumbers(e.target.value)}
                       placeholder="1, 5, 10 또는 1-10"
-                      required
+                      required={textbook !== 'olympus-calculus'}
                       disabled={!sessionToken}
                     />
                     <span className="block text-sm text-muted-foreground">
@@ -510,6 +571,71 @@ export default function Home() {
                         : '쉼표·띄어쓰기·연속 범위를 사용할 수 있습니다. 시험판은 한 번에 최대 20문제입니다.'}
                     </span>
                   </label>
+                  {textbook === 'olympus-calculus' && (
+                    <div className="space-y-3 sm:col-span-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={addOlympusItem}
+                        disabled={busy}
+                      >
+                        목록에 추가
+                      </Button>
+                      <div className="rounded-xl border bg-slate-50 p-4">
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                          <div>
+                            <p className="font-medium">입력한 문제 목록</p>
+                            <p className="text-sm text-slate-500">
+                              총 {olympusItems.reduce((total, item) => total + item.count, 0)} / 20문제
+                            </p>
+                          </div>
+                          {olympusItems.length > 0 && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => {
+                                setOlympusItems([]);
+                                setStatus('입력 목록을 모두 비웠습니다.');
+                              }}
+                            >
+                              전체 비우기
+                            </Button>
+                          )}
+                        </div>
+                        {olympusItems.length === 0 ? (
+                          <p className="rounded-lg bg-white p-3 text-sm text-slate-500">
+                            단원과 문제유형을 선택하고 번호를 목록에 추가하세요.
+                          </p>
+                        ) : (
+                          <ol className="space-y-2">
+                            {olympusItems.map((item, index) => (
+                              <li
+                                key={item.id}
+                                className="flex items-center justify-between gap-3 rounded-lg bg-white p-3 text-sm"
+                              >
+                                <span>
+                                  {index + 1}. {item.unit} · {item.problemType} · {item.numbers}번
+                                  <span className="ml-2 text-slate-500">({item.count}문제)</span>
+                                </span>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() =>
+                                    setOlympusItems((items) =>
+                                      items.filter((entry) => entry.id !== item.id),
+                                    )
+                                  }
+                                >
+                                  삭제
+                                </Button>
+                              </li>
+                            ))}
+                          </ol>
+                        )}
+                      </div>
+                    </div>
+                  )}
                   {!textbooks.find((item) => item.id === textbook)
                     ?.available && (
                     <p className="sm:col-span-2 rounded-xl bg-amber-50 p-4 text-sm leading-6 text-amber-900">

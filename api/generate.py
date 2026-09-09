@@ -451,7 +451,7 @@ def load_olympus_answers(supabase_url: str, secret_key: str, bucket: str) -> dic
     return result
 
 
-def create_olympus_pdf(student: str, grade: str, unit: str, problem_type: str, images: list[tuple[int, bytes]], answers: dict[tuple[int, str, int], str]) -> bytes:
+def create_olympus_pdf(student: str, grade: str, items: list[tuple[str, str, int, bytes]], answers: dict[tuple[int, str, int], str]) -> bytes:
     pdfmetrics.registerFont(UnicodeCIDFont("HYSMyeongJo-Medium"))
     output = BytesIO()
     width, height = A4
@@ -459,20 +459,23 @@ def create_olympus_pdf(student: str, grade: str, unit: str, problem_type: str, i
     draw_cover(c, student, grade, width, height, "olympus-calculus")
     c.showPage()
     side, bottom, gap = 10 * mm, 14 * mm, 5 * mm
-    wide = problem_type == "고난도도전"
-    rows = 4 if wide else 2
-    cell_h = (height - 10 * mm - bottom - gap * (rows - 1)) / rows
+    normal_items = [item for item in items if item[1] != "고난도도전"]
+    wide_items = [item for item in items if item[1] == "고난도도전"]
+    groups = [normal_items[i:i + 4] for i in range(0, len(normal_items), 4)]
+    groups.extend(wide_items[i:i + 4] for i in range(0, len(wide_items), 4))
     normal_w = (width - side * 2 - gap) / 2
-    slots = []
-    for row in range(rows):
-        y = height - 10 * mm - (row + 1) * cell_h - row * gap
-        if wide:
-            slots.append((side, y, width - side * 2, cell_h))
-        else:
-            slots.extend(((side, y, normal_w, cell_h), (side + normal_w + gap, y, normal_w, cell_h)))
-    per_page = 4
-    for page_start in range(0, len(images), per_page):
-        for index, (number, data) in enumerate(images[page_start:page_start + per_page]):
+    for page_index, group in enumerate(groups, start=1):
+        wide = group[0][1] == "고난도도전"
+        rows = 4 if wide else 2
+        cell_h = (height - 10 * mm - bottom - gap * (rows - 1)) / rows
+        slots = []
+        for row in range(rows):
+            y = height - 10 * mm - (row + 1) * cell_h - row * gap
+            if wide:
+                slots.append((side, y, width - side * 2, cell_h))
+            else:
+                slots.extend(((side, y, normal_w, cell_h), (side + normal_w + gap, y, normal_w, cell_h)))
+        for index, (unit, problem_type, number, data) in enumerate(group):
             x, y, box_w, box_h = slots[index]
             c.roundRect(x, y, box_w, box_h, 2 * mm)
             c.setFont("HYSMyeongJo-Medium", 8.5)
@@ -482,16 +485,51 @@ def create_olympus_pdf(student: str, grade: str, unit: str, problem_type: str, i
             scale = min((box_w - 6 * mm) / iw, (box_h - 14 * mm) / ih)
             dw, dh = iw * scale, ih * scale
             c.drawImage(reader, x + (box_w - dw) / 2, y + box_h - 10 * mm - dh, dw, dh, preserveAspectRatio=True)
-        draw_footer(c, page_start // per_page + 1, width)
+        draw_footer(c, page_index, width)
         c.showPage()
-    unit_number = int(unit.split(".", 1)[0])
-    selected = {(number): answers.get((unit_number, problem_type, number)) for number, _ in images}
-    missing = [number for number, answer in selected.items() if not answer]
+    selected = [
+        (unit, problem_type, number, answers.get((int(unit.split(".", 1)[0]), problem_type, number)))
+        for unit, problem_type, number, _ in normal_items + wide_items
+    ]
+    missing = [f"{unit} / {problem_type} / {number}번" for unit, problem_type, number, answer in selected if not answer]
     if missing:
-        raise ValueError("빠른정답에 없는 문제번호입니다: " + ", ".join(map(str, missing)))
-    draw_answer_page(c, [number for number, _ in images], selected, (len(images) + 3) // 4 + 1, width, height, "olympus-calculus")
+        raise ValueError("빠른정답에 없는 문제번호입니다: " + ", ".join(missing))
+    draw_olympus_answer_page(c, selected, len(groups) + 1, width, height)
     c.save()
     return output.getvalue()
+
+
+def draw_olympus_answer_page(c: canvas.Canvas, items: list[tuple[str, str, int, str]], page_number: int, width: float, height: float) -> None:
+    left, right, top = 16 * mm, width - 16 * mm, height - 18 * mm
+    c.setFillColorRGB(0.12, 0.27, 0.48)
+    c.setFont("HYSMyeongJo-Medium", 22)
+    c.drawString(left, top, "빠른 정답")
+    c.setFillColorRGB(0.35, 0.35, 0.35)
+    c.setFont("HYSMyeongJo-Medium", 9)
+    c.drawRightString(right, top + 1 * mm, f"오답 {len(items)}문제")
+    c.setStrokeColorRGB(0.12, 0.27, 0.48)
+    c.setLineWidth(1.2)
+    c.line(left, top - 4 * mm, right, top - 4 * mm)
+    columns = 2
+    rows = (len(items) + 1) // 2
+    area_top, row_height, gap = top - 14 * mm, 11 * mm, 6 * mm
+    column_width = (right - left - gap) / 2
+    short_type = {"유형완성하기": "유형", "서술형완성하기": "서술", "고난도도전": "고난도"}
+    for index, (unit, problem_type, number, answer) in enumerate(items):
+        column, row = index // rows, index % rows
+        x = left + column * (column_width + gap)
+        y = area_top - (row + 1) * row_height
+        c.setFillColorRGB(0.96, 0.97, 0.99) if row % 2 == 0 else c.setFillColorRGB(1, 1, 1)
+        c.rect(x, y, column_width, row_height, stroke=0, fill=1)
+        c.setFillColorRGB(0.18, 0.18, 0.18)
+        c.setFont("HYSMyeongJo-Medium", 9)
+        label = f"{unit.split('.', 1)[0]}단원 {short_type[problem_type]} {number}번"
+        c.drawString(x + 2 * mm, y + 3.5 * mm, label)
+        c.drawRightString(x + column_width - 2 * mm, y + 3.5 * mm, str(answer))
+    c.setFillColorRGB(0.45, 0.45, 0.45)
+    c.setFont("HYSMyeongJo-Medium", 7.5)
+    c.drawString(left, 13.5 * mm, TEXTBOOKS["olympus-calculus"]["answer_source"])
+    draw_footer(c, page_number, width)
 
 
 class handler(BaseHTTPRequestHandler):
@@ -533,16 +571,29 @@ class handler(BaseHTTPRequestHandler):
                 raise ValueError("학생 이름과 학년을 확인해 주세요.")
             if textbook not in TEXTBOOKS:
                 raise ValueError("지원하지 않는 교재입니다.")
-            numbers = parse_numbers(str(payload.get("numbers", "")))
             if textbook == "olympus-calculus":
-                unit = str(payload.get("olympusUnit", ""))
-                problem_type = str(payload.get("olympusType", ""))
-                if unit not in OLYMPUS_UNITS or problem_type not in OLYMPUS_TYPES:
-                    raise ValueError("올림포스 단원과 문제유형을 확인해 주세요.")
-                images = load_olympus_images(supabase_url, secret_key, bucket, unit, problem_type, numbers)
+                raw_items = payload.get("olympusItems")
+                if not isinstance(raw_items, list) or not raw_items:
+                    raise ValueError("올림포스 문제를 목록에 추가해 주세요.")
+                olympus_items = []
+                total = 0
+                for item in raw_items:
+                    if not isinstance(item, dict):
+                        raise ValueError("올림포스 입력 목록을 확인해 주세요.")
+                    unit = str(item.get("unit", ""))
+                    problem_type = str(item.get("problemType", ""))
+                    if unit not in OLYMPUS_UNITS or problem_type not in OLYMPUS_TYPES:
+                        raise ValueError("올림포스 단원과 문제유형을 확인해 주세요.")
+                    numbers = parse_numbers(str(item.get("numbers", "")))
+                    total += len(numbers)
+                    if total > 20:
+                        raise ValueError("시험판은 전체 목록에서 최대 20문제까지 만들 수 있습니다.")
+                    images = load_olympus_images(supabase_url, secret_key, bucket, unit, problem_type, numbers)
+                    olympus_items.extend((unit, problem_type, number, data) for number, data in images)
                 olympus_answers = load_olympus_answers(supabase_url, secret_key, bucket)
-                pdf = create_olympus_pdf(student, grade, unit, problem_type, images, olympus_answers)
+                pdf = create_olympus_pdf(student, grade, olympus_items, olympus_answers)
             else:
+                numbers = parse_numbers(str(payload.get("numbers", "")))
                 images = load_images(supabase_url, secret_key, bucket, textbook, numbers)
                 selected_answers = None
                 if textbook != "gojaengi-common-math-2":
