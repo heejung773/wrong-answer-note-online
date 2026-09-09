@@ -414,6 +414,17 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def do_GET(self):
+        body = json.dumps(
+            {"status": "ok", "textbooks": sorted(TEXTBOOKS)},
+            ensure_ascii=False,
+        ).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def do_POST(self):
         try:
             supabase_url = os.environ["NEXT_PUBLIC_SUPABASE_URL"].rstrip("/")
