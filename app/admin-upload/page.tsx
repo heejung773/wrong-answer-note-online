@@ -1,12 +1,22 @@
 'use client';
 
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ChangeEvent,
+  SyntheticEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? '';
+const loginDomain =
+  process.env.NEXT_PUBLIC_LOGIN_EMAIL_DOMAIN ?? 'academy.local';
 
 type Book = 'common' | 'olympus' | 'gojaengi';
 
@@ -61,19 +71,48 @@ export default function AdminUpload() {
   const [book, setBook] = useState<Book>('common');
   const [status, setStatus] = useState('교재 폴더를 선택하세요.');
   const [busy, setBusy] = useState(false);
+  const [sessionToken, setSessionToken] = useState('');
+  const [loginId, setLoginId] = useState('');
+  const [password, setPassword] = useState('');
 
   useEffect(() => {
     inputRef.current?.setAttribute('webkitdirectory', '');
     inputRef.current?.setAttribute('directory', '');
-  }, []);
+    if (!supabase) return;
+    void supabase.auth
+      .getSession()
+      .then(({ data }) => setSessionToken(data.session?.access_token ?? ''));
+  }, [supabase]);
+
+  async function login(event: SyntheticEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!supabase || !loginId.trim() || !password) return;
+    setBusy(true);
+    setStatus('로그인 확인 중…');
+    const normalized = loginId.trim();
+    const email = normalized.includes('@')
+      ? normalized
+      : `${normalized}@${loginDomain}`;
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error || !data.session) {
+      setStatus('아이디 또는 비밀번호가 틀렸습니다.');
+    } else {
+      setSessionToken(data.session.access_token);
+      setPassword('');
+      setStatus('로그인되었습니다. 교재 폴더를 선택하세요.');
+    }
+    setBusy(false);
+  }
 
   async function upload(event: ChangeEvent<HTMLInputElement>) {
     if (!supabase) {
       setStatus('서버 연결 설정을 확인해 주세요.');
       return;
     }
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) {
+    if (!sessionToken) {
       setStatus('먼저 온라인 오답노트에 로그인해 주세요.');
       return;
     }
@@ -97,7 +136,7 @@ export default function AdminUpload() {
         const response = await fetch('/api/upload_textbook', {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${data.session.access_token}`,
+            Authorization: `Bearer ${sessionToken}`,
             'X-Object-Path': encodeURIComponent(item.path),
           },
           body: item.file,
@@ -125,6 +164,29 @@ export default function AdminUpload() {
           <CardTitle>교재 자료 연결</CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
+          {!sessionToken && (
+            <form
+              className="space-y-3 rounded-xl bg-slate-50 p-4"
+              onSubmit={login}
+            >
+              <Input
+                value={loginId}
+                onChange={(event) => setLoginId(event.target.value)}
+                placeholder="아이디"
+                autoComplete="username"
+              />
+              <Input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="비밀번호"
+                autoComplete="current-password"
+              />
+              <Button type="submit" className="w-full" disabled={busy}>
+                {busy ? '확인 중…' : '로그인'}
+              </Button>
+            </form>
+          )}
           <div className="grid gap-3 sm:grid-cols-3">
             <Button
               type="button"
@@ -156,7 +218,7 @@ export default function AdminUpload() {
             type="file"
             className="block w-full rounded-xl border p-3"
             onChange={upload}
-            disabled={busy}
+            disabled={busy || !sessionToken}
           />
           <p
             className="rounded-xl bg-slate-50 p-4 text-sm leading-6"
