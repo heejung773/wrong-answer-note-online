@@ -47,19 +47,19 @@ const textbooks: Array<{
     id: 'synergy-common-math-2',
     title: '시너지 공통수학2',
     subject: '공통수학2',
-    available: false,
+    available: true,
   },
   {
     id: 'olympus-calculus',
     title: '올림푸스',
     subject: '미적분Ⅰ',
-    available: false,
+    available: true,
   },
   {
     id: 'gojaengi-common-math-2',
     title: '고쟁이',
     subject: '공통수학2',
-    available: false,
+    available: true,
   },
 ];
 
@@ -258,7 +258,7 @@ export default function Home() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${student || '학생'}_${grade}_미적분_오답노트.pdf`;
+      link.download = `${student || '학생'}_${grade}_${selectedTextbook.title}_오답노트.pdf`;
       link.click();
       URL.revokeObjectURL(url);
       setStatus('PDF 다운로드가 시작되었습니다.');

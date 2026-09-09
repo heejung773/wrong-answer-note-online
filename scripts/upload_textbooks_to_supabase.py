@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import json
 import mimetypes
 import os
@@ -15,14 +16,23 @@ MANIFEST = ROOT / "tmp" / "all-textbooks-upload-manifest.json"
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--textbook",
+        choices=("synergy-common-math-2", "olympus-calculus", "gojaengi-common-math-2"),
+    )
+    args = parser.parse_args()
     url = os.environ.get("NEXT_PUBLIC_SUPABASE_URL", "").rstrip("/")
     secret = os.environ.get("SUPABASE_SECRET_KEY", "")
     bucket = os.environ.get("SUPABASE_STORAGE_BUCKET", "textbook-problems")
     if not url or not secret:
         raise SystemExit("NEXT_PUBLIC_SUPABASE_URL과 SUPABASE_SECRET_KEY를 로컬 환경에 설정해야 합니다.")
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-    total = int(manifest["file_count"])
-    for index, item in enumerate(manifest["files"], 1):
+    files = manifest["files"]
+    if args.textbook:
+        files = [item for item in files if str(item["object"]).startswith(args.textbook + "/")]
+    total = len(files)
+    for index, item in enumerate(files, 1):
         source = Path(item["source"])
         object_path = urllib.parse.quote(f"{bucket}/{item['object']}", safe="/")
         request = urllib.request.Request(
