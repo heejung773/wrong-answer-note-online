@@ -25,6 +25,51 @@ import {
 } from '@/components/ui/native-select';
 import { Textarea } from '@/components/ui/textarea';
 
+type TextbookId =
+  | 'synergy-calculus'
+  | 'synergy-common-math-2'
+  | 'olympus-calculus'
+  | 'gojaengi-common-math-2';
+
+const textbooks: Array<{
+  id: TextbookId;
+  title: string;
+  subject: string;
+  available: boolean;
+}> = [
+  {
+    id: 'synergy-calculus',
+    title: '시너지 미적분',
+    subject: '미적분Ⅰ',
+    available: true,
+  },
+  {
+    id: 'synergy-common-math-2',
+    title: '시너지 공통수학2',
+    subject: '공통수학2',
+    available: false,
+  },
+  {
+    id: 'olympus-calculus',
+    title: '올림푸스',
+    subject: '미적분Ⅰ',
+    available: false,
+  },
+  {
+    id: 'gojaengi-common-math-2',
+    title: '고쟁이',
+    subject: '공통수학2',
+    available: false,
+  },
+];
+
+const olympusUnits = [
+  '1. 함수의 극한',
+  '2. 함수의 연속',
+  '3. 미분계수와 도함수',
+  '4. 도함수의 활용',
+];
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? '';
 const loginDomain =
@@ -42,6 +87,9 @@ export default function Home() {
   const [student, setStudent] = useState('');
   const [grade, setGrade] = useState('1학년');
   const [numbers, setNumbers] = useState('1, 2, 3, 4');
+  const [textbook, setTextbook] = useState<TextbookId | null>(null);
+  const [olympusUnit, setOlympusUnit] = useState(olympusUnits[0]);
+  const [olympusType, setOlympusType] = useState('유형완성하기');
   const [status, setStatus] = useState(
     configured ? '로그인이 필요합니다.' : 'Supabase 연결 설정 전입니다.',
   );
@@ -174,7 +222,14 @@ export default function Home() {
 
   async function generate(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!sessionToken) return;
+    if (!sessionToken || !textbook) return;
+    const selectedTextbook = textbooks.find((item) => item.id === textbook);
+    if (!selectedTextbook?.available) {
+      setStatus(
+        `${selectedTextbook?.title ?? '선택한 교재'}는 온라인 문제 자료를 연결한 뒤 사용할 수 있습니다.`,
+      );
+      return;
+    }
     setBusy(true);
     setStatus('오답노트를 만드는 중…');
     try {
@@ -185,10 +240,12 @@ export default function Home() {
           Authorization: `Bearer ${sessionToken}`,
         },
         body: JSON.stringify({
-          textbook: 'synergy-calculus',
+          textbook,
           student,
           grade,
           numbers,
+          olympusUnit,
+          olympusType,
         }),
       });
       if (!response.ok) {
@@ -312,25 +369,73 @@ export default function Home() {
               </CardContent>
             </Card>
           </section>
+        ) : !textbook ? (
+          <section className="mx-auto max-w-4xl">
+            <div className="mb-5">
+              <h2 className="text-2xl font-bold tracking-tight">
+                교재를 선택하세요
+              </h2>
+              <p className="mt-1 text-slate-600">
+                오답노트를 만들 교재를 선택하면 전용 입력 화면이 열립니다.
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {textbooks.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => {
+                    setTextbook(item.id);
+                    setStatus(
+                      item.available
+                        ? '학생 정보와 문제번호를 입력하세요.'
+                        : `${item.title} 전용 입력 화면입니다. 온라인 문제 자료 연결이 필요합니다.`,
+                    );
+                  }}
+                  className="group rounded-2xl border bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-primary hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="grid size-11 place-items-center rounded-xl bg-blue-50 text-primary">
+                      <BookOpen />
+                    </span>
+                    <Badge variant={item.available ? 'secondary' : 'outline'}>
+                      {item.available ? '사용 가능' : '연결 준비'}
+                    </Badge>
+                  </div>
+                  <h3 className="mt-5 text-lg font-bold group-hover:text-primary">
+                    {item.title}
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-500">{item.subject}</p>
+                </button>
+              ))}
+            </div>
+          </section>
         ) : (
           <section className="mx-auto max-w-3xl">
             <Card className="border-0 shadow-lg">
               <CardHeader className="border-b">
-                <CardTitle className="text-xl">오답노트 만들기</CardTitle>
-                <CardDescription>
-                  현재 시험 교재는 시너지 미적분이며, 서버에 올린 문제만 선택할
-                  수 있습니다.
-                </CardDescription>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <CardTitle className="text-xl">
+                      {textbooks.find((item) => item.id === textbook)?.title}{' '}
+                      오답노트
+                    </CardTitle>
+                    <CardDescription className="mt-1">
+                      학생 정보와 틀린 문제를 입력하세요.
+                    </CardDescription>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setTextbook(null)}
+                  >
+                    교재 다시 선택
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <form className="grid gap-5 sm:grid-cols-2" onSubmit={generate}>
-                  <label htmlFor="textbook" className="space-y-2">
-                    <span className="font-medium">교재</span>
-                    <NativeSelect id="textbook" className="w-full" disabled>
-                      <NativeSelectOption>시너지 미적분</NativeSelectOption>
-                    </NativeSelect>
-                  </label>
-                  <label htmlFor="grade" className="space-y-2">
+                  <label htmlFor="grade" className="space-y-2 sm:col-span-2">
                     <span className="font-medium">학년</span>
                     <NativeSelect
                       id="grade"
@@ -344,6 +449,40 @@ export default function Home() {
                       <NativeSelectOption>3학년</NativeSelectOption>
                     </NativeSelect>
                   </label>
+                  {textbook === 'olympus-calculus' && (
+                    <>
+                      <label htmlFor="olympus-unit" className="space-y-2">
+                        <span className="font-medium">단원</span>
+                        <NativeSelect
+                          id="olympus-unit"
+                          className="w-full"
+                          value={olympusUnit}
+                          onChange={(e) => setOlympusUnit(e.target.value)}
+                        >
+                          {olympusUnits.map((unit) => (
+                            <NativeSelectOption key={unit}>
+                              {unit}
+                            </NativeSelectOption>
+                          ))}
+                        </NativeSelect>
+                      </label>
+                      <label htmlFor="olympus-type" className="space-y-2">
+                        <span className="font-medium">문제유형</span>
+                        <NativeSelect
+                          id="olympus-type"
+                          className="w-full"
+                          value={olympusType}
+                          onChange={(e) => setOlympusType(e.target.value)}
+                        >
+                          <NativeSelectOption>유형완성하기</NativeSelectOption>
+                          <NativeSelectOption>
+                            서술형완성하기
+                          </NativeSelectOption>
+                          <NativeSelectOption>고난도도전</NativeSelectOption>
+                        </NativeSelect>
+                      </label>
+                    </>
+                  )}
                   <label htmlFor="student" className="space-y-2 sm:col-span-2">
                     <span className="font-medium">학생 이름</span>
                     <Input
@@ -366,10 +505,19 @@ export default function Home() {
                       disabled={!sessionToken}
                     />
                     <span className="block text-sm text-muted-foreground">
-                      쉼표·띄어쓰기·연속 범위를 사용할 수 있습니다. 시험판은 한
-                      번에 최대 20문제입니다.
+                      {textbook === 'olympus-calculus'
+                        ? '선택한 단원과 문제유형 안에서 표시된 번호를 입력하세요.'
+                        : '쉼표·띄어쓰기·연속 범위를 사용할 수 있습니다. 시험판은 한 번에 최대 20문제입니다.'}
                     </span>
                   </label>
+                  {!textbooks.find((item) => item.id === textbook)
+                    ?.available && (
+                    <p className="sm:col-span-2 rounded-xl bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+                      전용 입력 화면은 준비되었습니다. 실제 PDF 생성은 이 교재의
+                      문제 이미지와 빠른정답을 온라인 저장소에 연결한 뒤 사용할
+                      수 있습니다.
+                    </p>
+                  )}
                   <div className="sm:col-span-2 flex flex-col gap-3 rounded-xl bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
                     <p
                       aria-live="polite"
@@ -381,7 +529,12 @@ export default function Home() {
                     <Button
                       type="submit"
                       className="h-11 px-5"
-                      disabled={!sessionToken || busy}
+                      disabled={
+                        !sessionToken ||
+                        busy ||
+                        !textbooks.find((item) => item.id === textbook)
+                          ?.available
+                      }
                     >
                       <FileDown /> {busy ? '만드는 중…' : 'PDF 만들기'}
                     </Button>
