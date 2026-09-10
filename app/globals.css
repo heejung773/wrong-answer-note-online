@@ -65,6 +65,9 @@ select {
 .department-stage {
   padding: 1rem 0 5rem;
 }
+.textbook-stage {
+  padding: 0 0 3rem;
+}
 .selection-intro {
   margin-bottom: 3rem;
 }
@@ -87,9 +90,6 @@ select {
   color: #c9b9a7;
   font-size: clamp(1rem, 2vw, 1.25rem);
   line-height: 1.55;
-}
-.selection-stage > .textbook-list {
-  margin-top: 0;
 }
 .selection-grid {
   display: grid;
@@ -202,7 +202,7 @@ select {
   align-items: center;
   gap: 1.25rem;
   border-bottom: 1px dashed #40372e;
-  padding: 1.5rem 0.25rem;
+  padding: 1rem 0.25rem;
   color: #ffedd7;
   text-align: left;
   transition:
@@ -243,6 +243,9 @@ select {
 @media (min-width: 640px) {
   .selection-stage {
     padding-top: 5rem;
+  }
+  .textbook-stage {
+    padding-top: 0.5rem;
   }
   .selection-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -543,8 +543,8 @@ export default function Home() {
             </Card>
           </section>
         ) : !textbook ? (
-          <section className="selection-stage mx-auto max-w-5xl">
-            <div className="mb-5 flex flex-col gap-5 border-b border-dashed border-[#40372e] pb-5 sm:flex-row sm:items-center sm:justify-between">
+          <section className="textbook-stage mx-auto max-w-5xl">
+            <div className="mb-3 flex flex-col gap-3 border-b border-dashed border-[#40372e] pb-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="selection-kicker">02 / HIGH SCHOOL</p>
                 <p className="selection-copy mt-3">
