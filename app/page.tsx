@@ -49,40 +49,30 @@ const textbooks: Array<{
   title: string;
   subject: string;
   available: boolean;
-  cardClass: string;
-  iconClass: string;
 }> = [
   {
     id: 'synergy-calculus',
     title: '시너지 미적분',
     subject: '미적분Ⅰ',
     available: true,
-    cardClass: 'border-indigo-200 bg-indigo-50 hover:border-indigo-500',
-    iconClass: 'bg-indigo-600 text-white',
   },
   {
     id: 'synergy-common-math-2',
     title: '시너지 공통수학2',
     subject: '공통수학2',
     available: true,
-    cardClass: 'border-emerald-200 bg-emerald-50 hover:border-emerald-500',
-    iconClass: 'bg-emerald-600 text-white',
   },
   {
     id: 'olympus-calculus',
     title: '올림푸스',
     subject: '미적분Ⅰ',
     available: true,
-    cardClass: 'border-amber-200 bg-amber-50 hover:border-amber-500',
-    iconClass: 'bg-amber-500 text-white',
   },
   {
     id: 'gojaengi-common-math-2',
     title: '고쟁이',
     subject: '공통수학2',
     available: true,
-    cardClass: 'border-rose-200 bg-rose-50 hover:border-rose-500',
-    iconClass: 'bg-rose-600 text-white',
   },
 ];
 
@@ -317,7 +307,9 @@ export default function Home() {
         const link = document.createElement('a');
         link.href = `${result.downloadUrl}${separator}download=${encodeURIComponent(filename)}`;
         link.click();
-        setStatus('큰 PDF 다운로드가 시작되었습니다. 다운로드 주소는 30분 동안 유효합니다.');
+        setStatus(
+          '큰 PDF 다운로드가 시작되었습니다. 다운로드 주소는 30분 동안 유효합니다.',
+        );
         return;
       }
       const blob = await response.blob();
@@ -360,14 +352,26 @@ export default function Home() {
       setNumbers('');
       setStatus(`${count}문제를 목록에 추가했습니다.`);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : '문제번호를 확인해 주세요.');
+      setStatus(
+        error instanceof Error ? error.message : '문제번호를 확인해 주세요.',
+      );
     }
   }
 
   return (
-    <main className="min-h-screen px-4 py-5 sm:px-7 sm:py-7">
+    <main
+      className={`min-h-screen px-4 py-5 sm:px-7 sm:py-7 ${
+        sessionToken && !textbook ? 'selection-canvas' : ''
+      }`}
+    >
       <div className="mx-auto max-w-6xl">
-        <header className="mb-6 flex items-center justify-between rounded-2xl border bg-white/90 px-5 py-4 shadow-sm">
+        <header
+          className={`mb-6 flex items-center justify-between px-5 py-4 ${
+            sessionToken && !textbook
+              ? 'border-b border-dashed border-[#40372e] bg-transparent text-[#ffedd7]'
+              : 'rounded-2xl border bg-white/90 shadow-sm'
+          }`}
+        >
           <div className="flex items-center gap-3">
             <Image
               src="/dasan-mirae-logo.png"
@@ -379,7 +383,7 @@ export default function Home() {
             />
             <div>
               <p
-                className={`text-sm font-semibold ${sessionToken ? 'text-[#681c32]' : 'text-primary'}`}
+                className={`text-sm font-semibold ${sessionToken && !textbook ? 'text-[#dc5000]' : sessionToken ? 'text-[#681c32]' : 'text-primary'}`}
               >
                 다산미래학원
               </p>
@@ -394,6 +398,7 @@ export default function Home() {
               variant="outline"
               onClick={logout}
               disabled={busy}
+              className={!textbook ? 'ghost-pill' : undefined}
             >
               <LogOut /> 로그아웃
             </Button>
@@ -472,16 +477,20 @@ export default function Home() {
             </Card>
           </section>
         ) : !department ? (
-          <section className="mx-auto max-w-4xl">
-            <div className="mb-5 text-center sm:text-left">
-              <h2 className="text-2xl font-bold tracking-tight">
-                학원부를 선택하세요
+          <section className="selection-stage mx-auto max-w-5xl">
+            <div className="selection-intro">
+              <p className="selection-kicker">01 / COURSE</p>
+              <h2 className="selection-title">
+                학원부를
+                <br />
+                선택하세요.
               </h2>
-              <p className="mt-1 text-slate-600">
-                오답노트를 만들 학생의 학원부를 선택해 주세요.
+              <p className="selection-copy">
+                학생의 교재와 학습 단계에 맞는
+                <br className="hidden sm:block" /> 오답노트를 준비합니다.
               </p>
             </div>
-            <div className="grid gap-5 sm:grid-cols-2">
+            <div className="selection-grid">
               <button
                 type="button"
                 onClick={() => {
@@ -489,18 +498,17 @@ export default function Home() {
                   setTextbook(null);
                   setStatus('중등부 교재는 준비 중입니다.');
                 }}
-                className="group rounded-3xl border border-teal-200 bg-gradient-to-br from-teal-50 to-cyan-100 p-7 text-left shadow-sm transition hover:-translate-y-1 hover:border-teal-500 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600"
+                className="editorial-choice group"
               >
-                <span className="grid size-14 place-items-center rounded-2xl bg-teal-600 text-white shadow-sm">
-                  <School className="size-7" />
-                </span>
-                <h3 className="mt-7 text-2xl font-extrabold text-teal-950">
-                  중등부
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-teal-800">
-                  중학교 교재 오답노트
-                </p>
-                <Badge className="mt-6 bg-white/80 text-teal-800">교재 준비 중</Badge>
+                <span className="choice-index">01</span>
+                <School className="choice-icon" />
+                <div className="choice-footer">
+                  <div>
+                    <h3>중등부</h3>
+                    <p>MIDDLE SCHOOL</p>
+                  </div>
+                  <span className="choice-status">준비 중</span>
+                </div>
               </button>
               <button
                 type="button"
@@ -509,18 +517,17 @@ export default function Home() {
                   setTextbook(null);
                   setStatus('고등부 교재를 선택해 주세요.');
                 }}
-                className="group rounded-3xl border border-rose-200 bg-gradient-to-br from-rose-50 to-rose-100 p-7 text-left shadow-sm transition hover:-translate-y-1 hover:border-[#681c32] hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#681c32]"
+                className="editorial-choice group"
               >
-                <span className="grid size-14 place-items-center rounded-2xl bg-[#681c32] text-white shadow-sm">
-                  <GraduationCap className="size-7" />
-                </span>
-                <h3 className="mt-7 text-2xl font-extrabold text-[#4d1426]">
-                  고등부
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-[#7a2941]">
-                  고등학교 교재 오답노트
-                </p>
-                <Badge className="mt-6 bg-white/80 text-[#681c32]">4개 교재</Badge>
+                <span className="choice-index">02</span>
+                <GraduationCap className="choice-icon" />
+                <div className="choice-footer">
+                  <div>
+                    <h3>고등부</h3>
+                    <p>HIGH SCHOOL</p>
+                  </div>
+                  <span className="choice-status">4 BOOKS</span>
+                </div>
               </button>
             </div>
           </section>
@@ -548,27 +555,29 @@ export default function Home() {
             </Card>
           </section>
         ) : !textbook ? (
-          <section className="mx-auto max-w-4xl">
-            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <section className="selection-stage mx-auto max-w-5xl">
+            <div className="mb-10 flex flex-col gap-6 border-b border-dashed border-[#40372e] pb-8 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-sm font-semibold text-[#681c32]">고등부</p>
-                <h2 className="text-2xl font-bold tracking-tight">
-                  교재를 선택하세요
+                <p className="selection-kicker">02 / HIGH SCHOOL</p>
+                <h2 className="selection-title mt-4">
+                  교재를
+                  <br />
+                  선택하세요.
                 </h2>
-                <p className="mt-1 text-slate-600">
+                <p className="selection-copy mt-5">
                   오답노트를 만들 교재를 선택하면 전용 입력 화면이 열립니다.
                 </p>
               </div>
-              <Button
+              <button
                 type="button"
-                variant="outline"
                 onClick={() => setDepartment(null)}
+                className="ghost-pill"
               >
                 학원부 다시 선택
-              </Button>
+              </button>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {textbooks.map((item) => (
+            <div className="textbook-list">
+              {textbooks.map((item, index) => (
                 <button
                   key={item.id}
                   type="button"
@@ -580,22 +589,19 @@ export default function Home() {
                         : `${item.title} 전용 입력 화면입니다. 온라인 문제 자료 연결이 필요합니다.`,
                     );
                   }}
-                  className={`group rounded-2xl border p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${item.cardClass}`}
+                  className="textbook-row group"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <span
-                      className={`grid size-11 place-items-center rounded-xl ${item.iconClass}`}
-                    >
-                      <BookOpen />
-                    </span>
-                    <Badge variant={item.available ? 'secondary' : 'outline'}>
-                      {item.available ? '사용 가능' : '연결 준비'}
-                    </Badge>
+                  <span className="textbook-index">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <BookOpen className="textbook-icon" />
+                  <div className="min-w-0 flex-1">
+                    <h3>{item.title}</h3>
+                    <p>{item.subject}</p>
                   </div>
-                  <h3 className="mt-5 text-lg font-bold group-hover:text-primary">
-                    {item.title}
-                  </h3>
-                  <p className="mt-1 text-sm text-slate-500">{item.subject}</p>
+                  <span className="textbook-action">
+                    {item.available ? '선택 →' : '준비 중'}
+                  </span>
                 </button>
               ))}
             </div>
@@ -716,7 +722,12 @@ export default function Home() {
                           <div>
                             <p className="font-medium">입력한 문제 목록</p>
                             <p className="text-sm text-slate-500">
-                              총 {olympusItems.reduce((total, item) => total + item.count, 0)} / 100문제
+                              총{' '}
+                              {olympusItems.reduce(
+                                (total, item) => total + item.count,
+                                0,
+                              )}{' '}
+                              / 100문제
                             </p>
                           </div>
                           {olympusItems.length > 0 && (
@@ -744,15 +755,20 @@ export default function Home() {
                                 className="flex items-center justify-between gap-3 rounded-lg bg-white p-3 text-sm"
                               >
                                 <span>
-                                  {index + 1}. {item.unit} · {item.problemType} · {item.numbers}번
-                                  <span className="ml-2 text-slate-500">({item.count}문제)</span>
+                                  {index + 1}. {item.unit} · {item.problemType}{' '}
+                                  · {item.numbers}번
+                                  <span className="ml-2 text-slate-500">
+                                    ({item.count}문제)
+                                  </span>
                                 </span>
                                 <Button
                                   type="button"
                                   variant="outline"
                                   onClick={() =>
                                     setOlympusItems((items) =>
-                                      items.filter((entry) => entry.id !== item.id),
+                                      items.filter(
+                                        (entry) => entry.id !== item.id,
+                                      ),
                                     )
                                   }
                                 >
