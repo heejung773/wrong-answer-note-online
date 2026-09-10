@@ -62,6 +62,9 @@ select {
 .selection-stage {
   padding: 3rem 0 5rem;
 }
+.department-stage {
+  padding: 1rem 0 5rem;
+}
 .selection-intro {
   margin-bottom: 3rem;
 }
@@ -84,6 +87,9 @@ select {
   color: #c9b9a7;
   font-size: clamp(1rem, 2vw, 1.25rem);
   line-height: 1.55;
+}
+.selection-stage > .textbook-list {
+  margin-top: 0;
 }
 .selection-grid {
   display: grid;
@@ -131,6 +137,14 @@ select {
   color: #ffedd7;
   transform: translate(-50%, -60%);
 }
+.editorial-choice-middle .choice-icon,
+.editorial-choice-middle .choice-footer h3 {
+  color: #45c6aa;
+}
+.editorial-choice-high .choice-icon,
+.editorial-choice-high .choice-footer h3 {
+  color: #e66b42;
+}
 .choice-footer {
   position: absolute;
   right: 1.5rem;
@@ -144,8 +158,9 @@ select {
   padding-top: 1.25rem;
 }
 .choice-footer h3 {
-  font-size: 1.75rem;
-  font-weight: 500;
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  font-weight: 600;
+  line-height: 1;
 }
 .choice-footer p,
 .choice-status {

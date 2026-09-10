@@ -477,19 +477,7 @@ export default function Home() {
             </Card>
           </section>
         ) : !department ? (
-          <section className="selection-stage mx-auto max-w-5xl">
-            <div className="selection-intro">
-              <p className="selection-kicker">01 / COURSE</p>
-              <h2 className="selection-title">
-                학원부를
-                <br />
-                선택하세요.
-              </h2>
-              <p className="selection-copy">
-                학생의 교재와 학습 단계에 맞는
-                <br className="hidden sm:block" /> 오답노트를 준비합니다.
-              </p>
-            </div>
+          <section className="department-stage mx-auto max-w-5xl">
             <div className="selection-grid">
               <button
                 type="button"
@@ -498,7 +486,7 @@ export default function Home() {
                   setTextbook(null);
                   setStatus('중등부 교재는 준비 중입니다.');
                 }}
-                className="editorial-choice group"
+                className="editorial-choice editorial-choice-middle group"
               >
                 <span className="choice-index">01</span>
                 <School className="choice-icon" />
@@ -517,7 +505,7 @@ export default function Home() {
                   setTextbook(null);
                   setStatus('고등부 교재를 선택해 주세요.');
                 }}
-                className="editorial-choice group"
+                className="editorial-choice editorial-choice-high group"
               >
                 <span className="choice-index">02</span>
                 <GraduationCap className="choice-icon" />
@@ -549,22 +537,17 @@ export default function Home() {
                   variant="outline"
                   onClick={() => setDepartment(null)}
                 >
-                  학원부 다시 선택
+                  첫 화면으로
                 </Button>
               </CardContent>
             </Card>
           </section>
         ) : !textbook ? (
           <section className="selection-stage mx-auto max-w-5xl">
-            <div className="mb-10 flex flex-col gap-6 border-b border-dashed border-[#40372e] pb-8 sm:flex-row sm:items-end sm:justify-between">
+            <div className="mb-5 flex flex-col gap-5 border-b border-dashed border-[#40372e] pb-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="selection-kicker">02 / HIGH SCHOOL</p>
-                <h2 className="selection-title mt-4">
-                  교재를
-                  <br />
-                  선택하세요.
-                </h2>
-                <p className="selection-copy mt-5">
+                <p className="selection-copy mt-3">
                   오답노트를 만들 교재를 선택하면 전용 입력 화면이 열립니다.
                 </p>
               </div>
@@ -573,7 +556,7 @@ export default function Home() {
                 onClick={() => setDepartment(null)}
                 className="ghost-pill"
               >
-                학원부 다시 선택
+                첫 화면으로
               </button>
             </div>
             <div className="textbook-list">
