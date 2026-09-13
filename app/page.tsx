@@ -164,78 +164,88 @@ const blacklabelStructure: Record<string, { chapter: string; stages: string[] }>
   },
 };
 
-const conceptStructure: Record<string, { chapter: string; stages: string[] }> = {
-  '01_이등변삼각형의_성질': {
-    chapter: '01_삼각형의_성질',
-    stages: ['01_개념익히기', '02_핵심유형'],
+const conceptHierarchy: Record<string, Record<string, string[]>> = {
+  '01_삼각형의_성질': {
+    '01_이등변삼각형의_성질': ['01_개념익히기', '02_핵심유형'],
+    '02_직각삼각형의_합동_조건': ['01_개념익히기', '02_핵심유형'],
+    '03_삼각형의_외심과_내심': [
+      '01_개념익히기_1',
+      '01_개념익히기_2',
+      '02_핵심유형_1',
+      '02_핵심유형_2',
+      '03_실력UP문제',
+      '04_실전테스트',
+    ],
   },
-  '02_직각삼각형의_합동_조건': {
-    chapter: '01_삼각형의_성질',
-    stages: ['01_개념익히기', '02_핵심유형'],
+  '02_사각형의_성질': {
+    '01_평행사변형': [
+      '01_개념익히기_1',
+      '01_개념익히기_2',
+      '02_핵심유형_1',
+      '02_핵심유형_2',
+    ],
+    '02_여러가지_사각형': [
+      '01_개념익히기_1',
+      '01_개념익히기_2',
+      '02_핵심유형_1',
+      '02_핵심유형_2',
+    ],
+    '03_평행선과_넓이': [
+      '01_개념익히기',
+      '02_핵심유형',
+      '03_실력UP문제',
+      '04_실전테스트',
+    ],
   },
-  '03_삼각형의_외심과_내심': {
-    chapter: '01_삼각형의_성질',
-    stages: ['01_개념익히기_1', '01_개념익히기_2', '02_핵심유형_1', '02_핵심유형_2', '03_실력UP문제', '04_실전테스트'],
+  '03_도형의_닮음': {
+    '01_닮음도형': ['01_개념익히기', '02_핵심유형'],
+    '02_삼각형의_닮음조건': [
+      '01_개념익히기',
+      '02_핵심유형',
+      '03_실력UP문제',
+      '04_실전테스트',
+    ],
   },
-  '01_평행사변형': {
-    chapter: '02_사각형의_성질',
-    stages: ['01_개념익히기_1', '01_개념익히기_2', '02_핵심유형_1', '02_핵심유형_2'],
+  '04_평행선_사이의_선분의_길이의_비': {
+    '01_삼각형과_평행선': ['01_개념익히기', '02_핵심유형'],
+    '02_삼각형의_두_변의_중점을_이은_선분의_성질': [
+      '01_개념익히기',
+      '02_핵심유형',
+    ],
+    '03_평행선_사이의_선분의_길이의_비': ['01_개념익히기', '02_핵심유형'],
+    '04_삼각형의_무게중심': [
+      '01_개념익히기',
+      '02_핵심유형',
+      '03_실력UP문제',
+      '04_실전테스트',
+    ],
   },
-  '02_여러가지_사각형': {
-    chapter: '02_사각형의_성질',
-    stages: ['01_개념익히기_1', '01_개념익히기_2', '02_핵심유형_1', '02_핵심유형_2'],
+  '05_피타고라스_정리': {
+    '01_피타고라스_정리': ['01_개념익히기', '02_핵심유형'],
+    '02_피타고라스_정리의_활용': [
+      '01_개념익히기',
+      '02_핵심유형',
+      '03_실력UP문제',
+      '04_실전테스트',
+    ],
   },
-  '03_평행선과_넓이': {
-    chapter: '02_사각형의_성질',
-    stages: ['01_개념익히기', '02_핵심유형', '03_실력UP문제', '04_실전테스트'],
+  '06_경우의_수': {
+    '01_경우의_수': ['01_개념익히기', '02_핵심유형'],
+    '02_여러가지_경우의_수': [
+      '01_개념익히기',
+      '02_핵심유형',
+      '03_실력UP문제',
+      '04_실전테스트',
+    ],
   },
-  '01_닮음도형': {
-    chapter: '03_도형의_닮음',
-    stages: ['01_개념익히기', '02_핵심유형'],
-  },
-  '02_삼각형의_닮음조건': {
-    chapter: '03_도형의_닮음',
-    stages: ['01_개념익히기', '02_핵심유형', '03_실력UP문제', '04_실전테스트'],
-  },
-  '01_삼각형과_평행선': {
-    chapter: '04_평행선_사이의_선분의_길이의_비',
-    stages: ['01_개념익히기', '02_핵심유형'],
-  },
-  '02_삼각형의_두_변의_중점을_이은_선분의_성질': {
-    chapter: '04_평행선_사이의_선분의_길이의_비',
-    stages: ['01_개념익히기', '02_핵심유형'],
-  },
-  '03_평행선_사이의_선분의_길이의_비': {
-    chapter: '04_평행선_사이의_선분의_길이의_비',
-    stages: ['01_개념익히기', '02_핵심유형'],
-  },
-  '04_삼각형의_무게중심': {
-    chapter: '04_평행선_사이의_선분의_길이의_비',
-    stages: ['01_개념익히기', '02_핵심유형', '03_실력UP문제', '04_실전테스트'],
-  },
-  '01_피타고라스_정리': {
-    chapter: '05_피타고라스_정리',
-    stages: ['01_개념익히기', '02_핵심유형'],
-  },
-  '02_피타고라스_정리의_활용': {
-    chapter: '05_피타고라스_정리',
-    stages: ['01_개념익히기', '02_핵심유형', '03_실력UP문제', '04_실전테스트'],
-  },
-  '01_경우의_수': {
-    chapter: '06_경우의_수',
-    stages: ['01_개념익히기', '02_핵심유형'],
-  },
-  '02_여러가지_경우의_수': {
-    chapter: '06_경우의_수',
-    stages: ['01_개념익히기', '02_핵심유형', '03_실력UP문제', '04_실전테스트'],
-  },
-  '01_확률의_뜻과_성질': {
-    chapter: '07_확률',
-    stages: ['01_개념익히기', '02_핵심유형'],
-  },
-  '02_확률의_계산': {
-    chapter: '07_확률',
-    stages: ['01_개념익히기', '02_핵심유형', '03_실력UP문제', '04_실전테스트'],
+  '07_확률': {
+    '01_확률의_뜻과_성질': ['01_개념익히기', '02_핵심유형'],
+    '02_확률의_계산': [
+      '01_개념익히기',
+      '02_핵심유형',
+      '03_실력UP문제',
+      '04_실전테스트',
+    ],
   },
 };
 
@@ -306,6 +316,7 @@ export default function Home() {
   const [blacklabelSubunit, setBlacklabelSubunit] = useState('01 삼각형의 성질');
   const [blacklabelStage, setBlacklabelStage] = useState('시험에 꼭 나오는 문제');
   const [blacklabelItems, setBlacklabelItems] = useState<BlacklabelItem[]>([]);
+  const [conceptChapter, setConceptChapter] = useState('01_삼각형의_성질');
   const [conceptSubunit, setConceptSubunit] = useState('01_이등변삼각형의_성질');
   const [conceptStage, setConceptStage] = useState('01_개념익히기');
   const [conceptItems, setConceptItems] = useState<ConceptItem[]>([]);
@@ -612,13 +623,11 @@ export default function Home() {
       if (currentCount + count > 100) {
         throw new Error('전체 목록에서 최대 100문제까지 추가할 수 있습니다.');
       }
-      const struct = conceptStructure[conceptSubunit];
-      const chapter = struct ? struct.chapter : '01_삼각형의_성질';
       setConceptItems((items) => [
         ...items,
         {
           id: Date.now(),
-          chapter,
+          chapter: conceptChapter,
           subunit: conceptSubunit,
           stage: conceptStage,
           numbers: numbers.trim(),
@@ -875,7 +884,18 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <form className="grid gap-5 sm:grid-cols-2" onSubmit={generate}>
-                  <label htmlFor="grade" className="space-y-2 sm:col-span-2">
+                  <label htmlFor="student" className="space-y-2">
+                    <span className="font-medium">학생 이름</span>
+                    <Input
+                      id="student"
+                      value={student}
+                      onChange={(e) => setStudent(e.target.value)}
+                      placeholder="홍길동"
+                      required
+                      disabled={!sessionToken}
+                    />
+                  </label>
+                  <label htmlFor="grade" className="space-y-2">
                     <span className="font-medium">학년</span>
                     <NativeSelect
                       id="grade"
@@ -963,6 +983,29 @@ export default function Home() {
                   )}
                   {textbook === 'concept-middle-2-2' && (
                     <>
+                      <label htmlFor="concept-chapter" className="space-y-2">
+                        <span className="font-medium">대단원</span>
+                        <NativeSelect
+                          id="concept-chapter"
+                          className="w-full"
+                          value={conceptChapter}
+                          onChange={(e) => {
+                            const newCh = e.target.value;
+                            setConceptChapter(newCh);
+                            const subs = Object.keys(conceptHierarchy[newCh] || {});
+                            const firstSub = subs[0] || '';
+                            setConceptSubunit(firstSub);
+                            const stages = conceptHierarchy[newCh]?.[firstSub] || [];
+                            setConceptStage(stages[0] || '');
+                          }}
+                        >
+                          {Object.keys(conceptHierarchy).map((ch) => (
+                            <NativeSelectOption key={ch} value={ch}>
+                              {ch.replace(/_/g, ' ')}
+                            </NativeSelectOption>
+                          ))}
+                        </NativeSelect>
+                      </label>
                       <label htmlFor="concept-subunit" className="space-y-2">
                         <span className="font-medium">소단원</span>
                         <NativeSelect
@@ -970,27 +1013,28 @@ export default function Home() {
                           className="w-full"
                           value={conceptSubunit}
                           onChange={(e) => {
-                            const val = e.target.value;
-                            setConceptSubunit(val);
-                            setConceptStage(conceptStructure[val].stages[0]);
+                            const newSub = e.target.value;
+                            setConceptSubunit(newSub);
+                            const stages = conceptHierarchy[conceptChapter]?.[newSub] || [];
+                            setConceptStage(stages[0] || '');
                           }}
                         >
-                          {Object.keys(conceptStructure).map((sub) => (
+                          {Object.keys(conceptHierarchy[conceptChapter] || {}).map((sub) => (
                             <NativeSelectOption key={sub} value={sub}>
                               {sub.replace(/_/g, ' ')}
                             </NativeSelectOption>
                           ))}
                         </NativeSelect>
                       </label>
-                      <label htmlFor="concept-stage" className="space-y-2">
-                        <span className="font-medium">단계</span>
+                      <label htmlFor="concept-stage" className="space-y-2 sm:col-span-2">
+                        <span className="font-medium">단계(유형)</span>
                         <NativeSelect
                           id="concept-stage"
                           className="w-full"
                           value={conceptStage}
                           onChange={(e) => setConceptStage(e.target.value)}
                         >
-                          {conceptStructure[conceptSubunit]?.stages.map((stg) => (
+                          {(conceptHierarchy[conceptChapter]?.[conceptSubunit] || []).map((stg) => (
                             <NativeSelectOption key={stg} value={stg}>
                               {stg.replace(/_/g, ' ')}
                             </NativeSelectOption>
@@ -999,17 +1043,6 @@ export default function Home() {
                       </label>
                     </>
                   )}
-                  <label htmlFor="student" className="space-y-2 sm:col-span-2">
-                    <span className="font-medium">학생 이름</span>
-                    <Input
-                      id="student"
-                      value={student}
-                      onChange={(e) => setStudent(e.target.value)}
-                      placeholder="홍길동"
-                      required
-                      disabled={!sessionToken}
-                    />
-                  </label>
                   <label htmlFor="numbers" className="space-y-2 sm:col-span-2">
                     <span className="font-medium">문제번호</span>
                     <Textarea
@@ -1220,7 +1253,7 @@ export default function Home() {
                         </div>
                         {conceptItems.length === 0 ? (
                           <p className="rounded-lg bg-white p-3 text-sm text-slate-500">
-                            소단원과 단계를 선택하고 번호를 목록에 추가하세요.
+                            대단원, 소단원, 단계를 선택하고 번호를 목록에 추가하세요.
                           </p>
                         ) : (
                           <ol className="space-y-2">
@@ -1230,7 +1263,7 @@ export default function Home() {
                                 className="flex items-center justify-between gap-3 rounded-lg bg-white p-3 text-sm"
                               >
                                 <span>
-                                  {index + 1}. [{item.subunit.replace(/_/g, ' ')}] {item.stage.replace(/_/g, ' ')} · {item.numbers}번
+                                  {index + 1}. [{item.chapter.replace(/_/g, ' ')} &gt; {item.subunit.replace(/_/g, ' ')}] {item.stage.replace(/_/g, ' ')} · {item.numbers}번
                                   <span className="ml-2 text-slate-500">
                                     ({item.count}문제)
                                   </span>
