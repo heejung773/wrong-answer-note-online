@@ -19,15 +19,28 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--textbook",
-        choices=("synergy-common-math-2", "olympus-calculus", "gojaengi-common-math-2"),
+        choices=(
+            "synergy-common-math-2",
+            "olympus-calculus",
+            "gojaengi-common-math-2",
+            "ssen-middle-2-2",
+            "blacklabel-middle-2-2",
+            "concept-middle-2-2",
+        ),
     )
+    parser.add_argument("--manifest", type=Path, help="사용할 매니페스트 파일 경로")
     args = parser.parse_args()
     url = os.environ.get("NEXT_PUBLIC_SUPABASE_URL", "").rstrip("/")
     secret = os.environ.get("SUPABASE_SECRET_KEY", "")
     bucket = os.environ.get("SUPABASE_STORAGE_BUCKET", "textbook-problems")
     if not url or not secret:
         raise SystemExit("NEXT_PUBLIC_SUPABASE_URL과 SUPABASE_SECRET_KEY를 로컬 환경에 설정해야 합니다.")
-    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    manifest_path = args.manifest or (
+        ROOT / "tmp" / f"{args.textbook}-upload-manifest.json"
+        if args.textbook and (ROOT / "tmp" / f"{args.textbook}-upload-manifest.json").is_file()
+        else MANIFEST
+    )
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     files = manifest["files"]
     if args.textbook:
         files = [item for item in files if str(item["object"]).startswith(args.textbook + "/")]

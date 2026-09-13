@@ -32,7 +32,10 @@ type TextbookId =
   | 'synergy-calculus'
   | 'synergy-common-math-2'
   | 'olympus-calculus'
-  | 'gojaengi-common-math-2';
+  | 'gojaengi-common-math-2'
+  | 'ssen-middle-2-2'
+  | 'blacklabel-middle-2-2'
+  | 'concept-middle-2-2';
 
 type Department = 'middle' | 'high';
 
@@ -44,37 +47,197 @@ type OlympusItem = {
   count: number;
 };
 
-const textbooks: Array<{
+type TextbookItem = {
   id: TextbookId;
   title: string;
   subject: string;
   available: boolean;
-}> = [
+  department: Department;
+};
+
+const textbooks: TextbookItem[] = [
   {
     id: 'synergy-calculus',
     title: '시너지 미적분',
     subject: '미적분Ⅰ',
     available: true,
+    department: 'high',
   },
   {
     id: 'synergy-common-math-2',
     title: '시너지 공통수학2',
     subject: '공통수학2',
     available: true,
+    department: 'high',
   },
   {
     id: 'olympus-calculus',
     title: '올림푸스',
     subject: '미적분Ⅰ',
     available: true,
+    department: 'high',
   },
   {
     id: 'gojaengi-common-math-2',
     title: '고쟁이',
     subject: '공통수학2',
     available: true,
+    department: 'high',
+  },
+  {
+    id: 'ssen-middle-2-2',
+    title: '쎈수학',
+    subject: '중2-2',
+    available: true,
+    department: 'middle',
+  },
+  {
+    id: 'blacklabel-middle-2-2',
+    title: '블랙라벨',
+    subject: '중2-2',
+    available: true,
+    department: 'middle',
+  },
+  {
+    id: 'concept-middle-2-2',
+    title: '개념유형파워',
+    subject: '중2-2',
+    available: true,
+    department: 'middle',
   },
 ];
+
+type BlacklabelItem = {
+  id: number;
+  chapter: string;
+  subunit: string;
+  stage: string;
+  numbers: string;
+  count: number;
+};
+
+type ConceptItem = {
+  id: number;
+  chapter: string;
+  subunit: string;
+  stage: string;
+  numbers: string;
+  count: number;
+};
+
+const blacklabelStructure: Record<string, { chapter: string; stages: string[] }> = {
+  '01 삼각형의 성질': {
+    chapter: 'I. 삼각형의 성질',
+    stages: ['시험에 꼭 나오는 문제', 'A등급을 위한 문제', '종합 사고력 도전 문제', '미리보는 학력평가'],
+  },
+  '02 삼각형의 외심과 내심': {
+    chapter: 'I. 삼각형의 성질',
+    stages: ['시험에 꼭 나오는 문제', 'A등급을 위한 문제', '종합 사고력 도전 문제', '미리보는 학력평가', '대단원평가'],
+  },
+  '03 평행사변형': {
+    chapter: 'II. 사각형의 성질',
+    stages: ['시험에 꼭 나오는 문제', 'A등급을 위한 문제', '종합 사고력 도전 문제', '미리보는 학력평가'],
+  },
+  '04 여러 가지 사각형': {
+    chapter: 'II. 사각형의 성질',
+    stages: ['시험에 꼭 나오는 문제', 'A등급을 위한 문제', '종합 사고력 도전 문제', '미리보는 학력평가', '대단원평가'],
+  },
+  '05 도형의 닮음': {
+    chapter: 'III. 도형의 닮음',
+    stages: ['시험에 꼭 나오는 문제', 'A등급을 위한 문제', '종합 사고력 도전 문제', '미리보는 학력평가'],
+  },
+  '06 닮음의 활용': {
+    chapter: 'III. 도형의 닮음',
+    stages: ['시험에 꼭 나오는 문제', 'A등급을 위한 문제', '종합 사고력 도전 문제', '미리보는 학력평가', '대단원평가'],
+  },
+  '07 피타고라스 정리': {
+    chapter: 'IV. 피타고라스 정리',
+    stages: ['시험에 꼭 나오는 문제', 'A등급을 위한 문제', '종합 사고력 도전 문제', '미리보는 학력평가', '대단원평가'],
+  },
+  '08 경우의 수': {
+    chapter: 'V. 확률',
+    stages: ['시험에 꼭 나오는 문제', 'A등급을 위한 문제', '종합 사고력 도전 문제', '미리보는 학력평가'],
+  },
+  '09 확률': {
+    chapter: 'V. 확률',
+    stages: ['시험에 꼭 나오는 문제', 'A등급을 위한 문제', '종합 사고력 도전 문제', '미리보는 학력평가', '대단원평가'],
+  },
+};
+
+const conceptStructure: Record<string, { chapter: string; stages: string[] }> = {
+  '01_이등변삼각형의_성질': {
+    chapter: '01_삼각형의_성질',
+    stages: ['01_개념익히기', '02_핵심유형'],
+  },
+  '02_직각삼각형의_합동_조건': {
+    chapter: '01_삼각형의_성질',
+    stages: ['01_개념익히기', '02_핵심유형'],
+  },
+  '03_삼각형의_외심과_내심': {
+    chapter: '01_삼각형의_성질',
+    stages: ['01_개념익히기_1', '01_개념익히기_2', '02_핵심유형_1', '02_핵심유형_2', '03_실력UP문제', '04_실전테스트'],
+  },
+  '01_평행사변형': {
+    chapter: '02_사각형의_성질',
+    stages: ['01_개념익히기_1', '01_개념익히기_2', '02_핵심유형_1', '02_핵심유형_2'],
+  },
+  '02_여러가지_사각형': {
+    chapter: '02_사각형의_성질',
+    stages: ['01_개념익히기_1', '01_개념익히기_2', '02_핵심유형_1', '02_핵심유형_2'],
+  },
+  '03_평행선과_넓이': {
+    chapter: '02_사각형의_성질',
+    stages: ['01_개념익히기', '02_핵심유형', '03_실력UP문제', '04_실전테스트'],
+  },
+  '01_닮음도형': {
+    chapter: '03_도형의_닮음',
+    stages: ['01_개념익히기', '02_핵심유형'],
+  },
+  '02_삼각형의_닮음조건': {
+    chapter: '03_도형의_닮음',
+    stages: ['01_개념익히기', '02_핵심유형', '03_실력UP문제', '04_실전테스트'],
+  },
+  '01_삼각형과_평행선': {
+    chapter: '04_평행선_사이의_선분의_길이의_비',
+    stages: ['01_개념익히기', '02_핵심유형'],
+  },
+  '02_삼각형의_두_변의_중점을_이은_선분의_성질': {
+    chapter: '04_평행선_사이의_선분의_길이의_비',
+    stages: ['01_개념익히기', '02_핵심유형'],
+  },
+  '03_평행선_사이의_선분의_길이의_비': {
+    chapter: '04_평행선_사이의_선분의_길이의_비',
+    stages: ['01_개념익히기', '02_핵심유형'],
+  },
+  '04_삼각형의_무게중심': {
+    chapter: '04_평행선_사이의_선분의_길이의_비',
+    stages: ['01_개념익히기', '02_핵심유형', '03_실력UP문제', '04_실전테스트'],
+  },
+  '01_피타고라스_정리': {
+    chapter: '05_피타고라스_정리',
+    stages: ['01_개념익히기', '02_핵심유형'],
+  },
+  '02_피타고라스_정리의_활용': {
+    chapter: '05_피타고라스_정리',
+    stages: ['01_개념익히기', '02_핵심유형', '03_실력UP문제', '04_실전테스트'],
+  },
+  '01_경우의_수': {
+    chapter: '06_경우의_수',
+    stages: ['01_개념익히기', '02_핵심유형'],
+  },
+  '02_여러가지_경우의_수': {
+    chapter: '06_경우의_수',
+    stages: ['01_개념익히기', '02_핵심유형', '03_실력UP문제', '04_실전테스트'],
+  },
+  '01_확률의_뜻과_성질': {
+    chapter: '07_확률',
+    stages: ['01_개념익히기', '02_핵심유형'],
+  },
+  '02_확률의_계산': {
+    chapter: '07_확률',
+    stages: ['01_개념익히기', '02_핵심유형', '03_실력UP문제', '04_실전테스트'],
+  },
+};
 
 const olympusUnits = [
   '1. 함수의 극한',
@@ -104,6 +267,25 @@ function countProblemNumbers(raw: string) {
   return count;
 }
 
+function countProblemTokens(raw: string) {
+  let count = 0;
+  for (const token of raw.trim().split(/[\s,]+/)) {
+    if (!token) continue;
+    if (/^\d+$/.test(token) || /^\d+-\d+$/.test(token)) {
+      count += 1;
+      continue;
+    }
+    const range = token.match(/^(\d+)\s*~\s*(\d+)$/);
+    if (range) {
+      count += Math.abs(Number(range[2]) - Number(range[1])) + 1;
+      continue;
+    }
+    count += 1;
+  }
+  if (!count) throw new Error('문제번호를 입력하세요.');
+  return count;
+}
+
 export default function Home() {
   const configured = Boolean(supabaseUrl && supabaseKey);
   const supabase = useMemo(
@@ -121,6 +303,12 @@ export default function Home() {
   const [olympusUnit, setOlympusUnit] = useState(olympusUnits[0]);
   const [olympusType, setOlympusType] = useState('유형완성하기');
   const [olympusItems, setOlympusItems] = useState<OlympusItem[]>([]);
+  const [blacklabelSubunit, setBlacklabelSubunit] = useState('01 삼각형의 성질');
+  const [blacklabelStage, setBlacklabelStage] = useState('시험에 꼭 나오는 문제');
+  const [blacklabelItems, setBlacklabelItems] = useState<BlacklabelItem[]>([]);
+  const [conceptSubunit, setConceptSubunit] = useState('01_이등변삼각형의_성질');
+  const [conceptStage, setConceptStage] = useState('01_개념익히기');
+  const [conceptItems, setConceptItems] = useState<ConceptItem[]>([]);
   const [status, setStatus] = useState(
     configured ? '로그인이 필요합니다.' : 'Supabase 연결 설정 전입니다.',
   );
@@ -267,6 +455,14 @@ export default function Home() {
       setStatus('문제번호를 입력한 뒤 목록에 추가해 주세요.');
       return;
     }
+    if (textbook === 'blacklabel-middle-2-2' && blacklabelItems.length === 0) {
+      setStatus('블랙라벨 문제를 목록에 추가해 주세요.');
+      return;
+    }
+    if (textbook === 'concept-middle-2-2' && conceptItems.length === 0) {
+      setStatus('개념유형파워 문제를 목록에 추가해 주세요.');
+      return;
+    }
     setBusy(true);
     setStatus('오답노트를 만드는 중…');
     try {
@@ -288,6 +484,22 @@ export default function Home() {
             problemType,
             numbers,
           })),
+          blacklabelItems: blacklabelItems.map(
+            ({ chapter, subunit, stage, numbers }) => ({
+              chapter,
+              subunit,
+              stage,
+              numbers,
+            }),
+          ),
+          conceptItems: conceptItems.map(
+            ({ chapter, subunit, stage, numbers }) => ({
+              chapter,
+              subunit,
+              stage,
+              numbers,
+            }),
+          ),
         }),
       });
       if (!response.ok) {
@@ -345,6 +557,70 @@ export default function Home() {
           id: Date.now(),
           unit: olympusUnit,
           problemType: olympusType,
+          numbers: numbers.trim(),
+          count,
+        },
+      ]);
+      setNumbers('');
+      setStatus(`${count}문제를 목록에 추가했습니다.`);
+    } catch (error) {
+      setStatus(
+        error instanceof Error ? error.message : '문제번호를 확인해 주세요.',
+      );
+    }
+  }
+
+  function addBlacklabelItem() {
+    try {
+      const count = countProblemTokens(numbers);
+      const currentCount = blacklabelItems.reduce(
+        (total, item) => total + item.count,
+        0,
+      );
+      if (currentCount + count > 100) {
+        throw new Error('전체 목록에서 최대 100문제까지 추가할 수 있습니다.');
+      }
+      const struct = blacklabelStructure[blacklabelSubunit];
+      const chapter = struct ? struct.chapter : 'I. 삼각형의 성질';
+      setBlacklabelItems((items) => [
+        ...items,
+        {
+          id: Date.now(),
+          chapter,
+          subunit: blacklabelSubunit,
+          stage: blacklabelStage,
+          numbers: numbers.trim(),
+          count,
+        },
+      ]);
+      setNumbers('');
+      setStatus(`${count}문제를 목록에 추가했습니다.`);
+    } catch (error) {
+      setStatus(
+        error instanceof Error ? error.message : '문제번호를 확인해 주세요.',
+      );
+    }
+  }
+
+  function addConceptItem() {
+    try {
+      const count = countProblemTokens(numbers);
+      const currentCount = conceptItems.reduce(
+        (total, item) => total + item.count,
+        0,
+      );
+      if (currentCount + count > 100) {
+        throw new Error('전체 목록에서 최대 100문제까지 추가할 수 있습니다.');
+      }
+      const struct = conceptStructure[conceptSubunit];
+      const chapter = struct ? struct.chapter : '01_삼각형의_성질';
+      setConceptItems((items) => [
+        ...items,
+        {
+          id: Date.now(),
+          chapter,
+          subunit: conceptSubunit,
+          stage: conceptStage,
           numbers: numbers.trim(),
           count,
         },
@@ -484,7 +760,7 @@ export default function Home() {
                 onClick={() => {
                   setDepartment('middle');
                   setTextbook(null);
-                  setStatus('중등부 교재는 준비 중입니다.');
+                  setStatus('중등부 교재를 선택해 주세요.');
                 }}
                 className="editorial-choice editorial-choice-middle group"
               >
@@ -495,7 +771,7 @@ export default function Home() {
                     <h3>중등부</h3>
                     <p>MIDDLE SCHOOL</p>
                   </div>
-                  <span className="choice-status">준비 중</span>
+                  <span className="choice-status">3 BOOKS</span>
                 </div>
               </button>
               <button
@@ -519,34 +795,15 @@ export default function Home() {
               </button>
             </div>
           </section>
-        ) : department === 'middle' ? (
-          <section className="mx-auto max-w-3xl">
-            <Card className="border-teal-200 bg-gradient-to-br from-white to-teal-50 shadow-lg">
-              <CardHeader>
-                <div className="mb-3 grid size-12 place-items-center rounded-2xl bg-teal-600 text-white">
-                  <School />
-                </div>
-                <CardTitle className="text-2xl">중등부 교재</CardTitle>
-                <CardDescription className="text-base">
-                  앞으로 중등부 교재가 이곳에 추가됩니다.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setDepartment(null)}
-                >
-                  첫 화면으로
-                </Button>
-              </CardContent>
-            </Card>
-          </section>
         ) : !textbook ? (
           <section className="textbook-stage mx-auto max-w-5xl">
             <div className="mb-3 flex flex-col gap-3 border-b border-dashed border-[#40372e] pb-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="selection-kicker">02 / HIGH SCHOOL</p>
+                <p className="selection-kicker">
+                  {department === 'middle'
+                    ? '01 / MIDDLE SCHOOL'
+                    : '02 / HIGH SCHOOL'}
+                </p>
                 <p className="selection-copy mt-3">
                   오답노트를 만들 교재를 선택하면 전용 입력 화면이 열립니다.
                 </p>
@@ -560,33 +817,37 @@ export default function Home() {
               </button>
             </div>
             <div className="textbook-list">
-              {textbooks.map((item, index) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => {
-                    setTextbook(item.id);
-                    setStatus(
-                      item.available
-                        ? '학생 정보와 문제번호를 입력하세요.'
-                        : `${item.title} 전용 입력 화면입니다. 온라인 문제 자료 연결이 필요합니다.`,
-                    );
-                  }}
-                  className="textbook-row group"
-                >
-                  <span className="textbook-index">
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                  <BookOpen className="textbook-icon" />
-                  <div className="min-w-0 flex-1">
-                    <h3>{item.title}</h3>
-                    <p>{item.subject}</p>
-                  </div>
-                  <span className="textbook-action">
-                    {item.available ? '선택 →' : '준비 중'}
-                  </span>
-                </button>
-              ))}
+              {textbooks
+                .filter((item) => item.department === department)
+                .map((item, index) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      if (!item.available) {
+                        setStatus(
+                          `${item.title}는 아직 준비 중인 교재입니다.`,
+                        );
+                        return;
+                      }
+                      setTextbook(item.id);
+                      setStatus('학생 정보와 문제번호를 입력하세요.');
+                    }}
+                    className="textbook-row group"
+                  >
+                    <span className="textbook-index">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <BookOpen className="textbook-icon" />
+                    <div className="min-w-0 flex-1">
+                      <h3>{item.title}</h3>
+                      <p>{item.subject}</p>
+                    </div>
+                    <span className="textbook-action">
+                      {item.available ? '선택 →' : '준비 중'}
+                    </span>
+                  </button>
+                ))}
             </div>
           </section>
         ) : (
@@ -662,6 +923,82 @@ export default function Home() {
                       </label>
                     </>
                   )}
+                  {textbook === 'blacklabel-middle-2-2' && (
+                    <>
+                      <label htmlFor="blacklabel-subunit" className="space-y-2">
+                        <span className="font-medium">소단원</span>
+                        <NativeSelect
+                          id="blacklabel-subunit"
+                          className="w-full"
+                          value={blacklabelSubunit}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setBlacklabelSubunit(val);
+                            setBlacklabelStage(blacklabelStructure[val].stages[0]);
+                          }}
+                        >
+                          {Object.keys(blacklabelStructure).map((sub) => (
+                            <NativeSelectOption key={sub} value={sub}>
+                              {sub}
+                            </NativeSelectOption>
+                          ))}
+                        </NativeSelect>
+                      </label>
+                      <label htmlFor="blacklabel-stage" className="space-y-2">
+                        <span className="font-medium">단계</span>
+                        <NativeSelect
+                          id="blacklabel-stage"
+                          className="w-full"
+                          value={blacklabelStage}
+                          onChange={(e) => setBlacklabelStage(e.target.value)}
+                        >
+                          {blacklabelStructure[blacklabelSubunit]?.stages.map((stg) => (
+                            <NativeSelectOption key={stg} value={stg}>
+                              {stg}
+                            </NativeSelectOption>
+                          ))}
+                        </NativeSelect>
+                      </label>
+                    </>
+                  )}
+                  {textbook === 'concept-middle-2-2' && (
+                    <>
+                      <label htmlFor="concept-subunit" className="space-y-2">
+                        <span className="font-medium">소단원</span>
+                        <NativeSelect
+                          id="concept-subunit"
+                          className="w-full"
+                          value={conceptSubunit}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setConceptSubunit(val);
+                            setConceptStage(conceptStructure[val].stages[0]);
+                          }}
+                        >
+                          {Object.keys(conceptStructure).map((sub) => (
+                            <NativeSelectOption key={sub} value={sub}>
+                              {sub.replace(/_/g, ' ')}
+                            </NativeSelectOption>
+                          ))}
+                        </NativeSelect>
+                      </label>
+                      <label htmlFor="concept-stage" className="space-y-2">
+                        <span className="font-medium">단계</span>
+                        <NativeSelect
+                          id="concept-stage"
+                          className="w-full"
+                          value={conceptStage}
+                          onChange={(e) => setConceptStage(e.target.value)}
+                        >
+                          {conceptStructure[conceptSubunit]?.stages.map((stg) => (
+                            <NativeSelectOption key={stg} value={stg}>
+                              {stg.replace(/_/g, ' ')}
+                            </NativeSelectOption>
+                          ))}
+                        </NativeSelect>
+                      </label>
+                    </>
+                  )}
                   <label htmlFor="student" className="space-y-2 sm:col-span-2">
                     <span className="font-medium">학생 이름</span>
                     <Input
@@ -680,12 +1017,18 @@ export default function Home() {
                       value={numbers}
                       onChange={(e) => setNumbers(e.target.value)}
                       placeholder="1, 5, 10 또는 1-10"
-                      required={textbook !== 'olympus-calculus'}
+                      required={
+                        textbook !== 'olympus-calculus' &&
+                        textbook !== 'blacklabel-middle-2-2' &&
+                        textbook !== 'concept-middle-2-2'
+                      }
                       disabled={!sessionToken}
                     />
                     <span className="block text-sm text-muted-foreground">
-                      {textbook === 'olympus-calculus'
-                        ? '선택한 단원과 문제유형 안에서 표시된 번호를 입력하세요.'
+                      {textbook === 'olympus-calculus' ||
+                      textbook === 'blacklabel-middle-2-2' ||
+                      textbook === 'concept-middle-2-2'
+                        ? '선택한 단원과 단계 안에서 표시된 번호를 입력 후 [목록에 추가]를 누르세요.'
                         : '쉼표·띄어쓰기·연속 범위를 사용할 수 있습니다. 한 번에 최대 100문제입니다.'}
                     </span>
                   </label>
@@ -749,6 +1092,154 @@ export default function Home() {
                                   variant="outline"
                                   onClick={() =>
                                     setOlympusItems((items) =>
+                                      items.filter(
+                                        (entry) => entry.id !== item.id,
+                                      ),
+                                    )
+                                  }
+                                >
+                                  삭제
+                                </Button>
+                              </li>
+                            ))}
+                          </ol>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {textbook === 'blacklabel-middle-2-2' && (
+                    <div className="space-y-3 sm:col-span-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={addBlacklabelItem}
+                        disabled={busy}
+                      >
+                        목록에 추가
+                      </Button>
+                      <div className="rounded-xl border bg-slate-50 p-4">
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                          <div>
+                            <p className="font-medium">입력한 문제 목록</p>
+                            <p className="text-sm text-slate-500">
+                              총{' '}
+                              {blacklabelItems.reduce(
+                                (total, item) => total + item.count,
+                                0,
+                              )}{' '}
+                              / 100문제
+                            </p>
+                          </div>
+                          {blacklabelItems.length > 0 && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => {
+                                setBlacklabelItems([]);
+                                setStatus('입력 목록을 모두 비웠습니다.');
+                              }}
+                            >
+                              전체 비우기
+                            </Button>
+                          )}
+                        </div>
+                        {blacklabelItems.length === 0 ? (
+                          <p className="rounded-lg bg-white p-3 text-sm text-slate-500">
+                            소단원과 단계를 선택하고 번호를 목록에 추가하세요.
+                          </p>
+                        ) : (
+                          <ol className="space-y-2">
+                            {blacklabelItems.map((item, index) => (
+                              <li
+                                key={item.id}
+                                className="flex items-center justify-between gap-3 rounded-lg bg-white p-3 text-sm"
+                              >
+                                <span>
+                                  {index + 1}. [{item.subunit}] {item.stage} · {item.numbers}번
+                                  <span className="ml-2 text-slate-500">
+                                    ({item.count}문제)
+                                  </span>
+                                </span>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() =>
+                                    setBlacklabelItems((items) =>
+                                      items.filter(
+                                        (entry) => entry.id !== item.id,
+                                      ),
+                                    )
+                                  }
+                                >
+                                  삭제
+                                </Button>
+                              </li>
+                            ))}
+                          </ol>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {textbook === 'concept-middle-2-2' && (
+                    <div className="space-y-3 sm:col-span-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={addConceptItem}
+                        disabled={busy}
+                      >
+                        목록에 추가
+                      </Button>
+                      <div className="rounded-xl border bg-slate-50 p-4">
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                          <div>
+                            <p className="font-medium">입력한 문제 목록</p>
+                            <p className="text-sm text-slate-500">
+                              총{' '}
+                              {conceptItems.reduce(
+                                (total, item) => total + item.count,
+                                0,
+                              )}{' '}
+                              / 100문제
+                            </p>
+                          </div>
+                          {conceptItems.length > 0 && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => {
+                                setConceptItems([]);
+                                setStatus('입력 목록을 모두 비웠습니다.');
+                              }}
+                            >
+                              전체 비우기
+                            </Button>
+                          )}
+                        </div>
+                        {conceptItems.length === 0 ? (
+                          <p className="rounded-lg bg-white p-3 text-sm text-slate-500">
+                            소단원과 단계를 선택하고 번호를 목록에 추가하세요.
+                          </p>
+                        ) : (
+                          <ol className="space-y-2">
+                            {conceptItems.map((item, index) => (
+                              <li
+                                key={item.id}
+                                className="flex items-center justify-between gap-3 rounded-lg bg-white p-3 text-sm"
+                              >
+                                <span>
+                                  {index + 1}. [{item.subunit.replace(/_/g, ' ')}] {item.stage.replace(/_/g, ' ')} · {item.numbers}번
+                                  <span className="ml-2 text-slate-500">
+                                    ({item.count}문제)
+                                  </span>
+                                </span>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() =>
+                                    setConceptItems((items) =>
                                       items.filter(
                                         (entry) => entry.id !== item.id,
                                       ),

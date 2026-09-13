@@ -39,6 +39,16 @@ TEXTBOOKS = {
     "gojaengi-common-math-2": {
         "title": "고쟁이 공통수학2",
     },
+    "ssen-middle-2-2": {
+        "title": "쎈 수학 중2-2",
+    },
+    "blacklabel-middle-2-2": {
+        "title": "블랙라벨 중2-2",
+        "answer_source": "출처: [2022개정] 블랙라벨 중2-2 빠른정답",
+    },
+    "concept-middle-2-2": {
+        "title": "개념유형파워 중2-2",
+    },
 }
 
 OLYMPUS_UNITS = {
@@ -68,6 +78,25 @@ def parse_numbers(raw: str) -> list[int]:
         start, end = map(int, match.groups())
         step = 1 if end >= start else -1
         result.extend(range(start, end + step, step))
+    if not result:
+        raise ValueError("문제번호를 입력하세요.")
+    if len(result) > 100:
+        raise ValueError("한 번에 최대 100문제까지 만들 수 있습니다.")
+    return result
+
+
+def parse_problem_tokens(raw: str) -> list[str]:
+    result: list[str] = []
+    for token in re.split(r"[\s,]+", raw.strip()):
+        if not token:
+            continue
+        match = re.fullmatch(r"(\d+)\s*[-~]\s*(\d+)", token)
+        if match:
+            start, end = map(int, match.groups())
+            step = 1 if end >= start else -1
+            result.extend(str(n) for n in range(start, end + step, step))
+        else:
+            result.append(token)
     if not result:
         raise ValueError("문제번호를 입력하세요.")
     if len(result) > 100:
@@ -297,10 +326,282 @@ def draw_common_math_2_cover(c: canvas.Canvas, student: str, grade: str, page_wi
     c.drawRightString(card_x + card_w - 9 * mm, card_y + 8.5 * mm, f"{grade}  {student}")
 
 
+def draw_ssen_middle_2_2_cover(c: canvas.Canvas, student: str, grade: str, page_width: float, page_height: float) -> None:
+    navy = (0.055, 0.13, 0.24)
+    blue = (0.10, 0.34, 0.62)
+    cyan = (0.18, 0.67, 0.76)
+
+    c.setFillColorRGB(0.975, 0.985, 0.995)
+    c.rect(0, 0, page_width, page_height, stroke=0, fill=1)
+
+    c.setFillColorRGB(0.92, 0.95, 0.98)
+    c.circle(page_width - 25 * mm, page_height - 25 * mm, 60 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(0.95, 0.97, 0.99)
+    c.circle(35 * mm, 45 * mm, 45 * mm, stroke=0, fill=1)
+
+    c.setFillColorRGB(*navy)
+    c.setFont("HYSMyeongJo-Medium", 30)
+    c.drawString(18 * mm, page_height - 38 * mm, "중2-2 쎈수학 오답노트")
+
+    c.setFillColorRGB(*blue)
+    c.setFont("HYSMyeongJo-Medium", 13)
+    c.drawString(18 * mm, page_height - 48 * mm, "개념 반복과 유형 마스터를 위한 맞춤 클리닉")
+
+    c.setStrokeColorRGB(*cyan)
+    c.setLineWidth(1.6)
+    c.line(18 * mm, page_height - 54 * mm, 65 * mm, page_height - 54 * mm)
+
+    card_x, card_y, card_w, card_h = 18 * mm, 28 * mm, page_width - 36 * mm, 46 * mm
+    c.setFillColorRGB(1, 1, 1)
+    c.setStrokeColorRGB(0.83, 0.87, 0.92)
+    c.setLineWidth(0.8)
+    c.roundRect(card_x, card_y, card_w, card_h, 4 * mm, stroke=1, fill=1)
+
+    c.setFillColorRGB(*navy)
+    c.setFont("HYSMyeongJo-Medium", 14)
+    c.drawString(card_x + 8 * mm, card_y + card_h - 13 * mm, f"이름: {student}")
+    c.setFont("HYSMyeongJo-Medium", 11)
+    c.drawString(card_x + 8 * mm, card_y + card_h - 23 * mm, f"학년: {grade}")
+    c.setFillColorRGB(0.4, 0.45, 0.5)
+    c.drawString(card_x + 8 * mm, card_y + 9 * mm, "강석수학 맞춤 학습 시스템")
+
+
+def draw_blacklabel_middle_2_2_cover(c: canvas.Canvas, student: str, grade: str, w: float, h: float) -> None:
+    bg_clean = (0.985, 0.995, 0.99)
+    sky_blue = (0.05, 0.58, 0.88)
+    mint_green = (0.05, 0.75, 0.55)
+    lime_gold = (0.45, 0.80, 0.18)
+    soft_aqua = (0.88, 0.96, 0.96)
+    soft_mint = (0.90, 0.97, 0.93)
+    soft_sky = (0.90, 0.95, 0.99)
+    deep_teal = (0.04, 0.16, 0.24)
+    sub_slate = (0.32, 0.44, 0.50)
+    card_shadow = (0.88, 0.93, 0.92)
+
+    c.setFillColorRGB(*bg_clean)
+    c.rect(0, 0, w, h, stroke=0, fill=1)
+
+    c.setFillColorRGB(*soft_mint)
+    c.circle(w - 15 * mm, h - 20 * mm, 80 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(*soft_sky)
+    c.circle(w - 40 * mm, h - 45 * mm, 55 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(*soft_aqua)
+    c.circle(w - 60 * mm, h - 25 * mm, 38 * mm, stroke=0, fill=1)
+
+    c.setFillColorRGB(*soft_sky)
+    c.circle(30 * mm, 55 * mm, 60 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(*soft_mint)
+    c.circle(48 * mm, 35 * mm, 40 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(*soft_aqua)
+    c.circle(18 * mm, 75 * mm, 28 * mm, stroke=0, fill=1)
+
+    c.setFillColorRGB(*lime_gold)
+    c.circle(26 * mm, h - 22 * mm, 2.5 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(*sky_blue)
+    c.circle(34 * mm, h - 19 * mm, 1.8 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(*mint_green)
+    c.circle(42 * mm, h - 23 * mm, 2.2 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(*lime_gold)
+    c.circle(w - 25 * mm, 110 * mm, 2.2 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(*sky_blue)
+    c.circle(w - 32 * mm, 118 * mm, 1.6 * mm, stroke=0, fill=1)
+
+    badge_x, badge_y, badge_w, badge_h = 18 * mm, h - 40 * mm, 68 * mm, 7.5 * mm
+    c.setFillColorRGB(*sky_blue)
+    c.roundRect(badge_x, badge_y, badge_w, badge_h, badge_h / 2, stroke=0, fill=1)
+    c.setFillColorRGB(1, 1, 1)
+    c.setFont("Helvetica-Bold", 9.5)
+    c.drawCentredString(badge_x + badge_w / 2, badge_y + 2.0 * mm, "★ BLACKLABEL MATH CLINIC")
+
+    c.setFillColorRGB(*deep_teal)
+    c.setFont("HYSMyeongJo-Medium", 32)
+    c.drawString(18 * mm, h - 56 * mm, "중2-2 블랙라벨")
+
+    c.setFillColorRGB(*mint_green)
+    c.setFont("HYSMyeongJo-Medium", 35)
+    c.drawString(18 * mm, h - 70 * mm, "오답노트")
+
+    c.setFillColorRGB(*sky_blue)
+    c.rect(18 * mm, h - 77 * mm, 38 * mm, 2.4 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(*mint_green)
+    c.rect(58 * mm, h - 77 * mm, 24 * mm, 2.4 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(*lime_gold)
+    c.rect(84 * mm, h - 77 * mm, 14 * mm, 2.4 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(0.82, 0.90, 0.88)
+    c.rect(100 * mm, h - 77 * mm, w - 118 * mm, 0.8 * mm, stroke=0, fill=1)
+
+    c.setFont("HYSMyeongJo-Medium", 12)
+    c.setFillColorRGB(*sub_slate)
+    c.drawString(18 * mm, h - 88 * mm, "최고난도 수학의 완성 | 상위권 도약을 위한 1:1 맞춤 클리닉")
+
+    card_w, card_h = 125 * mm, 56 * mm
+    card_x = (w - card_w) / 2
+    card_y = 65 * mm
+
+    c.setFillColorRGB(*card_shadow)
+    c.roundRect(card_x + 1.5 * mm, card_y - 1.5 * mm, card_w, card_h, 5 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(1, 1, 1)
+    c.setStrokeColorRGB(0.85, 0.91, 0.90)
+    c.setLineWidth(0.9)
+    c.roundRect(card_x, card_y, card_w, card_h, 5 * mm, stroke=1, fill=1)
+
+    c.setFillColorRGB(*sky_blue)
+    c.roundRect(card_x + 15 * mm, card_y + card_h - 2.5 * mm, 32 * mm, 2.5 * mm, 1 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(*mint_green)
+    c.roundRect(card_x + 49 * mm, card_y + card_h - 2.5 * mm, 20 * mm, 2.5 * mm, 1 * mm, stroke=0, fill=1)
+
+    c.setFillColorRGB(*mint_green)
+    c.roundRect(card_x, card_y + 9 * mm, 4 * mm, card_h - 18 * mm, 2 * mm, stroke=0, fill=1)
+
+    c.setFillColorRGB(0.45, 0.55, 0.58)
+    c.setFont("Helvetica", 8.5)
+    c.drawString(card_x + 13 * mm, card_y + card_h - 13 * mm, "STUDENT CLINIC PROFILE")
+
+    c.setStrokeColorRGB(0.90, 0.94, 0.93)
+    c.setLineWidth(0.6)
+    c.line(card_x + 13 * mm, card_y + card_h - 16 * mm, card_x + card_w - 13 * mm, card_y + card_h - 16 * mm)
+
+    c.setFillColorRGB(*deep_teal)
+    c.setFont("HYSMyeongJo-Medium", 15)
+    c.drawString(card_x + 13 * mm, card_y + card_h - 28 * mm, f"이 름 :  {student}")
+
+    c.setFont("HYSMyeongJo-Medium", 12.5)
+    c.setFillColorRGB(0.25, 0.35, 0.40)
+    c.drawString(card_x + 13 * mm, card_y + card_h - 40 * mm, f"학 년 :  {grade}")
+
+    c.setFont("HYSMyeongJo-Medium", 11)
+    c.setFillColorRGB(*sky_blue)
+    c.drawRightString(card_x + card_w - 13 * mm, card_y + 10 * mm, "강 석 수 학")
+
+    c.setFont("Helvetica", 8.5)
+    c.setFillColorRGB(0.50, 0.60, 0.64)
+    c.drawCentredString(w / 2, 18 * mm, "KANG SEOK MATH • BLACKLABEL CUSTOM CLINIC")
+
+
+def draw_concept_middle_2_2_cover(c: canvas.Canvas, student: str, grade: str, w: float, h: float) -> None:
+    bg_clean = (0.985, 0.99, 1.0)
+    vibrant_orange = (1.0, 0.40, 0.15)
+    sunshine_gold = (1.0, 0.72, 0.05)
+    ocean_cyan = (0.02, 0.65, 0.90)
+    deep_navy = (0.05, 0.14, 0.28)
+    soft_slate = (0.38, 0.46, 0.58)
+
+    c.setFillColorRGB(*bg_clean)
+    c.rect(0, 0, w, h, stroke=0, fill=1)
+
+    c.setFillColorRGB(1.0, 0.94, 0.90)
+    c.circle(w - 10 * mm, h - 15 * mm, 85 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(0.92, 0.97, 1.0)
+    c.circle(w - 35 * mm, h - 45 * mm, 60 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(1.0, 0.96, 0.92)
+    c.circle(w - 55 * mm, h - 20 * mm, 40 * mm, stroke=0, fill=1)
+
+    p = c.beginPath()
+    p.moveTo(w - 70 * mm, h)
+    p.lineTo(w, h - 70 * mm)
+    p.lineTo(w, h - 55 * mm)
+    p.lineTo(w - 55 * mm, h)
+    p.close()
+    c.setFillColorRGB(1.0, 0.85, 0.75)
+    c.drawPath(p, stroke=0, fill=1)
+
+    c.setFillColorRGB(0.93, 0.97, 1.0)
+    c.circle(25 * mm, 45 * mm, 55 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(1.0, 0.95, 0.90)
+    c.circle(45 * mm, 30 * mm, 35 * mm, stroke=0, fill=1)
+
+    c.setFillColorRGB(*sunshine_gold)
+    c.circle(25 * mm, h - 22 * mm, 2.8 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(*ocean_cyan)
+    c.circle(34 * mm, h - 20 * mm, 1.8 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(*vibrant_orange)
+    c.circle(41 * mm, h - 23 * mm, 2.2 * mm, stroke=0, fill=1)
+
+    badge_x, badge_y, badge_w, badge_h = 18 * mm, h - 40 * mm, 68 * mm, 7.5 * mm
+    c.setFillColorRGB(*vibrant_orange)
+    c.roundRect(badge_x, badge_y, badge_w, badge_h, badge_h / 2, stroke=0, fill=1)
+    c.setFillColorRGB(1, 1, 1)
+    c.setFont("Helvetica-Bold", 9.5)
+    c.drawCentredString(badge_x + badge_w / 2, badge_y + 2.0 * mm, "★ CONCEPT + TYPE POWER")
+
+    c.setFillColorRGB(*deep_navy)
+    c.setFont("HYSMyeongJo-Medium", 32)
+    c.drawString(18 * mm, h - 56 * mm, "중2-2 개념+유형 파워")
+
+    c.setFillColorRGB(*vibrant_orange)
+    c.setFont("HYSMyeongJo-Medium", 35)
+    c.drawString(18 * mm, h - 70 * mm, "오답노트")
+
+    c.setFillColorRGB(*vibrant_orange)
+    c.rect(18 * mm, h - 77 * mm, 38 * mm, 2.4 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(*sunshine_gold)
+    c.rect(58 * mm, h - 77 * mm, 24 * mm, 2.4 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(*ocean_cyan)
+    c.rect(84 * mm, h - 77 * mm, 14 * mm, 2.4 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(0.85, 0.90, 0.94)
+    c.rect(100 * mm, h - 77 * mm, w - 118 * mm, 0.8 * mm, stroke=0, fill=1)
+
+    c.setFont("HYSMyeongJo-Medium", 12)
+    c.setFillColorRGB(*soft_slate)
+    c.drawString(18 * mm, h - 88 * mm, "유형 마스터 & 실전력 완성을 위한 1:1 맞춤 클리닉")
+
+    card_w, card_h = 125 * mm, 56 * mm
+    card_x = (w - card_w) / 2
+    card_y = 65 * mm
+
+    c.setFillColorRGB(0.90, 0.93, 0.96)
+    c.roundRect(card_x + 1.5 * mm, card_y - 1.5 * mm, card_w, card_h, 5 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(1, 1, 1)
+    c.setStrokeColorRGB(0.87, 0.91, 0.95)
+    c.setLineWidth(0.9)
+    c.roundRect(card_x, card_y, card_w, card_h, 5 * mm, stroke=1, fill=1)
+
+    c.setFillColorRGB(*vibrant_orange)
+    c.roundRect(card_x + 15 * mm, card_y + card_h - 2.5 * mm, 32 * mm, 2.5 * mm, 1 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(*sunshine_gold)
+    c.roundRect(card_x + 49 * mm, card_y + card_h - 2.5 * mm, 20 * mm, 2.5 * mm, 1 * mm, stroke=0, fill=1)
+
+    c.setFillColorRGB(*vibrant_orange)
+    c.roundRect(card_x, card_y + 9 * mm, 4 * mm, card_h - 18 * mm, 2 * mm, stroke=0, fill=1)
+
+    c.setFillColorRGB(0.52, 0.58, 0.68)
+    c.setFont("Helvetica", 8.5)
+    c.drawString(card_x + 13 * mm, card_y + card_h - 13 * mm, "STUDENT CLINIC PROFILE")
+
+    c.setStrokeColorRGB(0.92, 0.94, 0.97)
+    c.setLineWidth(0.6)
+    c.line(card_x + 13 * mm, card_y + card_h - 16 * mm, card_x + card_w - 13 * mm, card_y + card_h - 16 * mm)
+
+    c.setFillColorRGB(*deep_navy)
+    c.setFont("HYSMyeongJo-Medium", 15)
+    c.drawString(card_x + 13 * mm, card_y + card_h - 28 * mm, f"이 름 :  {student}")
+
+    c.setFont("HYSMyeongJo-Medium", 12.5)
+    c.setFillColorRGB(0.25, 0.32, 0.42)
+    c.drawString(card_x + 13 * mm, card_y + card_h - 40 * mm, f"학 년 :  {grade}")
+
+    c.setFont("HYSMyeongJo-Medium", 11)
+    c.setFillColorRGB(*vibrant_orange)
+    c.drawRightString(card_x + card_w - 13 * mm, card_y + 10 * mm, "강 석 수 학")
+
+    c.setFont("Helvetica", 8.5)
+    c.setFillColorRGB(0.60, 0.66, 0.76)
+    c.drawCentredString(w / 2, 18 * mm, "KANG SEOK MATH • FRESH POWER LEARNING SYSTEM")
+
+
 def draw_cover(c: canvas.Canvas, student: str, grade: str, page_width: float, page_height: float, textbook: str) -> None:
     """Draw the textbook-specific cover used by the local generators."""
     if textbook == "synergy-common-math-2":
         draw_common_math_2_cover(c, student, grade, page_width, page_height)
+        return
+    if textbook == "ssen-middle-2-2":
+        draw_ssen_middle_2_2_cover(c, student, grade, page_width, page_height)
+        return
+    if textbook == "blacklabel-middle-2-2":
+        draw_blacklabel_middle_2_2_cover(c, student, grade, page_width, page_height)
+        return
+    if textbook == "concept-middle-2-2":
+        draw_concept_middle_2_2_cover(c, student, grade, page_width, page_height)
         return
     navy = (0.055, 0.13, 0.24)
     blue = (0.10, 0.34, 0.62)
@@ -451,7 +752,8 @@ def create_pdf(student: str, grade: str, images: list[tuple[int, bytes]], answer
             x, y = boxes[index]
             c.roundRect(x, y, cell_w, cell_h, 2 * mm)
             c.setFont("Helvetica-Bold", 9)
-            c.drawString(x + 3 * mm, y + cell_h - 6 * mm, f"No. {number}")
+            label_number = f"{number:04d}" if textbook == "ssen-middle-2-2" else str(number)
+            c.drawString(x + 3 * mm, y + cell_h - 6 * mm, f"No. {label_number}")
             reader = pdf_image_reader(data, 900, 1150)
             iw, ih = reader.getSize()
             available_w, available_h = cell_w - 6 * mm, cell_h - 14 * mm
@@ -609,6 +911,250 @@ def draw_olympus_answer_page(c: canvas.Canvas, items: list[tuple[str, str, int, 
     draw_footer(c, page_number, width)
 
 
+def load_blacklabel_image(supabase_url: str, secret_key: str, bucket: str, chapter: str, subunit: str, stage: str, number_str: str) -> bytes:
+    headers = {"apikey": secret_key}
+    num = int(number_str) if number_str.isdigit() else None
+    candidates: list[str] = []
+    if num is not None:
+        candidates.append(f"{num:04d}.png")
+        candidates.append(f"{num}.png")
+        candidates.append(f"{num:02d}.png")
+    candidates.append(f"{number_str}.png")
+    if num is not None:
+        candidates.append(f"{num}-1.png")
+
+    for filename in candidates:
+        object_path = urllib.parse.quote(f"{bucket}/blacklabel-middle-2-2/{chapter}/{subunit}/{stage}/{filename}", safe="/")
+        try:
+            return request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
+        except urllib.error.HTTPError as err:
+            if err.code == 404:
+                continue
+            raise
+    raise ValueError(f"블랙라벨 문제 이미지를 찾을 수 없습니다: [{subunit}] {stage} {number_str}번")
+
+
+def load_blacklabel_answers(supabase_url: str, secret_key: str, bucket: str) -> dict[str, str]:
+    headers = {"apikey": secret_key}
+    object_path = urllib.parse.quote(f"{bucket}/blacklabel-middle-2-2/blacklabel_answers.json", safe="/")
+    data = request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
+    return json.loads(data.decode("utf-8"))
+
+
+def draw_blacklabel_answer_page(
+    c: canvas.Canvas,
+    items: list[tuple[str, str, str, str, bytes]],
+    answers: dict[str, str],
+    page_number: int,
+    page_width: float,
+    page_height: float,
+    answer_page_index: int,
+    total_answer_pages: int,
+) -> None:
+    left = 16 * mm
+    right = page_width - 16 * mm
+    top = page_height - 18 * mm
+
+    c.setFillColorRGB(0.08, 0.13, 0.22)
+    c.setFont("HYSMyeongJo-Medium", 22)
+    title = "빠른 정답"
+    if total_answer_pages > 1:
+        title += f" ({answer_page_index}/{total_answer_pages})"
+    c.drawString(left, top, title)
+
+    c.setFillColorRGB(0.35, 0.35, 0.35)
+    c.setFont("HYSMyeongJo-Medium", 9)
+    c.drawRightString(right, top + 1 * mm, f"오답 {len(items)}문제")
+
+    c.setStrokeColorRGB(0.08, 0.13, 0.22)
+    c.setLineWidth(1.2)
+    c.line(left, top - 4 * mm, right, top - 4 * mm)
+
+    columns = 2 if len(items) <= 24 else 3
+    rows = (len(items) + columns - 1) // columns
+    area_top = top - 14 * mm
+    area_bottom = 19 * mm
+    row_height = min(11 * mm, (area_top - area_bottom) / max(rows, 1))
+    gap = 6 * mm
+    column_width = (right - left - gap * (columns - 1)) / columns
+
+    for index, (chapter, subunit, stage, num_str, _) in enumerate(items):
+        column = index // rows
+        row = index % rows
+        x = left + column * (column_width + gap)
+        y = area_top - (row + 1) * row_height
+
+        c.setFillColorRGB(0.96, 0.97, 0.99) if row % 2 == 0 else c.setFillColorRGB(1, 1, 1)
+        c.rect(x, y, column_width, row_height, stroke=0, fill=1)
+
+        c.setFillColorRGB(0.18, 0.18, 0.18)
+        c.setFont("HYSMyeongJo-Medium", 8.5)
+        clean_sub = subunit.split(" ", 1)[-1] if " " in subunit else subunit
+        short_stage = stage[:4]
+        c.drawString(x + 2 * mm, y + 3.5 * mm, f"{clean_sub} {short_stage} {num_str}번")
+
+        num_int = int(num_str) if num_str.isdigit() else None
+        keys = [
+            f"{chapter}/{subunit}/{stage}/{num_str}",
+            f"{chapter}/{subunit}/{stage}/{num_int}" if num_int is not None else None,
+            f"{chapter}/{subunit}/{stage}/{num_int:04d}" if num_int is not None else None,
+        ]
+        ans = next((answers[k] for k in keys if k and k in answers), "해설참조")
+        c.drawRightString(x + column_width - 2 * mm, y + 3.5 * mm, str(ans))
+
+    c.setFillColorRGB(0.45, 0.45, 0.45)
+    c.setFont("HYSMyeongJo-Medium", 7.5)
+    c.drawString(left, 13.5 * mm, TEXTBOOKS["blacklabel-middle-2-2"]["answer_source"])
+    draw_footer(c, page_number, page_width)
+
+
+def create_blacklabel_pdf(
+    student: str,
+    grade: str,
+    items: list[tuple[str, str, str, str, bytes]],
+    answers: dict[str, str],
+) -> bytes:
+    pdfmetrics.registerFont(UnicodeCIDFont("HYSMyeongJo-Medium"))
+    output = BytesIO()
+    width, height = A4
+    c = canvas.Canvas(output, pagesize=A4, pageCompression=1)
+    draw_cover(c, student, grade, width, height, "blacklabel-middle-2-2")
+    c.showPage()
+
+    side, bottom, gap = 10 * mm, 14 * mm, 5 * mm
+    cell_w = (width - side * 2 - gap) / 2
+    cell_h = (height - 10 * mm - bottom - gap) / 2
+    boxes = [
+        (side, bottom + cell_h + gap),
+        (side + cell_w + gap, bottom + cell_h + gap),
+        (side, bottom),
+        (side + cell_w + gap, bottom),
+    ]
+
+    total_prob_pages = (len(items) + 3) // 4
+    for p in range(total_prob_pages):
+        chunk = items[p * 4 : (p + 1) * 4]
+        for idx, (chapter, subunit, stage, num_str, data) in enumerate(chunk):
+            x, y = boxes[idx]
+            c.roundRect(x, y, cell_w, cell_h, 2 * mm)
+            c.setFont("HYSMyeongJo-Medium", 8.5)
+            c.drawString(x + 3 * mm, y + cell_h - 5.5 * mm, f"[{subunit}] {stage} {num_str}번")
+            reader = pdf_image_reader(data, 900, 1150)
+            iw, ih = reader.getSize()
+            available_w, available_h = cell_w - 6 * mm, cell_h - 14 * mm
+            scale = min(available_w / iw, available_h / ih)
+            dw, dh = iw * scale, ih * scale
+            c.drawImage(reader, x + (cell_w - dw) / 2, y + cell_h - 9.5 * mm - dh, dw, dh, preserveAspectRatio=True)
+        draw_footer(c, p + 1, width)
+        c.showPage()
+
+    answer_chunks = [items[i:i + 48] for i in range(0, len(items), 48)]
+    for chunk_idx, chunk in enumerate(answer_chunks, start=1):
+        draw_blacklabel_answer_page(
+            c, chunk, answers, total_prob_pages + chunk_idx, width, height, chunk_idx, len(answer_chunks)
+        )
+        if chunk_idx < len(answer_chunks):
+            c.showPage()
+
+    c.save()
+    return output.getvalue()
+
+
+def load_concept_image(supabase_url: str, secret_key: str, bucket: str, chapter: str, subunit: str, stage: str, number_str: str) -> bytes:
+    headers = {"apikey": secret_key}
+    num = int(number_str) if number_str.isdigit() else None
+    candidates: list[str] = []
+    if num is not None:
+        candidates.append(f"{num:04d}.png")
+        candidates.append(f"{num}.png")
+    candidates.append(f"{number_str}.png")
+    if num is not None:
+        candidates.append(f"{num}-1.png")
+
+    for filename in candidates:
+        object_path = urllib.parse.quote(f"{bucket}/concept-middle-2-2/{chapter}/{subunit}/{stage}/{filename}", safe="/")
+        try:
+            return request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
+        except urllib.error.HTTPError as err:
+            if err.code == 404:
+                continue
+            raise
+    raise ValueError(f"개념유형파워 문제 이미지를 찾을 수 없습니다: [{subunit} > {stage}] {number_str}번")
+
+
+def create_concept_pdf(
+    student: str,
+    grade: str,
+    items: list[tuple[str, str, str, str, bytes]],
+) -> bytes:
+    pdfmetrics.registerFont(UnicodeCIDFont("HYSMyeongJo-Medium"))
+    output = BytesIO()
+    width, height = A4
+    c = canvas.Canvas(output, pagesize=A4, pageCompression=1)
+    draw_cover(c, student, grade, width, height, "concept-middle-2-2")
+    c.showPage()
+
+    concept_items = [it for it in items if "개념익히기" in it[2] or "01_개념" in it[2]]
+    grid_items = [it for it in items if "개념익히기" not in it[2] and "01_개념" not in it[2]]
+
+    current_page = 1
+    side, bottom, gap = 10 * mm, 14 * mm, 5 * mm
+
+    if concept_items:
+        groups = [concept_items[i:i + 4] for i in range(0, len(concept_items), 4)]
+        cell_h = (height - 10 * mm - bottom - gap * 3) / 4
+        box_w = width - side * 2
+        for group in groups:
+            for idx, (chapter, subunit, stage, num_str, data) in enumerate(group):
+                y = height - 10 * mm - (idx + 1) * cell_h - idx * gap
+                c.roundRect(side, y, box_w, cell_h, 2 * mm)
+                c.setFont("HYSMyeongJo-Medium", 8.5)
+                clean_sub = subunit.replace("_", " ")
+                clean_stg = stage.replace("_", " ")
+                c.drawString(side + 3 * mm, y + cell_h - 5.3 * mm, f"[{clean_sub}] {clean_stg}")
+                c.drawRightString(side + box_w - 3 * mm, y + cell_h - 5.3 * mm, f"No. {num_str}")
+                reader = pdf_image_reader(data, 1550, 650)
+                iw, ih = reader.getSize()
+                scale = min((box_w - 6 * mm) / iw, (cell_h - 12 * mm) / ih)
+                dw, dh = iw * scale, ih * scale
+                c.drawImage(reader, side + 3 * mm, y + cell_h - 9 * mm - dh, dw, dh, preserveAspectRatio=True)
+            draw_footer(c, current_page, width)
+            c.showPage()
+            current_page += 1
+
+    if grid_items:
+        groups = [grid_items[i:i + 4] for i in range(0, len(grid_items), 4)]
+        cell_w = (width - side * 2 - gap) / 2
+        cell_h = (height - 10 * mm - bottom - gap) / 2
+        boxes = [
+            (side, bottom + cell_h + gap),
+            (side + cell_w + gap, bottom + cell_h + gap),
+            (side, bottom),
+            (side + cell_w + gap, bottom),
+        ]
+        for group in groups:
+            for idx, (chapter, subunit, stage, num_str, data) in enumerate(group):
+                x, y = boxes[idx]
+                c.roundRect(x, y, cell_w, cell_h, 2 * mm)
+                c.setFont("HYSMyeongJo-Medium", 8.5)
+                clean_sub = subunit.replace("_", " ")
+                clean_stg = stage.replace("_", " ")
+                c.drawString(x + 3 * mm, y + cell_h - 5.3 * mm, f"[{clean_sub}] {clean_stg}")
+                c.drawRightString(x + cell_w - 3 * mm, y + cell_h - 5.3 * mm, f"No. {num_str}")
+                reader = pdf_image_reader(data, 900, 1150)
+                iw, ih = reader.getSize()
+                available_w, available_h = cell_w - 6 * mm, cell_h - 14 * mm
+                scale = min(available_w / iw, available_h / ih)
+                dw, dh = iw * scale, ih * scale
+                c.drawImage(reader, x + 3 * mm, y + cell_h - 9 * mm - dh, dw, dh, preserveAspectRatio=True)
+            draw_footer(c, current_page, width)
+            c.showPage()
+            current_page += 1
+
+    c.save()
+    return output.getvalue()
+
+
 class handler(BaseHTTPRequestHandler):
     def send_json_data(self, status: int, payload: dict) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -672,11 +1218,52 @@ class handler(BaseHTTPRequestHandler):
                     olympus_items.extend((unit, problem_type, number, data) for number, data in images)
                 olympus_answers = load_olympus_answers(supabase_url, secret_key, bucket)
                 pdf = create_olympus_pdf(student, grade, olympus_items, olympus_answers)
+            elif textbook == "blacklabel-middle-2-2":
+                raw_items = payload.get("blacklabelItems")
+                if not isinstance(raw_items, list) or not raw_items:
+                    raise ValueError("블랙라벨 문제를 목록에 추가해 주세요.")
+                blacklabel_items = []
+                total = 0
+                for item in raw_items:
+                    if not isinstance(item, dict):
+                        raise ValueError("블랙라벨 입력 목록을 확인해 주세요.")
+                    chapter = str(item.get("chapter", "")).strip()
+                    subunit = str(item.get("subunit", "")).strip()
+                    stage = str(item.get("stage", "")).strip()
+                    tokens = parse_problem_tokens(str(item.get("numbers", "")))
+                    total += len(tokens)
+                    if total > 100:
+                        raise ValueError("전체 목록에서 최대 100문제까지 만들 수 있습니다.")
+                    for num_str in tokens:
+                        data = load_blacklabel_image(supabase_url, secret_key, bucket, chapter, subunit, stage, num_str)
+                        blacklabel_items.append((chapter, subunit, stage, num_str, data))
+                blacklabel_answers = load_blacklabel_answers(supabase_url, secret_key, bucket)
+                pdf = create_blacklabel_pdf(student, grade, blacklabel_items, blacklabel_answers)
+            elif textbook == "concept-middle-2-2":
+                raw_items = payload.get("conceptItems")
+                if not isinstance(raw_items, list) or not raw_items:
+                    raise ValueError("개념유형파워 문제를 목록에 추가해 주세요.")
+                concept_items = []
+                total = 0
+                for item in raw_items:
+                    if not isinstance(item, dict):
+                        raise ValueError("개념유형파워 입력 목록을 확인해 주세요.")
+                    chapter = str(item.get("chapter", "")).strip()
+                    subunit = str(item.get("subunit", "")).strip()
+                    stage = str(item.get("stage", "")).strip()
+                    tokens = parse_problem_tokens(str(item.get("numbers", "")))
+                    total += len(tokens)
+                    if total > 100:
+                        raise ValueError("전체 목록에서 최대 100문제까지 만들 수 있습니다.")
+                    for num_str in tokens:
+                        data = load_concept_image(supabase_url, secret_key, bucket, chapter, subunit, stage, num_str)
+                        concept_items.append((chapter, subunit, stage, num_str, data))
+                pdf = create_concept_pdf(student, grade, concept_items)
             else:
                 numbers = parse_numbers(str(payload.get("numbers", "")))
                 images = load_images(supabase_url, secret_key, bucket, textbook, numbers)
                 selected_answers = None
-                if textbook != "gojaengi-common-math-2":
+                if textbook not in ("gojaengi-common-math-2", "ssen-middle-2-2"):
                     all_answers = load_quick_answers(supabase_url, secret_key, bucket, textbook)
                     missing_answers = [number for number in numbers if number not in all_answers]
                     if missing_answers:
