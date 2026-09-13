@@ -125,42 +125,75 @@ type ConceptItem = {
   count: number;
 };
 
-const blacklabelStructure: Record<string, { chapter: string; stages: string[] }> = {
-  '01 삼각형의 성질': {
-    chapter: 'I. 삼각형의 성질',
-    stages: ['시험에 꼭 나오는 문제', 'A등급을 위한 문제', '종합 사고력 도전 문제', '미리보는 학력평가'],
+const blacklabelHierarchy: Record<string, Record<string, string[]>> = {
+  'I. 삼각형의 성질': {
+    '01 삼각형의 성질': [
+      '시험에 꼭 나오는 문제',
+      'A등급을 위한 문제',
+      '종합 사고력 도전 문제',
+      '미리보는 학력평가',
+    ],
+    '02 삼각형의 외심과 내심': [
+      '시험에 꼭 나오는 문제',
+      'A등급을 위한 문제',
+      '종합 사고력 도전 문제',
+      '미리보는 학력평가',
+      '대단원평가',
+    ],
   },
-  '02 삼각형의 외심과 내심': {
-    chapter: 'I. 삼각형의 성질',
-    stages: ['시험에 꼭 나오는 문제', 'A등급을 위한 문제', '종합 사고력 도전 문제', '미리보는 학력평가', '대단원평가'],
+  'II. 사각형의 성질': {
+    '03 평행사변형': [
+      '시험에 꼭 나오는 문제',
+      'A등급을 위한 문제',
+      '종합 사고력 도전 문제',
+      '미리보는 학력평가',
+    ],
+    '04 여러 가지 사각형': [
+      '시험에 꼭 나오는 문제',
+      'A등급을 위한 문제',
+      '종합 사고력 도전 문제',
+      '미리보는 학력평가',
+      '대단원평가',
+    ],
   },
-  '03 평행사변형': {
-    chapter: 'II. 사각형의 성질',
-    stages: ['시험에 꼭 나오는 문제', 'A등급을 위한 문제', '종합 사고력 도전 문제', '미리보는 학력평가'],
+  'III. 도형의 닮음': {
+    '05 도형의 닮음': [
+      '시험에 꼭 나오는 문제',
+      'A등급을 위한 문제',
+      '종합 사고력 도전 문제',
+      '미리보는 학력평가',
+    ],
+    '06 닮음의 활용': [
+      '시험에 꼭 나오는 문제',
+      'A등급을 위한 문제',
+      '종합 사고력 도전 문제',
+      '미리보는 학력평가',
+      '대단원평가',
+    ],
   },
-  '04 여러 가지 사각형': {
-    chapter: 'II. 사각형의 성질',
-    stages: ['시험에 꼭 나오는 문제', 'A등급을 위한 문제', '종합 사고력 도전 문제', '미리보는 학력평가', '대단원평가'],
+  'IV. 피타고라스 정리': {
+    '07 피타고라스 정리': [
+      '시험에 꼭 나오는 문제',
+      'A등급을 위한 문제',
+      '종합 사고력 도전 문제',
+      '미리보는 학력평가',
+      '대단원평가',
+    ],
   },
-  '05 도형의 닮음': {
-    chapter: 'III. 도형의 닮음',
-    stages: ['시험에 꼭 나오는 문제', 'A등급을 위한 문제', '종합 사고력 도전 문제', '미리보는 학력평가'],
-  },
-  '06 닮음의 활용': {
-    chapter: 'III. 도형의 닮음',
-    stages: ['시험에 꼭 나오는 문제', 'A등급을 위한 문제', '종합 사고력 도전 문제', '미리보는 학력평가', '대단원평가'],
-  },
-  '07 피타고라스 정리': {
-    chapter: 'IV. 피타고라스 정리',
-    stages: ['시험에 꼭 나오는 문제', 'A등급을 위한 문제', '종합 사고력 도전 문제', '미리보는 학력평가', '대단원평가'],
-  },
-  '08 경우의 수': {
-    chapter: 'V. 확률',
-    stages: ['시험에 꼭 나오는 문제', 'A등급을 위한 문제', '종합 사고력 도전 문제', '미리보는 학력평가'],
-  },
-  '09 확률': {
-    chapter: 'V. 확률',
-    stages: ['시험에 꼭 나오는 문제', 'A등급을 위한 문제', '종합 사고력 도전 문제', '미리보는 학력평가', '대단원평가'],
+  'V. 확률': {
+    '08 경우의 수': [
+      '시험에 꼭 나오는 문제',
+      'A등급을 위한 문제',
+      '종합 사고력 도전 문제',
+      '미리보는 학력평가',
+    ],
+    '09 확률': [
+      '시험에 꼭 나오는 문제',
+      'A등급을 위한 문제',
+      '종합 사고력 도전 문제',
+      '미리보는 학력평가',
+      '대단원평가',
+    ],
   },
 };
 
@@ -305,7 +338,7 @@ export default function Home() {
   const [sessionToken, setSessionToken] = useState('');
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
-  const [student, setStudent] = useState('');
+  const [student, setStudent] = useState('홍길동');
   const [grade, setGrade] = useState('1학년');
   const [numbers, setNumbers] = useState('1, 2, 3, 4');
   const [department, setDepartment] = useState<Department | null>(null);
@@ -313,6 +346,7 @@ export default function Home() {
   const [olympusUnit, setOlympusUnit] = useState(olympusUnits[0]);
   const [olympusType, setOlympusType] = useState('유형완성하기');
   const [olympusItems, setOlympusItems] = useState<OlympusItem[]>([]);
+  const [blacklabelChapter, setBlacklabelChapter] = useState('I. 삼각형의 성질');
   const [blacklabelSubunit, setBlacklabelSubunit] = useState('01 삼각형의 성질');
   const [blacklabelStage, setBlacklabelStage] = useState('시험에 꼭 나오는 문제');
   const [blacklabelItems, setBlacklabelItems] = useState<BlacklabelItem[]>([]);
@@ -591,13 +625,11 @@ export default function Home() {
       if (currentCount + count > 100) {
         throw new Error('전체 목록에서 최대 100문제까지 추가할 수 있습니다.');
       }
-      const struct = blacklabelStructure[blacklabelSubunit];
-      const chapter = struct ? struct.chapter : 'I. 삼각형의 성질';
       setBlacklabelItems((items) => [
         ...items,
         {
           id: Date.now(),
-          chapter,
+          chapter: blacklabelChapter,
           subunit: blacklabelSubunit,
           stage: blacklabelStage,
           numbers: numbers.trim(),
@@ -945,6 +977,29 @@ export default function Home() {
                   )}
                   {textbook === 'blacklabel-middle-2-2' && (
                     <>
+                      <label htmlFor="blacklabel-chapter" className="space-y-2">
+                        <span className="font-medium">대단원</span>
+                        <NativeSelect
+                          id="blacklabel-chapter"
+                          className="w-full"
+                          value={blacklabelChapter}
+                          onChange={(e) => {
+                            const newCh = e.target.value;
+                            setBlacklabelChapter(newCh);
+                            const subs = Object.keys(blacklabelHierarchy[newCh] || {});
+                            const firstSub = subs[0] || '';
+                            setBlacklabelSubunit(firstSub);
+                            const stages = blacklabelHierarchy[newCh]?.[firstSub] || [];
+                            setBlacklabelStage(stages[0] || '');
+                          }}
+                        >
+                          {Object.keys(blacklabelHierarchy).map((ch) => (
+                            <NativeSelectOption key={ch} value={ch}>
+                              {ch}
+                            </NativeSelectOption>
+                          ))}
+                        </NativeSelect>
+                      </label>
                       <label htmlFor="blacklabel-subunit" className="space-y-2">
                         <span className="font-medium">소단원</span>
                         <NativeSelect
@@ -952,27 +1007,28 @@ export default function Home() {
                           className="w-full"
                           value={blacklabelSubunit}
                           onChange={(e) => {
-                            const val = e.target.value;
-                            setBlacklabelSubunit(val);
-                            setBlacklabelStage(blacklabelStructure[val].stages[0]);
+                            const newSub = e.target.value;
+                            setBlacklabelSubunit(newSub);
+                            const stages = blacklabelHierarchy[blacklabelChapter]?.[newSub] || [];
+                            setBlacklabelStage(stages[0] || '');
                           }}
                         >
-                          {Object.keys(blacklabelStructure).map((sub) => (
+                          {Object.keys(blacklabelHierarchy[blacklabelChapter] || {}).map((sub) => (
                             <NativeSelectOption key={sub} value={sub}>
                               {sub}
                             </NativeSelectOption>
                           ))}
                         </NativeSelect>
                       </label>
-                      <label htmlFor="blacklabel-stage" className="space-y-2">
-                        <span className="font-medium">단계</span>
+                      <label htmlFor="blacklabel-stage" className="space-y-2 sm:col-span-2">
+                        <span className="font-medium">단계(난이도)</span>
                         <NativeSelect
                           id="blacklabel-stage"
                           className="w-full"
                           value={blacklabelStage}
                           onChange={(e) => setBlacklabelStage(e.target.value)}
                         >
-                          {blacklabelStructure[blacklabelSubunit]?.stages.map((stg) => (
+                          {(blacklabelHierarchy[blacklabelChapter]?.[blacklabelSubunit] || []).map((stg) => (
                             <NativeSelectOption key={stg} value={stg}>
                               {stg}
                             </NativeSelectOption>
@@ -1179,7 +1235,7 @@ export default function Home() {
                         </div>
                         {blacklabelItems.length === 0 ? (
                           <p className="rounded-lg bg-white p-3 text-sm text-slate-500">
-                            소단원과 단계를 선택하고 번호를 목록에 추가하세요.
+                            대단원, 소단원, 단계를 선택하고 번호를 목록에 추가하세요.
                           </p>
                         ) : (
                           <ol className="space-y-2">
@@ -1189,7 +1245,7 @@ export default function Home() {
                                 className="flex items-center justify-between gap-3 rounded-lg bg-white p-3 text-sm"
                               >
                                 <span>
-                                  {index + 1}. [{item.subunit}] {item.stage} · {item.numbers}번
+                                  {index + 1}. [{item.chapter} &gt; {item.subunit}] {item.stage} · {item.numbers}번
                                   <span className="ml-2 text-slate-500">
                                     ({item.count}문제)
                                   </span>

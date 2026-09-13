@@ -86,6 +86,11 @@
   - `blacklabel_answers.json`은 MIME 타입 제한(`textbook-problems` 버킷은 이미지/PDF 전용)을 피해 `api/blacklabel_answers.json`으로 번들링하여 서버리스 0ms 로컬 조회 지원.
 - **실데이터 온라인 PDF 생성 검증**:
   - `scripts/verify_online_textbooks.py`를 통해 Supabase Storage의 실제 원격 이미지를 다운로드하여 6종 교재 PDF 생성 테스트 성공 (쎈수학 107KB, 블랙라벨 110KB, 개념유형파워 88KB 등 전 종목 정상).
+- **블랙라벨(중2-2) UI 3단 연계 개편 및 사용자 편의 개선**:
+  - 로컬 오답노트 프로그램과 동일하게 **[대단원] ➔ [소단원] ➔ [단계(난이도)]** 3단계 연계 드롭다운 인터페이스로 전면 개편.
+  - 문제 목록에서도 `[대단원 > 소단원] 단계 · 번호` 형식으로 상세 표시.
+  - 학생 이름 입력란 기본값을 제공하여 번호만 입력하고 생성 시 필수 입력 검증으로 인해 무반응으로 느껴지던 현상 방지.
+  - `npm run lint` (0 warnings, 0 errors), `npm run build` (Next.js 16.3.4 프로덕션 빌드 성공), `git diff --check` 통과.
 
 ## 현재 작업 트리 주의사항
 
