@@ -911,8 +911,29 @@ def draw_olympus_answer_page(c: canvas.Canvas, items: list[tuple[str, str, int, 
     draw_footer(c, page_number, width)
 
 
+BLACKLABEL_CHAPTER_SLUGS = {
+    "I. 삼각형의 성질": "ch1",
+    "II. 사각형의 성질": "ch2",
+    "III. 도형의 닮음": "ch3",
+    "IV. 피타고라스 정리": "ch4",
+    "V. 확률": "ch5",
+}
+
+BLACKLABEL_STAGE_SLUGS = {
+    "시험에 꼭 나오는 문제": "must",
+    "A등급을 위한 문제": "grade-a",
+    "종합 사고력 도전 문제": "challenge",
+    "미리보는 학력평가": "mock",
+    "대단원평가": "review",
+}
+
+
 def load_blacklabel_image(supabase_url: str, secret_key: str, bucket: str, chapter: str, subunit: str, stage: str, number_str: str) -> bytes:
     headers = {"apikey": secret_key}
+    c_slug = BLACKLABEL_CHAPTER_SLUGS.get(chapter, "ch1")
+    sub_slug = "sub" + subunit.strip().split()[0]
+    s_slug = BLACKLABEL_STAGE_SLUGS.get(stage, "must")
+
     num = int(number_str) if number_str.isdigit() else None
     candidates: list[str] = []
     if num is not None:
@@ -924,7 +945,7 @@ def load_blacklabel_image(supabase_url: str, secret_key: str, bucket: str, chapt
         candidates.append(f"{num}-1.png")
 
     for filename in candidates:
-        object_path = urllib.parse.quote(f"{bucket}/blacklabel-middle-2-2/{chapter}/{subunit}/{stage}/{filename}", safe="/")
+        object_path = urllib.parse.quote(f"{bucket}/blacklabel-middle-2-2/{c_slug}/{sub_slug}/{s_slug}/{filename}", safe="/")
         try:
             return request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
         except urllib.error.HTTPError as err:
@@ -935,6 +956,9 @@ def load_blacklabel_image(supabase_url: str, secret_key: str, bucket: str, chapt
 
 
 def load_blacklabel_answers(supabase_url: str, secret_key: str, bucket: str) -> dict[str, str]:
+    local_path = Path(__file__).resolve().parent / "blacklabel_answers.json"
+    if local_path.is_file():
+        return json.loads(local_path.read_text(encoding="utf-8"))
     headers = {"apikey": secret_key}
     object_path = urllib.parse.quote(f"{bucket}/blacklabel-middle-2-2/blacklabel_answers.json", safe="/")
     data = request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
@@ -1060,8 +1084,24 @@ def create_blacklabel_pdf(
     return output.getvalue()
 
 
+CONCEPT_STAGE_SLUGS = {
+    "01_개념익히기": "concept",
+    "01_개념익히기_1": "concept1",
+    "01_개념익히기_2": "concept2",
+    "02_핵심유형": "type",
+    "02_핵심유형_1": "type1",
+    "02_핵심유형_2": "type2",
+    "03_실력UP문제": "power",
+    "04_실전테스트": "test",
+}
+
+
 def load_concept_image(supabase_url: str, secret_key: str, bucket: str, chapter: str, subunit: str, stage: str, number_str: str) -> bytes:
     headers = {"apikey": secret_key}
+    c_slug = "ch" + chapter[:2]
+    sub_slug = "sub" + subunit[:2]
+    s_slug = CONCEPT_STAGE_SLUGS.get(stage, stage)
+
     num = int(number_str) if number_str.isdigit() else None
     candidates: list[str] = []
     if num is not None:
@@ -1072,7 +1112,7 @@ def load_concept_image(supabase_url: str, secret_key: str, bucket: str, chapter:
         candidates.append(f"{num}-1.png")
 
     for filename in candidates:
-        object_path = urllib.parse.quote(f"{bucket}/concept-middle-2-2/{chapter}/{subunit}/{stage}/{filename}", safe="/")
+        object_path = urllib.parse.quote(f"{bucket}/concept-middle-2-2/{c_slug}/{sub_slug}/{s_slug}/{filename}", safe="/")
         try:
             return request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
         except urllib.error.HTTPError as err:

@@ -76,6 +76,17 @@
   - `scripts/verify_online_textbooks.py` 실행 결과 고등부 3종 + 중등부 3종 총 6종 교재의 샘플 PDF가 모두 정상 생성됨.
   - `npm run lint` (0 warnings, 0 errors), `npm run build` (Next.js 16.3.4 프로덕션 빌드 성공), `git diff --check` 통과.
 
+## 2026-09-13 Supabase Storage 업로드 및 온라인 연동 완료
+
+- **Supabase Storage 업로드 (총 2,144개 파일 100% 완료)**:
+  - `ssen-middle-2-2`: 883개 (문제 882개 + 빠른정답 PDF 1개)
+  - `blacklabel-middle-2-2`: 511개 (ASCII 슬러그 경로 `ch1/sub01/must/0001.png` 등)
+  - `concept-middle-2-2`: 750개 (ASCII 슬러그 경로 `ch01/sub01/concept/0001.png` 등)
+  - Supabase S3 키 검증기의 한글/공백 제한(`400 InvalidKey`)을 영문 ASCII 슬러그 매핑으로 완벽히 해결.
+  - `blacklabel_answers.json`은 MIME 타입 제한(`textbook-problems` 버킷은 이미지/PDF 전용)을 피해 `api/blacklabel_answers.json`으로 번들링하여 서버리스 0ms 로컬 조회 지원.
+- **실데이터 온라인 PDF 생성 검증**:
+  - `scripts/verify_online_textbooks.py`를 통해 Supabase Storage의 실제 원격 이미지를 다운로드하여 6종 교재 PDF 생성 테스트 성공 (쎈수학 107KB, 블랙라벨 110KB, 개념유형파워 88KB 등 전 종목 정상).
+
 ## 현재 작업 트리 주의사항
 
 - 2026-09-10 확인 시 `output/` 폴더가 Git 미추적 상태이다.

@@ -19,12 +19,34 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+ROOT = Path(__file__).resolve().parents[1]
+
+CONCEPT_STAGE_SLUGS = {
+    "01_개념익히기": "concept",
+    "01_개념익히기_1": "concept1",
+    "01_개념익히기_2": "concept2",
+    "02_핵심유형": "type",
+    "02_핵심유형_1": "type1",
+    "02_핵심유형_2": "type2",
+    "03_실력UP문제": "power",
+    "04_실전테스트": "test",
+}
+
+
+def concept_object_path(rel_path: Path) -> str:
+    parts = rel_path.parts
+    c_slug = "ch" + parts[0][:2]
+    sub_slug = "sub" + parts[1][:2]
+    s_slug = CONCEPT_STAGE_SLUGS.get(parts[2], parts[2])
+    return f"{TEXTBOOK_ID}/{c_slug}/{sub_slug}/{s_slug}/{parts[3]}"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="중등부 개념유형파워(중2-2) 온라인 자료를 읽기 전용으로 검사하고 업로드 목록을 만듭니다."
     )
     parser.add_argument("--source", type=Path, default=DEFAULT_SOURCE)
-    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--output", type=Path, default=ROOT / "tmp" / f"{TEXTBOOK_ID}-upload-manifest.json")
     args = parser.parse_args()
 
     source = args.source.resolve()
@@ -47,7 +69,7 @@ def main() -> None:
     entries = [
         {
             "source": str(path),
-            "object": f"{TEXTBOOK_ID}/{path.relative_to(image_dir).as_posix()}",
+            "object": concept_object_path(path.relative_to(image_dir)),
             "bytes": path.stat().st_size,
             "sha256": sha256(path),
         }

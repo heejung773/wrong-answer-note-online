@@ -30,6 +30,20 @@ def main() -> None:
     )
     parser.add_argument("--manifest", type=Path, help="사용할 매니페스트 파일 경로")
     args = parser.parse_args()
+    def load_env_local() -> None:
+        env_file = ROOT / ".env.local"
+        if not env_file.is_file():
+            return
+        for line in env_file.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, val = line.split("=", 1)
+            key, val = key.strip(), val.strip().strip("'\"")
+            if key and key not in os.environ:
+                os.environ[key] = val
+
+    load_env_local()
     url = os.environ.get("NEXT_PUBLIC_SUPABASE_URL", "").rstrip("/")
     secret = os.environ.get("SUPABASE_SECRET_KEY", "")
     bucket = os.environ.get("SUPABASE_STORAGE_BUCKET", "textbook-problems")
