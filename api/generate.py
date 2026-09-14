@@ -693,7 +693,7 @@ def draw_footer(c: canvas.Canvas, page_number: int, page_width: float) -> None:
     c.line(left, 9.5 * mm, right, 9.5 * mm)
     c.setFillColorRGB(0.16, 0.16, 0.16)
     c.setFont("HYSMyeongJo-Medium", 8)
-    c.drawString(left, 5.2 * mm, "강석수학")
+    c.drawString(left, 5.2 * mm, "다산미래학원")
     c.drawRightString(right, 5.2 * mm, str(page_number))
 
 

@@ -110,6 +110,7 @@
     - 쎈수학(중2-2) 표지: `"강석수학 맞춤 학습 시스템"` ➔ `"다산미래학원 맞춤 학습 시스템"`
     - 블랙라벨(중2-2) 표지: 카드 내 `"강 석 수 학"` ➔ `"다산미래학원"`, 하단 영문 `"KANG SEOK MATH • BLACKLABEL CUSTOM CLINIC"` ➔ `"DASAN MIRAE ACADEMY • BLACKLABEL CUSTOM CLINIC"`
     - 개념유형파워(유형편 중2-2) 표지: 동일 패밀리 일관성을 위해 카드 내 `"강 석 수 학"` ➔ `"다산미래학원"`, 하단 영문 `"KANG SEOK MATH • FRESH POWER LEARNING SYSTEM"` ➔ `"DASAN MIRAE ACADEMY • FRESH POWER LEARNING SYSTEM"` 함께 반영.
+    - 전 교재 공통 하단 푸터(`draw_footer`): 좌측 하단 `"강석수학"` ➔ `"다산미래학원"` 일괄 변경 완료.
 - **검증 완료**:
   - `scripts/verify_online_textbooks.py`를 통해 6종 전체 샘플 PDF 재생성 및 텍스트/표지 이미지 렌더링 검증 완료.
   - `npm run lint` (0 warnings, 0 errors), `npm run build` (Next.js 16.3.4 프로덕션 빌드 성공), `git diff --check` 통과.
