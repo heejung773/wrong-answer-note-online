@@ -1,6 +1,6 @@
 # 프로젝트 상태: 온라인 오답노트 시험판
 
-- 마지막 정리일: 2026-09-13
+- 마지막 정리일: 2026-09-14
 - 프로젝트 위치: `D:\오답노트_온라인_테스트`
 - Git 브랜치: `main`
 - 목적: 로컬에서 검수 완료된 교재를 로그인 기반 온라인 오답노트 서비스로 제공한다.
@@ -90,6 +90,17 @@
   - 로컬 오답노트 프로그램과 동일하게 **[대단원] ➔ [소단원] ➔ [단계(난이도)]** 3단계 연계 드롭다운 인터페이스로 전면 개편.
   - 문제 목록에서도 `[대단원 > 소단원] 단계 · 번호` 형식으로 상세 표시.
   - 학생 이름 입력란 기본값을 제공하여 번호만 입력하고 생성 시 필수 입력 검증으로 인해 무반응으로 느껴지던 현상 방지.
+  - `npm run lint` (0 warnings, 0 errors), `npm run build` (Next.js 16.3.4 프로덕션 빌드 성공), `git diff --check` 통과.
+
+## 2026-09-14 블랙라벨 PDF 생성 NameError 수정 및 번호 파싱 개선
+
+- **블랙라벨 빠른정답 로딩 시 NameError 수정**:
+  - `api/generate.py`: 파일 상단에 `from pathlib import Path` 임포트가 누락되어 `load_blacklabel_answers()` 호출 시 `NameError: name 'Path' is not defined`가 발생해 HTTP 500 오류가 나던 결함을 수정함.
+- **소문항 번호 파싱 개선**:
+  - `api/generate.py`: `parse_problem_tokens`의 범위 정규식을 물결표(`~`) 전용으로 변경하여 `1-1`, `2-1` 같은 소문항 번호가 하이픈 범위로 오분할되지 않도록 보완함.
+  - `app/page.tsx`: 중등부 교재(블랙라벨, 개념유형파워) 번호 입력 플레이스홀더를 `1, 2, 3 또는 1~5`로 설정하여 사용자가 연속 범위 입력 시 혼동하지 않도록 개선함.
+- **검증 보완**:
+  - `scripts/verify_online_textbooks.py`: `generate.load_blacklabel_answers`를 직접 호출하여 빠른정답 로딩 및 생성 과정을 상시 검증하도록 테스트 케이스를 보완함 (총 6종 교재 PDF 생성 테스트 100% 정상 통과).
   - `npm run lint` (0 warnings, 0 errors), `npm run build` (Next.js 16.3.4 프로덕션 빌드 성공), `git diff --check` 통과.
 
 ## 현재 작업 트리 주의사항

@@ -63,7 +63,7 @@ def main() -> None:
         bl_img1 = read(BLACKLABEL / "문제모음" / bl_ch / bl_sub / bl_stg / "0001.png")
         bl_img2 = read(BLACKLABEL / "문제모음" / bl_ch / bl_sub / bl_stg / "0002.png")
         bl_items = [(bl_ch, bl_sub, bl_stg, "1", bl_img1), (bl_ch, bl_sub, bl_stg, "2", bl_img2)]
-        bl_answers = generate.json.loads(read(BLACKLABEL / "blacklabel_answers.json"))
+        bl_answers = generate.load_blacklabel_answers("https://example.supabase.co", "dummy-key", "textbook-problems")
         assert_pdf("blacklabel-middle-2-2", generate.create_blacklabel_pdf("테스트", "2학년", bl_items, bl_answers), 3)
 
         cp_ch, cp_sub = "01_삼각형의_성질", "01_이등변삼각형의_성질"

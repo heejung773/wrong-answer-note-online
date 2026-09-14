@@ -1105,7 +1105,12 @@ export default function Home() {
                       id="numbers"
                       value={numbers}
                       onChange={(e) => setNumbers(e.target.value)}
-                      placeholder="1, 5, 10 또는 1-10"
+                      placeholder={
+                        textbook === 'blacklabel-middle-2-2' ||
+                        textbook === 'concept-middle-2-2'
+                          ? '1, 2, 3 또는 1~5'
+                          : '1, 5, 10 또는 1-10'
+                      }
                       required={
                         textbook !== 'olympus-calculus' &&
                         textbook !== 'blacklabel-middle-2-2' &&
