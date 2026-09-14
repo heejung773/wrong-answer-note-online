@@ -103,6 +103,17 @@
   - `scripts/verify_online_textbooks.py`: `generate.load_blacklabel_answers`를 직접 호출하여 빠른정답 로딩 및 생성 과정을 상시 검증하도록 테스트 케이스를 보완함 (총 6종 교재 PDF 생성 테스트 100% 정상 통과).
   - `npm run lint` (0 warnings, 0 errors), `npm run build` (Next.js 16.3.4 프로덕션 빌드 성공), `git diff --check` 통과.
 
+## 2026-09-14 중등부 교재 표지 학원명 변경 (강석수학 -> 다산미래학원)
+
+- **표지 학원명 변경**:
+  - `api/generate.py`:
+    - 쎈수학(중2-2) 표지: `"강석수학 맞춤 학습 시스템"` ➔ `"다산미래학원 맞춤 학습 시스템"`
+    - 블랙라벨(중2-2) 표지: 카드 내 `"강 석 수 학"` ➔ `"다산미래학원"`, 하단 영문 `"KANG SEOK MATH • BLACKLABEL CUSTOM CLINIC"` ➔ `"DASAN MIRAE ACADEMY • BLACKLABEL CUSTOM CLINIC"`
+    - 개념유형파워(유형편 중2-2) 표지: 동일 패밀리 일관성을 위해 카드 내 `"강 석 수 학"` ➔ `"다산미래학원"`, 하단 영문 `"KANG SEOK MATH • FRESH POWER LEARNING SYSTEM"` ➔ `"DASAN MIRAE ACADEMY • FRESH POWER LEARNING SYSTEM"` 함께 반영.
+- **검증 완료**:
+  - `scripts/verify_online_textbooks.py`를 통해 6종 전체 샘플 PDF 재생성 및 텍스트/표지 이미지 렌더링 검증 완료.
+  - `npm run lint` (0 warnings, 0 errors), `npm run build` (Next.js 16.3.4 프로덕션 빌드 성공), `git diff --check` 통과.
+
 ## 현재 작업 트리 주의사항
 
 - 2026-09-10 확인 시 `output/` 폴더가 Git 미추적 상태이다.

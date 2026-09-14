@@ -364,7 +364,7 @@ def draw_ssen_middle_2_2_cover(c: canvas.Canvas, student: str, grade: str, page_
     c.setFont("HYSMyeongJo-Medium", 11)
     c.drawString(card_x + 8 * mm, card_y + card_h - 23 * mm, f"학년: {grade}")
     c.setFillColorRGB(0.4, 0.45, 0.5)
-    c.drawString(card_x + 8 * mm, card_y + 9 * mm, "강석수학 맞춤 학습 시스템")
+    c.drawString(card_x + 8 * mm, card_y + 9 * mm, "다산미래학원 맞춤 학습 시스템")
 
 
 def draw_blacklabel_middle_2_2_cover(c: canvas.Canvas, student: str, grade: str, w: float, h: float) -> None:
@@ -472,11 +472,11 @@ def draw_blacklabel_middle_2_2_cover(c: canvas.Canvas, student: str, grade: str,
 
     c.setFont("HYSMyeongJo-Medium", 11)
     c.setFillColorRGB(*sky_blue)
-    c.drawRightString(card_x + card_w - 13 * mm, card_y + 10 * mm, "강 석 수 학")
+    c.drawRightString(card_x + card_w - 13 * mm, card_y + 10 * mm, "다산미래학원")
 
     c.setFont("Helvetica", 8.5)
     c.setFillColorRGB(0.50, 0.60, 0.64)
-    c.drawCentredString(w / 2, 18 * mm, "KANG SEOK MATH • BLACKLABEL CUSTOM CLINIC")
+    c.drawCentredString(w / 2, 18 * mm, "DASAN MIRAE ACADEMY • BLACKLABEL CUSTOM CLINIC")
 
 
 def draw_concept_middle_2_2_cover(c: canvas.Canvas, student: str, grade: str, w: float, h: float) -> None:
@@ -583,11 +583,11 @@ def draw_concept_middle_2_2_cover(c: canvas.Canvas, student: str, grade: str, w:
 
     c.setFont("HYSMyeongJo-Medium", 11)
     c.setFillColorRGB(*vibrant_orange)
-    c.drawRightString(card_x + card_w - 13 * mm, card_y + 10 * mm, "강 석 수 학")
+    c.drawRightString(card_x + card_w - 13 * mm, card_y + 10 * mm, "다산미래학원")
 
     c.setFont("Helvetica", 8.5)
     c.setFillColorRGB(0.60, 0.66, 0.76)
-    c.drawCentredString(w / 2, 18 * mm, "KANG SEOK MATH • FRESH POWER LEARNING SYSTEM")
+    c.drawCentredString(w / 2, 18 * mm, "DASAN MIRAE ACADEMY • FRESH POWER LEARNING SYSTEM")
 
 
 def draw_cover(c: canvas.Canvas, student: str, grade: str, page_width: float, page_height: float, textbook: str) -> None:
