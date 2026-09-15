@@ -374,3 +374,30 @@ select {
 .generator-canvas [class*="border-l-amber-"] {
   border-left-color: #d8784c !important;
 }
+.generator-canvas [class*="from-cyan-"],
+.generator-canvas [class*="from-purple-"],
+.generator-canvas [class*="from-blue-"],
+.generator-canvas [class*="from-amber-"],
+.generator-canvas [class*="from-indigo-"] {
+  --tw-gradient-from: #3b8f7a !important;
+  --tw-gradient-to: #a75d3e !important;
+  background-image: linear-gradient(135deg, #3b8f7a, #a75d3e) !important;
+}
+.generator-canvas [class*="ring-cyan-"],
+.generator-canvas [class*="ring-purple-"],
+.generator-canvas [class*="ring-blue-"],
+.generator-canvas [class*="ring-amber-"] {
+  --tw-ring-color: #b87855 !important;
+}
+.generator-canvas [class*="shadow-cyan-"],
+.generator-canvas [class*="shadow-purple-"],
+.generator-canvas [class*="shadow-blue-"],
+.generator-canvas [class*="shadow-amber-"] {
+  --tw-shadow-color: #6d3f2d !important;
+}
+.generator-canvas [class*="hover:from-"],
+.generator-canvas [class*="hover:to-"],
+.generator-canvas [class*="hover:bg-blue-"] {
+  --tw-gradient-from: #4c9e88 !important;
+  --tw-gradient-to: #bd704b !important;
+}
