@@ -1782,16 +1782,9 @@ export default function Home() {
                   {/* Selected Department Indicator */}
                   <div className="flex items-center justify-between px-3.5 py-2.5 bg-[#0F1118] rounded-lg border border-[#242938]">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-slate-400">구분:</span>
-                      {department === 'middle' ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
-                          🌱 중등부 교재
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-blue-500/15 border border-blue-500/30 text-blue-400">
-                          🎓 고등부 교재
-                        </span>
-                      )}
+                      <span className="inline-flex items-center rounded-lg border border-[#e0aa4f] bg-[#5a3b1b] px-3 py-2 text-xs font-extrabold text-[#f7d58a] shadow-sm">
+                        현재 위치: {department === 'middle' ? '중등부' : '고등부'}
+                      </span>
                     </div>
                     <button
                       type="button"
@@ -1802,7 +1795,11 @@ export default function Home() {
                       }}
                       className="inline-flex items-center rounded-lg border border-[#63c5ae] bg-[#26483f] px-3 py-2 text-xs font-extrabold text-[#f7eadf] shadow-sm transition-all hover:bg-[#356b5b] hover:text-white cursor-pointer"
                     >
-                      {department === 'middle' ? '고등부 교재 바로가기' : '중등부 교재 바로가기'}
+                      {department === 'middle' ? (
+                        <><GraduationCap className="size-4" /> 고등부 교재 바로가기</>
+                      ) : (
+                        <><School className="size-4" /> 중등부 교재 바로가기</>
+                      )}
                     </button>
                   </div>
 
