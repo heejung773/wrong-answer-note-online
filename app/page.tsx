@@ -2567,18 +2567,18 @@ export default function Home() {
                         </button>
                       </div>
 
-                      {/* Problem Tags Chips */}
+                      {/* Selected problem numbers */}
                       {parsedProblemNumbers.length > 0 && (
-                        <div className="mt-3 flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-2.5 bg-[#0F1118] border border-[#242938] rounded-lg">
+                        <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 max-h-36 overflow-y-auto px-1 py-1 text-sm text-[#d8c5b6]">
                           {parsedProblemNumbers.map((num) => (
                             <span
                               key={num}
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-blue-500/15 border border-blue-500/30 text-blue-300"
+                              className="inline-flex items-center gap-1 font-medium"
                             >
                               No. {num}
                               <button
                                 type="button"
-                                className="text-slate-400 hover:text-red-400 font-bold ml-1 cursor-pointer"
+                                className="text-[#8d7d6c] hover:text-[#e08a5b] font-bold cursor-pointer"
                                 onClick={() => handleRemoveTag(num)}
                                 aria-label={`문항 ${num} 삭제`}
                               >
