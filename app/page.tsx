@@ -990,26 +990,28 @@ export default function Home() {
     const currentTb = textbooks.find((t) => t.id === textbook);
 
     return (
-      <div className="test-workspace-root">
-        <div className="test-app-container">
+      <div className="min-h-screen bg-[#0B0C10] text-[#E2E8F0] p-3 sm:p-6 font-sans">
+        <div className="max-w-[1680px] mx-auto flex flex-col gap-4">
           {/* Top Header */}
-          <header className="test-app-header">
-            <div className="test-header-left">
-              <div className="test-logo-badge">
-                <span className="test-math-icon">∫</span>
-                <span className="test-logo-text">다산미래학원</span>
+          <header className="flex flex-wrap items-center justify-between gap-4 p-4 bg-[#151822] border border-[#242938] rounded-xl shadow-lg">
+            <div className="flex items-center gap-3.5 flex-wrap">
+              <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/30 px-3.5 py-1.5 rounded-full">
+                <span className="text-xl font-black text-blue-400 leading-none">∫</span>
+                <span className="font-bold text-sm text-slate-100">다산미래학원</span>
               </div>
-              <div className="test-header-title-wrap">
-                <h1 className="test-main-title">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h1 className="text-base sm:text-lg font-bold text-slate-100">
                   {currentTb?.title} 맞춤 오답노트 생성기
                 </h1>
-                <span className="test-sub-badge">수파베이스 클라우드 연동</span>
+                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                  수파베이스 클라우드 연동
+                </span>
               </div>
             </div>
-            <div className="test-header-actions">
+            <div className="flex items-center gap-2.5">
               <button
                 type="button"
-                className="test-btn test-btn-outline"
+                className="px-3.5 py-2 text-xs sm:text-sm font-semibold bg-[#1B1E2B] hover:bg-[#242938] border border-[#242938] hover:border-slate-600 text-slate-300 hover:text-white rounded-lg transition-all cursor-pointer"
                 onClick={() => {
                   setTextbook(null);
                   setPreviewPdfUrl(null);
@@ -1019,7 +1021,7 @@ export default function Home() {
               </button>
               <button
                 type="button"
-                className="test-btn test-btn-secondary"
+                className="flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white rounded-lg transition-all cursor-pointer"
                 onClick={logout}
                 disabled={busy}
               >
@@ -1029,61 +1031,84 @@ export default function Home() {
           </header>
 
           {/* Step Guide Rail */}
-          <div className="test-step-guide-rail">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-[#151822] border border-[#242938] rounded-xl shadow-md">
             <button
               type="button"
-              className={`test-step-node ${activeStep === 1 ? 'active' : ''}`}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                activeStep === 1 ? 'bg-white/5 ring-1 ring-cyan-500/50' : 'hover:bg-white/5'
+              }`}
               onClick={() => setActiveStep(1)}
             >
-              <span className="test-step-node-pill test-step-pill-1">01</span>
-              <span className="test-step-node-label">교재 정보</span>
+              <span className="size-6 flex items-center justify-center rounded-full text-xs font-extrabold text-white bg-gradient-to-br from-cyan-500 to-cyan-600 shadow-md shadow-cyan-500/30">
+                01
+              </span>
+              <span className="text-xs sm:text-sm font-bold text-slate-200">교재 정보</span>
             </button>
-            <div className="test-step-guide-arrow">›</div>
+            <span className="text-slate-600 font-bold hidden sm:inline">›</span>
+
             <button
               type="button"
-              className={`test-step-node ${activeStep === 2 ? 'active' : ''}`}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                activeStep === 2 ? 'bg-white/5 ring-1 ring-purple-500/50' : 'hover:bg-white/5'
+              }`}
               onClick={() => setActiveStep(2)}
             >
-              <span className="test-step-node-pill test-step-pill-2">02</span>
-              <span className="test-step-node-label">학생 정보</span>
+              <span className="size-6 flex items-center justify-center rounded-full text-xs font-extrabold text-white bg-gradient-to-br from-purple-500 to-purple-600 shadow-md shadow-purple-500/30">
+                02
+              </span>
+              <span className="text-xs sm:text-sm font-bold text-slate-200">학생 정보</span>
             </button>
-            <div className="test-step-guide-arrow">›</div>
+            <span className="text-slate-600 font-bold hidden sm:inline">›</span>
+
             <button
               type="button"
-              className={`test-step-node ${activeStep === 3 ? 'active' : ''}`}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                activeStep === 3 ? 'bg-white/5 ring-1 ring-blue-500/50' : 'hover:bg-white/5'
+              }`}
               onClick={() => setActiveStep(3)}
             >
-              <span className="test-step-node-pill test-step-pill-3">03</span>
-              <span className="test-step-node-label">문항 선택</span>
+              <span className="size-6 flex items-center justify-center rounded-full text-xs font-extrabold text-white bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/40 ring-1 ring-blue-400/50">
+                03
+              </span>
+              <span className="text-xs sm:text-sm font-bold text-slate-200">문항 선택</span>
             </button>
-            <div className="test-step-guide-arrow">›</div>
+            <span className="text-slate-600 font-bold hidden sm:inline">›</span>
+
             <button
               type="button"
-              className={`test-step-node ${activeStep === 4 ? 'active' : ''}`}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                activeStep === 4 ? 'bg-white/5 ring-1 ring-amber-500/50' : 'hover:bg-white/5'
+              }`}
               onClick={() => setActiveStep(4)}
             >
-              <span className="test-step-node-pill test-step-pill-4">04</span>
-              <span className="test-step-node-label">표지·서식</span>
+              <span className="size-6 flex items-center justify-center rounded-full text-xs font-extrabold text-white bg-gradient-to-br from-amber-500 to-amber-600 shadow-md shadow-amber-500/30">
+                04
+              </span>
+              <span className="text-xs sm:text-sm font-bold text-slate-200">표지·서식</span>
             </button>
           </div>
 
           {/* Main 2-Column Workspace Grid */}
-          <main className="test-workspace-grid">
+          <main className="grid grid-cols-1 xl:grid-cols-[520px_1fr] gap-5 items-start">
             {/* Left Config Panel */}
-            <section className="test-config-panel">
+            <section className="flex flex-col gap-4">
               {/* Step 1: 교재 선택/정보 */}
-              <div className="test-card test-step-1-card">
-                <div className="test-card-header">
-                  <div className="test-card-title">
-                    <span className="test-step-num test-step-num-1">1</span>
-                    <h3>교재 선택 (Textbook)</h3>
+              <div className="bg-[#151822] border border-[#242938] border-l-4 border-l-cyan-500 rounded-xl shadow-md overflow-hidden">
+                <div className="px-4 py-3 flex items-center justify-between border-b border-[#242938] bg-white/[0.015]">
+                  <div className="flex items-center gap-2.5">
+                    <span className="size-5.5 rounded-full flex items-center justify-center text-xs font-extrabold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                      1
+                    </span>
+                    <h3 className="text-sm font-bold text-slate-100">교재 선택 (Textbook)</h3>
                   </div>
-                  <span className="test-badge-status-pill">📚 DB 연동</span>
+                  <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
+                    📚 DB 연동
+                  </span>
                 </div>
-                <div className="test-card-body">
-                  <div className="test-form-group">
+                <div className="p-4">
+                  <div>
                     <select
-                      className="test-form-control"
+                      className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-lg text-slate-100 text-sm outline-none transition-all cursor-pointer"
                       value={textbook}
                       onChange={(e) => {
                         const nextTb = e.target.value as TextbookId;
@@ -1100,39 +1125,45 @@ export default function Home() {
                           </option>
                         ))}
                     </select>
-                    <small className="block mt-1 text-xs text-slate-400">
-                      {currentTbInfo.desc} (수파베이스 실시간 로드)
+                    <small className="block mt-1.5 text-xs text-slate-400">
+                      총 {currentTbInfo.max_num}문항 데이터베이스 연동 ({currentTbInfo.desc})
                     </small>
                   </div>
                 </div>
               </div>
 
               {/* Step 2: 학생 정보 */}
-              <div className="test-card test-step-2-card">
-                <div className="test-card-header">
-                  <div className="test-card-title">
-                    <span className="test-step-num test-step-num-2">2</span>
-                    <h3>학생 정보 입력</h3>
+              <div className="bg-[#151822] border border-[#242938] border-l-4 border-l-purple-500 rounded-xl shadow-md overflow-hidden">
+                <div className="px-4 py-3 flex items-center justify-between border-b border-[#242938] bg-white/[0.015]">
+                  <div className="flex items-center gap-2.5">
+                    <span className="size-5.5 rounded-full flex items-center justify-center text-xs font-extrabold bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                      2
+                    </span>
+                    <h3 className="text-sm font-bold text-slate-100">학생 정보 입력</h3>
                   </div>
                 </div>
-                <div className="test-card-body">
+                <div className="p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="test-form-group">
-                      <label htmlFor="hs-student-name">학생 성명</label>
+                    <div>
+                      <label htmlFor="hs-student-name" className="block text-xs font-semibold text-slate-400 mb-1.5">
+                        학생 성명
+                      </label>
                       <input
                         id="hs-student-name"
                         type="text"
-                        className="test-form-control"
-                        placeholder="예: 김민준"
+                        className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-lg text-slate-100 placeholder-slate-500 text-sm outline-none transition-all"
+                        placeholder="예: 홍길동"
                         value={student}
                         onChange={(e) => setStudent(e.target.value)}
                       />
                     </div>
-                    <div className="test-form-group">
-                      <label htmlFor="hs-student-grade">학년 구분</label>
+                    <div>
+                      <label htmlFor="hs-student-grade" className="block text-xs font-semibold text-slate-400 mb-1.5">
+                        학년 구분
+                      </label>
                       <select
                         id="hs-student-grade"
-                        className="test-form-control"
+                        className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-lg text-slate-100 text-sm outline-none transition-all cursor-pointer"
                         value={grade}
                         onChange={(e) => setGrade(e.target.value)}
                       >
@@ -1146,27 +1177,29 @@ export default function Home() {
               </div>
 
               {/* Step 3: 문항 번호 선택 */}
-              <div className="test-card test-step-3-card">
-                <div className="test-card-header">
-                  <div className="test-card-title">
-                    <span className="test-step-num test-step-num-3">3</span>
-                    <h3>
+              <div className="bg-[#151822] border border-[#242938] border-l-4 border-l-blue-500 bg-gradient-to-b from-blue-500/5 to-transparent rounded-xl shadow-md overflow-hidden">
+                <div className="px-4 py-3 flex items-center justify-between border-b border-[#242938] bg-white/[0.015]">
+                  <div className="flex items-center gap-2.5">
+                    <span className="size-5.5 rounded-full flex items-center justify-center text-xs font-extrabold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                      3
+                    </span>
+                    <h3 className="text-sm font-bold text-slate-100">
                       문제 번호 선택{' '}
                       <span className="text-xs font-normal text-blue-400">
                         (1~{currentTbInfo.max_num}번)
                       </span>
                     </h3>
                   </div>
-                  <div className="test-problem-count-badge">
-                    총 <strong>{highSchoolProblemCount}</strong>문항 ({highSchoolPageCount}장)
+                  <div className="text-xs text-slate-300 bg-blue-500/15 border border-blue-500/30 px-3 py-1 rounded-full font-medium">
+                    총 <strong className="text-blue-400 font-bold">{highSchoolProblemCount}</strong>문항 ({highSchoolPageCount}장)
                   </div>
                 </div>
-                <div className="test-card-body">
+                <div className="p-4">
                   {/* Olympus picker if textbook === 'olympus-calculus' */}
                   {textbook === 'olympus-calculus' && (
-                    <div className="test-olympus-picker-panel">
-                      <div className="test-olympus-picker-header">
-                        <span className="test-olympus-badge">
+                    <div className="bg-slate-900/90 border border-sky-500/30 rounded-xl p-3.5 mb-3.5 shadow-lg">
+                      <div className="flex items-center justify-between flex-wrap gap-2 pb-2.5 mb-3 border-b border-white/10">
+                        <span className="text-xs font-bold text-sky-400 flex items-center gap-1.5">
                           🏛️ 올림포스 단원·소단원 선택기
                         </span>
                         <span className="text-xs text-slate-400">
@@ -1175,11 +1208,13 @@ export default function Home() {
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                        <div className="test-form-group">
-                          <label htmlFor="olympus-unit-select">대단원 선택</label>
+                        <div>
+                          <label htmlFor="olympus-unit-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                            대단원 선택
+                          </label>
                           <select
                             id="olympus-unit-select"
-                            className="test-form-control"
+                            className="w-full px-3 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
                             value={olympusUnit}
                             onChange={(e) => setOlympusUnit(e.target.value)}
                           >
@@ -1190,16 +1225,20 @@ export default function Home() {
                             ))}
                           </select>
                         </div>
-                        <div className="test-form-group">
+                        <div>
                           <span className="block text-xs font-semibold text-slate-400 mb-1">
                             소단원 구분
                           </span>
-                          <div className="test-olympus-type-pills">
+                          <div className="flex gap-1.5 flex-wrap">
                             {['유형완성하기', '서술형완성하기', '고난도도전'].map((t) => (
                               <button
                                 key={t}
                                 type="button"
-                                className={`test-type-pill ${olympusType === t ? 'active' : ''}`}
+                                className={`flex-1 min-w-[85px] py-1.5 px-2 rounded-lg text-xs font-semibold border transition-all text-center cursor-pointer ${
+                                  olympusType === t
+                                    ? 'bg-sky-500/25 border-sky-400 text-white shadow-md shadow-sky-500/20'
+                                    : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:text-slate-200'
+                                }`}
                                 onClick={() => setOlympusType(t)}
                               >
                                 {t}
@@ -1209,14 +1248,14 @@ export default function Home() {
                         </div>
                       </div>
 
-                      <div className="test-olympus-add-row">
+                      <div className="flex items-center gap-2 p-2.5 bg-slate-950/60 rounded-lg border border-white/5">
                         <div className="flex-1">
                           <span className="block text-xs font-bold text-sky-400 mb-1">
                             {olympusUnit.split('.')[0]}단원 · {olympusType}
                           </span>
                           <input
                             type="text"
-                            className="test-form-control"
+                            className="w-full px-3 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 placeholder-slate-500 text-xs outline-none"
                             placeholder="번호 입력 (예: 1-5 또는 1, 3, 7)"
                             value={olympusQuickInput}
                             onChange={(e) => setOlympusQuickInput(e.target.value)}
@@ -1224,7 +1263,7 @@ export default function Home() {
                         </div>
                         <button
                           type="button"
-                          className="test-btn test-btn-primary !py-2 !px-4 text-xs shrink-0 self-end"
+                          className="px-3.5 py-2 text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white rounded-lg shadow shrink-0 self-end transition-all cursor-pointer"
                           onClick={handleAddOlympusQuick}
                         >
                           + 문항 추가
@@ -1232,25 +1271,25 @@ export default function Home() {
                       </div>
 
                       {olympusItems.length > 0 && (
-                        <div className="mt-3 space-y-1 max-h-36 overflow-y-auto pr-1">
+                        <div className="mt-3 space-y-1.5 max-h-36 overflow-y-auto pr-1">
                           {olympusItems.map((item) => (
                             <div
                               key={item.id}
-                              className="flex items-center justify-between text-xs bg-slate-900/80 border border-slate-700/60 rounded px-2.5 py-1.5"
+                              className="flex items-center justify-between text-xs bg-slate-900/90 border border-slate-800 rounded px-3 py-2"
                             >
                               <span className="text-slate-200">
                                 <span className="text-sky-400 font-semibold">
                                   [{item.unit.split('.')[0]}단원]
                                 </span>{' '}
                                 {item.problemType} :{' '}
-                                <span className="font-mono text-emerald-400">
+                                <span className="font-mono text-emerald-400 font-bold">
                                   {item.numbers}
                                 </span>{' '}
                                 ({item.count}제)
                               </span>
                               <button
                                 type="button"
-                                className="text-slate-400 hover:text-red-400 font-bold ml-2 px-1"
+                                className="text-slate-400 hover:text-red-400 font-bold ml-2 px-1 cursor-pointer"
                                 onClick={() =>
                                   setOlympusItems((prev) =>
                                     prev.filter((it) => it.id !== item.id),
@@ -1269,9 +1308,9 @@ export default function Home() {
                   {/* Standard problem input for Synergy & Gojaengi */}
                   {textbook !== 'olympus-calculus' && (
                     <>
-                      <div className="test-form-group">
-                        <div className="flex items-center justify-between mb-1">
-                          <label htmlFor="hs-problem-numbers">
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label htmlFor="hs-problem-numbers" className="text-xs font-semibold text-slate-300">
                             문제 번호 입력 (쉼표, 범위 지원)
                           </label>
                           <span className="text-xs text-slate-400">
@@ -1281,13 +1320,13 @@ export default function Home() {
                             </code>
                             ,{' '}
                             <code className="bg-slate-800 text-blue-300 px-1 py-0.5 rounded">
-                              1, 3, 5-10, 42
+                              1, 3, 5-10
                             </code>
                           </span>
                         </div>
                         <textarea
                           id="hs-problem-numbers"
-                          className="test-form-control test-code-input"
+                          className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg text-slate-100 font-mono text-sm outline-none transition-all"
                           rows={2}
                           placeholder="1-8"
                           value={numbers}
@@ -1295,17 +1334,17 @@ export default function Home() {
                         />
                       </div>
 
-                      <div className="test-quick-tools">
+                      <div className="mt-2.5 flex gap-2 flex-wrap">
                         <button
                           type="button"
-                          className="test-tool-btn"
+                          className="px-3 py-1.5 bg-[#1B1E2B] hover:bg-[#252A3B] border border-[#242938] hover:border-slate-600 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition-all cursor-pointer"
                           onClick={handleSortNumbers}
                         >
                           🔢 번호 오름차순 정렬
                         </button>
                         <button
                           type="button"
-                          className="test-tool-btn danger"
+                          className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg text-xs font-semibold text-red-400 hover:text-red-300 transition-all cursor-pointer"
                           onClick={() => setNumbers('')}
                         >
                           🗑️ 번호 전체 비우기
@@ -1314,13 +1353,16 @@ export default function Home() {
 
                       {/* Problem Tags Chips */}
                       {parsedProblemNumbers.length > 0 && (
-                        <div className="test-selected-tags-container">
+                        <div className="mt-3 flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-2.5 bg-[#0F1118] border border-[#242938] rounded-lg">
                           {parsedProblemNumbers.map((num) => (
-                            <span key={num} className="test-tag-badge">
+                            <span
+                              key={num}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-blue-500/15 border border-blue-500/30 text-blue-300"
+                            >
                               No. {num}
                               <button
                                 type="button"
-                                className="remove-tag"
+                                className="text-slate-400 hover:text-red-400 font-bold ml-1 cursor-pointer"
                                 onClick={() => handleRemoveTag(num)}
                                 aria-label={`문항 ${num} 삭제`}
                               >
@@ -1336,71 +1378,83 @@ export default function Home() {
               </div>
 
               {/* Step 4: 상세 양식 & 표지 설정 (아코디언) */}
-              <div className="test-card test-step-4-card">
+              <div className="bg-[#151822] border border-[#242938] border-l-4 border-l-amber-500 rounded-xl shadow-md overflow-hidden">
                 <button
                   type="button"
-                  className="test-card-header pointer w-full text-left"
+                  className="w-full px-4 py-3 flex items-center justify-between border-b border-[#242938] bg-white/[0.015] text-left cursor-pointer select-none"
                   onClick={() => setOptionsCollapsed(!optionsCollapsed)}
                   aria-label="상세 양식 및 표지 설정 토글"
                 >
-                  <div className="test-card-title">
-                    <span className="test-step-num test-step-num-4">4</span>
-                    <h3>상세 양식 & 표지 설정</h3>
+                  <div className="flex items-center gap-2.5">
+                    <span className="size-5.5 rounded-full flex items-center justify-center text-xs font-extrabold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                      4
+                    </span>
+                    <h3 className="text-sm font-bold text-slate-100">상세 양식 & 표지 설정</h3>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="test-step-status-tag">서식·표지 옵션</span>
+                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400">
+                      서식·표지 옵션
+                    </span>
                     <span className="text-xs text-amber-400 font-bold">
                       {optionsCollapsed ? '▼ 접기' : '▲ 펼치기'}
                     </span>
                   </div>
                 </button>
                 {optionsCollapsed && (
-                  <div className="test-card-body border-t border-slate-800/80">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                      <div className="test-form-group">
-                        <label htmlFor="cover-title-input">표지 메인 제목</label>
+                  <div className="p-4 border-t border-slate-800/80 space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label htmlFor="cover-title-input" className="block text-xs font-semibold text-slate-400 mb-1.5">
+                          표지 메인 제목
+                        </label>
                         <input
                           id="cover-title-input"
                           type="text"
-                          className="test-form-control"
+                          className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-slate-100 text-sm outline-none"
                           value={currentCoverTitle}
                           onChange={(e) => setCoverTitle(e.target.value)}
                         />
                       </div>
-                      <div className="test-form-group">
-                        <label htmlFor="academy-name-input">학원/기관명 (바닥글)</label>
+                      <div>
+                        <label htmlFor="academy-name-input" className="block text-xs font-semibold text-slate-400 mb-1.5">
+                          학원/기관명 (바닥글)
+                        </label>
                         <input
                           id="academy-name-input"
                           type="text"
-                          className="test-form-control"
+                          className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-slate-100 text-sm outline-none"
                           value={academyName}
                           onChange={(e) => setAcademyName(e.target.value)}
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                      <div className="test-form-group">
-                        <label htmlFor="cover-subtitle-input">표지 부제목</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label htmlFor="cover-subtitle-input" className="block text-xs font-semibold text-slate-400 mb-1.5">
+                          표지 부제목
+                        </label>
                         <input
                           id="cover-subtitle-input"
                           type="text"
-                          className="test-form-control"
+                          className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-slate-100 text-sm outline-none"
                           value={coverSubtitle}
                           onChange={(e) => setCoverSubtitle(e.target.value)}
                         />
                       </div>
-                      <div className="test-form-group">
-                        <label htmlFor="test-date-input">출제 일자</label>
+                      <div>
+                        <label htmlFor="test-date-input" className="block text-xs font-semibold text-slate-400 mb-1.5">
+                          출제 일자
+                        </label>
                         <input
                           id="test-date-input"
                           type="text"
-                          className="test-form-control"
+                          className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-slate-100 text-sm outline-none"
                           value={testDate}
                           onChange={(e) => setTestDate(e.target.value)}
                         />
                       </div>
                     </div>
-                    <div className="pt-2 border-t border-slate-800/80">
+                    <div className="pt-2.5 border-t border-slate-800/80">
                       <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-200">
                         <input
                           type="checkbox"
@@ -1419,10 +1473,10 @@ export default function Home() {
               </div>
 
               {/* Action Buttons */}
-              <div className="test-action-buttons-wrap">
+              <div className="flex flex-wrap items-center gap-2.5 pt-1">
                 <button
                   type="button"
-                  className="test-btn test-btn-outline"
+                  className="flex-1 min-w-[130px] flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-[#1B1E2B] hover:bg-[#242938] border border-[#242938] hover:border-slate-600 text-slate-200 hover:text-white transition-all cursor-pointer disabled:opacity-50"
                   onClick={handleRefreshPreview}
                   disabled={previewLoading || busy}
                 >
@@ -1434,7 +1488,7 @@ export default function Home() {
 
                 <button
                   type="button"
-                  className="test-btn test-btn-primary"
+                  className="flex-[2] min-w-[190px] flex items-center justify-center gap-2 py-3 px-5 rounded-xl text-sm sm:text-base font-bold text-white bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer disabled:opacity-50"
                   onClick={handleDownloadPdf}
                   disabled={busy || previewLoading}
                 >
@@ -1444,7 +1498,7 @@ export default function Home() {
 
                 <button
                   type="button"
-                  className="test-btn test-btn-secondary"
+                  className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition-all cursor-pointer disabled:opacity-50"
                   onClick={handlePrintPdf}
                   disabled={previewLoading}
                 >
@@ -1455,18 +1509,18 @@ export default function Home() {
 
               {/* Status banner */}
               {status && (
-                <div className="mt-3 p-3 text-xs rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+                <div className="p-3 text-xs rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
                   📢 {status}
                 </div>
               )}
             </section>
 
             {/* Right Preview Panel */}
-            <section className="test-preview-panel">
-              <div className="test-preview-header">
-                <div className="test-preview-title-group">
-                  <h3>실시간 오답노트 미리보기</h3>
-                  <span className="test-preview-status">
+            <section className="bg-[#151822] border border-[#242938] rounded-xl shadow-xl flex flex-col p-4 sm:p-5 min-h-[720px] sticky top-6">
+              <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-[#242938]">
+                <div className="flex items-center gap-2.5">
+                  <h3 className="text-sm font-bold text-slate-100">실시간 오답노트 미리보기</h3>
+                  <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400">
                     {previewLoading
                       ? '생성 중…'
                       : previewPdfUrl
@@ -1476,10 +1530,10 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="test-preview-canvas-container">
+              <div className="flex-1 bg-[#0F1118] border border-[#242938] rounded-lg overflow-hidden flex flex-col items-center justify-center relative min-h-[600px]">
                 {previewLoading && (
-                  <div className="test-preview-loading">
-                    <div className="test-spinner" />
+                  <div className="absolute inset-0 bg-[#0F1118]/85 backdrop-blur-xs flex flex-col items-center justify-center z-10 gap-3">
+                    <div className="size-10 rounded-full border-3 border-blue-500/20 border-t-blue-500 animate-spin" />
                     <p className="text-sm text-slate-300 font-medium">
                       오답노트 PDF를 실시간 렌더링하고 있습니다…
                     </p>
@@ -1490,7 +1544,7 @@ export default function Home() {
                   <iframe
                     src={`${previewPdfUrl}#toolbar=0&navpanes=0`}
                     title="오답노트 실시간 미리보기"
-                    className="test-preview-iframe"
+                    className="w-full h-full min-h-[650px] rounded-lg border-0 bg-white"
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center p-8 text-center text-slate-400 max-w-md">
