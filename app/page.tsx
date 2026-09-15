@@ -295,7 +295,7 @@ const olympusUnits = [
   '4. 도함수의 활용',
 ];
 
-const highSchoolTextbookInfo: Record<
+const allTextbookInfo: Record<
   string,
   { name: string; max_num: number; desc: string }
 > = {
@@ -319,7 +319,24 @@ const highSchoolTextbookInfo: Record<
     max_num: 380,
     desc: '총 380문항 데이터베이스 연동',
   },
+  'ssen-middle-2-2': {
+    name: '신사고 쎈 중2-2',
+    max_num: 1154,
+    desc: '총 1154문항 데이터베이스 연동',
+  },
+  'blacklabel-middle-2-2': {
+    name: '블랙라벨 중2-2',
+    max_num: 100,
+    desc: '대단원·소단원·단계별 문항 데이터베이스 연동',
+  },
+  'concept-middle-2-2': {
+    name: '개념유형파워 중2-2',
+    max_num: 100,
+    desc: '대단원·소단원·유형별 문항 데이터베이스 연동',
+  },
 };
+
+const highSchoolTextbookInfo = allTextbookInfo;
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? '';
@@ -402,6 +419,8 @@ export default function Home() {
   const [optionsCollapsed, setOptionsCollapsed] = useState(true);
   const [activeStep, setActiveStep] = useState<number>(3);
   const [olympusQuickInput, setOlympusQuickInput] = useState('1-4');
+  const [blacklabelQuickInput, setBlacklabelQuickInput] = useState('1-3');
+  const [conceptQuickInput, setConceptQuickInput] = useState('1-3');
   const [includeCover, setIncludeCover] = useState(true);
   const [includeCharacter, setIncludeCharacter] = useState(true);
   const [customCharacter, setCustomCharacter] = useState<string | null>(null);
@@ -478,8 +497,14 @@ export default function Home() {
     if (textbook === 'olympus-calculus') {
       return olympusItems.reduce((acc, item) => acc + item.count, 0);
     }
+    if (textbook === 'blacklabel-middle-2-2') {
+      return blacklabelItems.reduce((acc, item) => acc + item.count, 0);
+    }
+    if (textbook === 'concept-middle-2-2') {
+      return conceptItems.reduce((acc, item) => acc + item.count, 0);
+    }
     return parsedProblemNumbers.length;
-  }, [textbook, olympusItems, parsedProblemNumbers]);
+  }, [textbook, olympusItems, blacklabelItems, conceptItems, parsedProblemNumbers]);
 
   const highSchoolPageCount = useMemo(() => {
     return Math.ceil(highSchoolProblemCount / 4) + (includeCover ? 1 : 0);
@@ -565,6 +590,66 @@ export default function Home() {
     }
   }
 
+  function handleAddBlacklabelQuick() {
+    try {
+      const count = countProblemTokens(blacklabelQuickInput);
+      const currentCount = blacklabelItems.reduce(
+        (total, item) => total + item.count,
+        0,
+      );
+      if (currentCount + count > 100) {
+        throw new Error('전체 목록에서 최대 100문제까지 추가할 수 있습니다.');
+      }
+      setBlacklabelItems((items) => [
+        ...items,
+        {
+          id: Date.now(),
+          chapter: blacklabelChapter,
+          subunit: blacklabelSubunit,
+          stage: blacklabelStage,
+          numbers: blacklabelQuickInput.trim(),
+          count,
+        },
+      ]);
+      setBlacklabelQuickInput('');
+      setStatus(`${count}문제를 블랙라벨 목록에 추가했습니다.`);
+    } catch (error) {
+      setStatus(
+        error instanceof Error ? error.message : '문제번호를 확인해 주세요.',
+      );
+    }
+  }
+
+  function handleAddConceptQuick() {
+    try {
+      const count = countProblemTokens(conceptQuickInput);
+      const currentCount = conceptItems.reduce(
+        (total, item) => total + item.count,
+        0,
+      );
+      if (currentCount + count > 100) {
+        throw new Error('전체 목록에서 최대 100문제까지 추가할 수 있습니다.');
+      }
+      setConceptItems((items) => [
+        ...items,
+        {
+          id: Date.now(),
+          chapter: conceptChapter,
+          subunit: conceptSubunit,
+          stage: conceptStage,
+          numbers: conceptQuickInput.trim(),
+          count,
+        },
+      ]);
+      setConceptQuickInput('');
+      setStatus(`${count}문제를 개념유형파워 목록에 추가했습니다.`);
+    } catch (error) {
+      setStatus(
+        error instanceof Error ? error.message : '문제번호를 확인해 주세요.',
+      );
+    }
+  }
+
   async function handleRefreshPreview() {
     if (!sessionToken || !textbook) return;
     const selectedTextbook = textbooks.find((item) => item.id === textbook);
@@ -576,6 +661,14 @@ export default function Home() {
     }
     if (textbook === 'olympus-calculus' && olympusItems.length === 0) {
       setStatus('올림포스 문항을 목록에 추가한 뒤 미리보기를 갱신하세요.');
+      return;
+    }
+    if (textbook === 'blacklabel-middle-2-2' && blacklabelItems.length === 0) {
+      setStatus('블랙라벨 문항을 목록에 추가한 뒤 미리보기를 갱신하세요.');
+      return;
+    }
+    if (textbook === 'concept-middle-2-2' && conceptItems.length === 0) {
+      setStatus('개념유형파워 문항을 목록에 추가한 뒤 미리보기를 갱신하세요.');
       return;
     }
     const activePreviewStudent =
@@ -1107,13 +1200,13 @@ export default function Home() {
     }
   }
 
-  if (sessionToken && department === 'high' && textbook) {
-    const currentTbInfo = highSchoolTextbookInfo[textbook] || {
-      name: textbooks.find((t) => t.id === textbook)?.title || '고등부 교재',
+  if (sessionToken && textbook) {
+    const currentTb = textbooks.find((t) => t.id === textbook);
+    const currentTbInfo = allTextbookInfo[textbook] || {
+      name: currentTb?.title || '수학 교재',
       max_num: 1000,
       desc: '데이터베이스 연동',
     };
-    const currentTb = textbooks.find((t) => t.id === textbook);
 
     return (
       <div className="min-h-screen bg-[#0B0C10] text-[#E2E8F0] p-3 sm:p-6 font-sans">
@@ -1231,7 +1324,45 @@ export default function Home() {
                     📚 DB 연동
                   </span>
                 </div>
-                <div className="p-4">
+                <div className="p-4 space-y-3">
+                  {/* Department Toggle */}
+                  <div className="flex items-center bg-[#0F1118] p-1 rounded-lg border border-[#242938]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDepartment('high');
+                        if (textbooks.find((t) => t.id === textbook)?.department !== 'high') {
+                          setTextbook('synergy-calculus');
+                          setPreviewPdfUrl(null);
+                        }
+                      }}
+                      className={`flex-1 py-1.5 px-3 text-xs font-bold rounded-md transition-all cursor-pointer ${
+                        department === 'high'
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      고등부 교재
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDepartment('middle');
+                        if (textbooks.find((t) => t.id === textbook)?.department !== 'middle') {
+                          setTextbook('ssen-middle-2-2');
+                          setPreviewPdfUrl(null);
+                        }
+                      }}
+                      className={`flex-1 py-1.5 px-3 text-xs font-bold rounded-md transition-all cursor-pointer ${
+                        department === 'middle'
+                          ? 'bg-emerald-600 text-white shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      중등부 교재
+                    </button>
+                  </div>
+
                   <div>
                     <select
                       className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-lg text-slate-100 text-sm outline-none transition-all cursor-pointer"
@@ -1239,20 +1370,21 @@ export default function Home() {
                       onChange={(e) => {
                         const nextTb = e.target.value as TextbookId;
                         setTextbook(nextTb);
+                        const nextDept = textbooks.find((t) => t.id === nextTb)?.department;
+                        if (nextDept) setDepartment(nextDept);
                         setPreviewPdfUrl(null);
                       }}
                     >
                       {textbooks
-                        .filter((tb) => tb.department === 'high')
+                        .filter((tb) => !department || tb.department === department)
                         .map((tb) => (
                           <option key={tb.id} value={tb.id}>
-                            {tb.title} ({highSchoolTextbookInfo[tb.id]?.name || tb.title} - 총{' '}
-                            {highSchoolTextbookInfo[tb.id]?.max_num || 0}제)
+                            {tb.title} ({allTextbookInfo[tb.id]?.name || tb.title} - {tb.subject})
                           </option>
                         ))}
                     </select>
                     <small className="block mt-1.5 text-xs text-slate-400">
-                      총 {currentTbInfo.max_num}문항 데이터베이스 연동 ({currentTbInfo.desc})
+                      {currentTbInfo.name} ({currentTbInfo.desc})
                     </small>
                   </div>
                 </div>
@@ -1499,8 +1631,282 @@ export default function Home() {
                     </div>
                   )}
 
-                  {/* Standard problem input for Synergy & Gojaengi */}
-                  {textbook !== 'olympus-calculus' && (
+                  {/* Blacklabel picker if textbook === 'blacklabel-middle-2-2' */}
+                  {textbook === 'blacklabel-middle-2-2' && (
+                    <div className="bg-slate-900/90 border border-purple-500/30 rounded-xl p-3.5 mb-3.5 shadow-lg">
+                      <div className="flex items-center justify-between flex-wrap gap-2 pb-2.5 mb-3 border-b border-white/10">
+                        <span className="text-xs font-bold text-purple-400 flex items-center gap-1.5">
+                          🏷️ 블랙라벨 단원·단계 선택기
+                        </span>
+                        <span className="text-xs text-slate-400">
+                          대단원/소단원/단계를 고르고 번호를 추가하세요
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
+                        <div>
+                          <label htmlFor="bl-chapter-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                            대단원
+                          </label>
+                          <select
+                            id="bl-chapter-select"
+                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                            value={blacklabelChapter}
+                            onChange={(e) => {
+                              const newCh = e.target.value;
+                              setBlacklabelChapter(newCh);
+                              const subs = Object.keys(blacklabelHierarchy[newCh] || {});
+                              const firstSub = subs[0] || '';
+                              setBlacklabelSubunit(firstSub);
+                              const stages = blacklabelHierarchy[newCh]?.[firstSub] || [];
+                              setBlacklabelStage(stages[0] || '');
+                            }}
+                          >
+                            {Object.keys(blacklabelHierarchy).map((ch) => (
+                              <option key={ch} value={ch}>
+                                {ch}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label htmlFor="bl-subunit-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                            소단원
+                          </label>
+                          <select
+                            id="bl-subunit-select"
+                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                            value={blacklabelSubunit}
+                            onChange={(e) => {
+                              const newSub = e.target.value;
+                              setBlacklabelSubunit(newSub);
+                              const stages = blacklabelHierarchy[blacklabelChapter]?.[newSub] || [];
+                              setBlacklabelStage(stages[0] || '');
+                            }}
+                          >
+                            {Object.keys(blacklabelHierarchy[blacklabelChapter] || {}).map((sub) => (
+                              <option key={sub} value={sub}>
+                                {sub}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label htmlFor="bl-stage-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                            단계(난이도)
+                          </label>
+                          <select
+                            id="bl-stage-select"
+                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                            value={blacklabelStage}
+                            onChange={(e) => setBlacklabelStage(e.target.value)}
+                          >
+                            {(blacklabelHierarchy[blacklabelChapter]?.[blacklabelSubunit] || []).map((stg) => (
+                              <option key={stg} value={stg}>
+                                {stg}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 p-2.5 bg-slate-950/60 rounded-lg border border-white/5">
+                        <div className="flex-1">
+                          <span className="block text-xs font-bold text-purple-400 mb-1">
+                            {blacklabelSubunit} · {blacklabelStage}
+                          </span>
+                          <input
+                            type="text"
+                            className="w-full px-3 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 rounded-lg text-slate-100 placeholder-slate-500 text-xs outline-none"
+                            placeholder="번호 입력 (예: 1-5 또는 1, 2, 3)"
+                            value={blacklabelQuickInput}
+                            onChange={(e) => setBlacklabelQuickInput(e.target.value)}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          className="px-3.5 py-2 text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white rounded-lg shadow shrink-0 self-end transition-all cursor-pointer"
+                          onClick={handleAddBlacklabelQuick}
+                        >
+                          + 문항 추가
+                        </button>
+                      </div>
+
+                      {blacklabelItems.length > 0 && (
+                        <div className="mt-3 space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                          {blacklabelItems.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex items-center justify-between text-xs bg-slate-900/90 border border-slate-800 rounded px-3 py-2"
+                            >
+                              <span className="text-slate-200">
+                                <span className="text-purple-400 font-semibold">
+                                  [{item.subunit}]
+                                </span>{' '}
+                                {item.stage} :{' '}
+                                <span className="font-mono text-emerald-400 font-bold">
+                                  {item.numbers}
+                                </span>{' '}
+                                ({item.count}제)
+                              </span>
+                              <button
+                                type="button"
+                                className="text-slate-400 hover:text-red-400 font-bold ml-2 px-1 cursor-pointer"
+                                onClick={() =>
+                                  setBlacklabelItems((prev) =>
+                                    prev.filter((it) => it.id !== item.id),
+                                  )
+                                }
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Concept picker if textbook === 'concept-middle-2-2' */}
+                  {textbook === 'concept-middle-2-2' && (
+                    <div className="bg-slate-900/90 border border-emerald-500/30 rounded-xl p-3.5 mb-3.5 shadow-lg">
+                      <div className="flex items-center justify-between flex-wrap gap-2 pb-2.5 mb-3 border-b border-white/10">
+                        <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                          📐 개념유형파워 단원·단계 선택기
+                        </span>
+                        <span className="text-xs text-slate-400">
+                          대단원/소단원/단계를 고르고 번호를 추가하세요
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
+                        <div>
+                          <label htmlFor="cp-chapter-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                            대단원
+                          </label>
+                          <select
+                            id="cp-chapter-select"
+                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-emerald-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                            value={conceptChapter}
+                            onChange={(e) => {
+                              const newCh = e.target.value;
+                              setConceptChapter(newCh);
+                              const subs = Object.keys(conceptHierarchy[newCh] || {});
+                              const firstSub = subs[0] || '';
+                              setConceptSubunit(firstSub);
+                              const stages = conceptHierarchy[newCh]?.[firstSub] || [];
+                              setConceptStage(stages[0] || '');
+                            }}
+                          >
+                            {Object.keys(conceptHierarchy).map((ch) => (
+                              <option key={ch} value={ch}>
+                                {ch.replace(/_/g, ' ')}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label htmlFor="cp-subunit-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                            소단원
+                          </label>
+                          <select
+                            id="cp-subunit-select"
+                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-emerald-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                            value={conceptSubunit}
+                            onChange={(e) => {
+                              const newSub = e.target.value;
+                              setConceptSubunit(newSub);
+                              const stages = conceptHierarchy[conceptChapter]?.[newSub] || [];
+                              setConceptStage(stages[0] || '');
+                            }}
+                          >
+                            {Object.keys(conceptHierarchy[conceptChapter] || {}).map((sub) => (
+                              <option key={sub} value={sub}>
+                                {sub.replace(/_/g, ' ')}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label htmlFor="cp-stage-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                            단계(유형)
+                          </label>
+                          <select
+                            id="cp-stage-select"
+                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-emerald-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                            value={conceptStage}
+                            onChange={(e) => setConceptStage(e.target.value)}
+                          >
+                            {(conceptHierarchy[conceptChapter]?.[conceptSubunit] || []).map((stg) => (
+                              <option key={stg} value={stg}>
+                                {stg.replace(/_/g, ' ')}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 p-2.5 bg-slate-950/60 rounded-lg border border-white/5">
+                        <div className="flex-1">
+                          <span className="block text-xs font-bold text-emerald-400 mb-1">
+                            {conceptSubunit.replace(/_/g, ' ')} · {conceptStage.replace(/_/g, ' ')}
+                          </span>
+                          <input
+                            type="text"
+                            className="w-full px-3 py-2 bg-[#0F1118] border border-[#242938] focus:border-emerald-500 rounded-lg text-slate-100 placeholder-slate-500 text-xs outline-none"
+                            placeholder="번호 입력 (예: 1-5 또는 1, 2, 3)"
+                            value={conceptQuickInput}
+                            onChange={(e) => setConceptQuickInput(e.target.value)}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          className="px-3.5 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg shadow shrink-0 self-end transition-all cursor-pointer"
+                          onClick={handleAddConceptQuick}
+                        >
+                          + 문항 추가
+                        </button>
+                      </div>
+
+                      {conceptItems.length > 0 && (
+                        <div className="mt-3 space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                          {conceptItems.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex items-center justify-between text-xs bg-slate-900/90 border border-slate-800 rounded px-3 py-2"
+                            >
+                              <span className="text-slate-200">
+                                <span className="text-emerald-400 font-semibold">
+                                  [{item.subunit.replace(/_/g, ' ')}]
+                                </span>{' '}
+                                {item.stage.replace(/_/g, ' ')} :{' '}
+                                <span className="font-mono text-emerald-400 font-bold">
+                                  {item.numbers}
+                                </span>{' '}
+                                ({item.count}제)
+                              </span>
+                              <button
+                                type="button"
+                                className="text-slate-400 hover:text-red-400 font-bold ml-2 px-1 cursor-pointer"
+                                onClick={() =>
+                                  setConceptItems((prev) =>
+                                    prev.filter((it) => it.id !== item.id),
+                                  )
+                                }
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Standard problem input for Synergy, Ssen & Gojaengi */}
+                  {textbook !== 'olympus-calculus' &&
+                    textbook !== 'blacklabel-middle-2-2' &&
+                    textbook !== 'concept-middle-2-2' && (
                     <>
                       <div>
                         <div className="flex items-center justify-between mb-1.5">
