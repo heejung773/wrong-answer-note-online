@@ -635,7 +635,8 @@ export default function Home() {
   const [blacklabelChapter, setBlacklabelChapter] = useState('I. 삼각형의 성질');
   const [blacklabelSubunit, setBlacklabelSubunit] = useState('01 삼각형의 성질');
   const [blacklabelStage, setBlacklabelStage] = useState('시험에 꼭 나오는 문제');
-  const [blacklabelItems, setBlacklabelItems] = useState<BlacklabelItem[]>([
+
+  const [blacklabel22Items, setBlacklabel22Items] = useState<BlacklabelItem[]>([
     {
       id: 1,
       chapter: 'I. 삼각형의 성질',
@@ -645,10 +646,36 @@ export default function Home() {
       count: 3,
     },
   ]);
+  const [blacklabel31Items, setBlacklabel31Items] = useState<BlacklabelItem[]>([
+    {
+      id: 1,
+      chapter: '01_제곱근과_실수',
+      subunit: '01_제곱근과_실수',
+      stage: 'Step1',
+      numbers: '1-3',
+      count: 3,
+    },
+  ]);
+
+  const blacklabelItems =
+    textbook === 'blacklabel-middle-3-1'
+      ? blacklabel31Items
+      : blacklabel22Items;
+  const setBlacklabelItems = (
+    items: BlacklabelItem[] | ((prev: BlacklabelItem[]) => BlacklabelItem[]),
+  ) => {
+    if (textbook === 'blacklabel-middle-3-1') {
+      setBlacklabel31Items(items);
+    } else {
+      setBlacklabel22Items(items);
+    }
+  };
+
   const [conceptChapter, setConceptChapter] = useState('01_삼각형의_성질');
   const [conceptSubunit, setConceptSubunit] = useState('01_이등변삼각형의_성질');
   const [conceptStage, setConceptStage] = useState('01_개념익히기');
-  const [conceptItems, setConceptItems] = useState<ConceptItem[]>([
+
+  const [concept22Items, setConcept22Items] = useState<ConceptItem[]>([
     {
       id: 1,
       chapter: '01_삼각형의_성질',
@@ -658,6 +685,31 @@ export default function Home() {
       count: 3,
     },
   ]);
+  const [concept31Items, setConcept31Items] = useState<ConceptItem[]>([
+    {
+      id: 1,
+      chapter: '01_제곱근과_실수',
+      subunit: '01_제곱근과_실수',
+      stage: '유형별',
+      numbers: '1-3',
+      count: 3,
+    },
+  ]);
+
+  const conceptItems =
+    textbook === 'concept-middle-3-1'
+      ? concept31Items
+      : concept22Items;
+  const setConceptItems = (
+    items: ConceptItem[] | ((prev: ConceptItem[]) => ConceptItem[]),
+  ) => {
+    if (textbook === 'concept-middle-3-1') {
+      setConcept31Items(items);
+    } else {
+      setConcept22Items(items);
+    }
+  };
+
   const [status, setStatus] = useState(
     configured ? '로그인이 필요합니다.' : 'Supabase 연결 설정 전입니다.',
   );
@@ -711,7 +763,6 @@ export default function Home() {
     return Array.from(
       new Set(
         studentNamesText
-          .replace(/,/g, '\n')
           .split('\n')
           .map((n) => n.trim())
           .filter(Boolean),
@@ -724,13 +775,15 @@ export default function Home() {
     (textbook ? textbooks.find((t) => t.id === textbook)?.title || '' : '');
 
   const currentConceptRange = useMemo(() => {
+    if (textbook === 'concept-middle-3-1') return null;
     const cSlug = `ch${conceptChapter.slice(0, 2)}`;
     const subSlug = `sub${conceptSubunit.slice(0, 2)}`;
     const sSlug = conceptStageSlugs[conceptStage] || conceptStage;
     return conceptRanges[`${cSlug}/${subSlug}/${sSlug}`] || null;
-  }, [conceptChapter, conceptSubunit, conceptStage]);
+  }, [conceptChapter, conceptSubunit, conceptStage, textbook]);
 
   const currentBlacklabelRange = useMemo(() => {
+    if (textbook === 'blacklabel-middle-3-1') return null;
     const cSlug = blacklabelChapterSlugs[blacklabelChapter] || 'ch1';
     const subSlug = `sub${blacklabelSubunit.trim().split(' ')[0]}`;
     const sSlug = blacklabelStageSlugs[blacklabelStage] || 'must';
@@ -754,69 +807,25 @@ export default function Home() {
         setNumbers('50, 51, 52, 53');
       }
     } else if (nextTb === 'blacklabel-middle-2-2') {
-      if (blacklabelItems.length === 0) {
-        setBlacklabelItems([
-          {
-            id: Date.now(),
-            chapter: 'I. 삼각형의 성질',
-            subunit: '01 삼각형의 성질',
-            stage: '시험에 꼭 나오는 문제',
-            numbers: '1-3',
-            count: 3,
-          },
-        ]);
-      }
+      setBlacklabelChapter('I. 삼각형의 성질');
+      setBlacklabelSubunit('01 삼각형의 성질');
+      setBlacklabelStage('시험에 꼭 나오는 문제');
     } else if (nextTb === 'blacklabel-middle-3-1') {
       const firstCh = Object.keys(blacklabel31Hierarchy)[0];
-      const firstSub = Object.keys(blacklabel31Hierarchy[firstCh] || {})[0] || '';
-      const firstStg = blacklabel31Hierarchy[firstCh]?.[firstSub]?.[0] || 'Step1';
+      const firstStg = blacklabel31Hierarchy[firstCh]?.[firstCh]?.[0] || 'Step1';
       setBlacklabelChapter(firstCh);
-      setBlacklabelSubunit(firstSub);
+      setBlacklabelSubunit(firstCh);
       setBlacklabelStage(firstStg);
-      if (blacklabelItems.length === 0) {
-        setBlacklabelItems([
-          {
-            id: Date.now(),
-            chapter: firstCh,
-            subunit: firstSub,
-            stage: firstStg,
-            numbers: '1-3',
-            count: 3,
-          },
-        ]);
-      }
     } else if (nextTb === 'concept-middle-2-2') {
-      if (conceptItems.length === 0) {
-        setConceptItems([
-          {
-            id: Date.now(),
-            chapter: '01_삼각형의_성질',
-            subunit: '01_이등변삼각형의_성질',
-            stage: '01_개념익히기',
-            numbers: '1-3',
-            count: 3,
-          },
-        ]);
-      }
+      setConceptChapter('01_삼각형의_성질');
+      setConceptSubunit('01_이등변삼각형의_성질');
+      setConceptStage('01_개념익히기');
     } else if (nextTb === 'concept-middle-3-1') {
       const firstCh = Object.keys(concept31Hierarchy)[0];
-      const firstSub = Object.keys(concept31Hierarchy[firstCh] || {})[0] || '';
-      const firstStg = concept31Hierarchy[firstCh]?.[firstSub]?.[0] || '유형별';
+      const firstStg = concept31Hierarchy[firstCh]?.[firstCh]?.[0] || '유형별';
       setConceptChapter(firstCh);
-      setConceptSubunit(firstSub);
+      setConceptSubunit(firstCh);
       setConceptStage(firstStg);
-      if (conceptItems.length === 0) {
-        setConceptItems([
-          {
-            id: Date.now(),
-            chapter: firstCh,
-            subunit: firstSub,
-            stage: firstStg,
-            numbers: '1-3',
-            count: 3,
-          },
-        ]);
-      }
     } else if (nextTb === 'olympus-calculus') {
       if (olympusItems.length === 0) {
         setOlympusItems([
@@ -1104,42 +1113,69 @@ export default function Home() {
       setOlympusItems(curOlympus);
     }
     let curBlacklabel = overrideItems?.blacklabelItems ?? blacklabelItems;
-    if ((activeTb === 'blacklabel-middle-2-2' || activeTb === 'blacklabel-middle-3-1') && curBlacklabel.length === 0 && !overrideItems?.blacklabelItems) {
-      curBlacklabel = [
-        {
-          id: Date.now(),
-          chapter: blacklabelChapter,
-          subunit: blacklabelSubunit,
-          stage: blacklabelStage,
-          numbers: '1-3',
-          count: 3,
-        },
-      ];
-      setBlacklabelItems(curBlacklabel);
+    if (activeTb === 'blacklabel-middle-3-1') {
+      curBlacklabel = curBlacklabel.filter((it) => it.chapter in blacklabel31Hierarchy);
+      if (curBlacklabel.length === 0) {
+        curBlacklabel = [
+          {
+            id: Date.now(),
+            chapter: '01_제곱근과_실수',
+            subunit: '01_제곱근과_실수',
+            stage: 'Step1',
+            numbers: '1-3',
+            count: 3,
+          },
+        ];
+        setBlacklabel31Items(curBlacklabel);
+      }
+    } else if (activeTb === 'blacklabel-middle-2-2') {
+      curBlacklabel = curBlacklabel.filter((it) => it.chapter in blacklabelHierarchy);
+      if (curBlacklabel.length === 0) {
+        curBlacklabel = [
+          {
+            id: Date.now(),
+            chapter: 'I. 삼각형의 성질',
+            subunit: '01 삼각형의 성질',
+            stage: '시험에 꼭 나오는 문제',
+            numbers: '1-3',
+            count: 3,
+          },
+        ];
+        setBlacklabel22Items(curBlacklabel);
+      }
     }
+
     let curConcept = overrideItems?.conceptItems ?? conceptItems;
-    if ((activeTb === 'concept-middle-2-2' || activeTb === 'concept-middle-3-1') && curConcept.length === 0 && !overrideItems?.conceptItems) {
-      curConcept = [
-        {
-          id: Date.now(),
-          chapter: conceptChapter,
-          subunit: conceptSubunit,
-          stage: conceptStage,
-          numbers: '1-3',
-          count: 3,
-        },
-      ];
-      setConceptItems(curConcept);
-    }
-    if ((activeTb === 'concept-middle-2-2' || activeTb === 'concept-middle-3-1') && curConcept.length === 0) {
-      setPreviewPdfUrl(null);
-      setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
-      return;
-    }
-    if ((activeTb === 'blacklabel-middle-2-2' || activeTb === 'blacklabel-middle-3-1') && curBlacklabel.length === 0) {
-      setPreviewPdfUrl(null);
-      setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
-      return;
+    if (activeTb === 'concept-middle-3-1') {
+      curConcept = curConcept.filter((it) => it.chapter in concept31Hierarchy);
+      if (curConcept.length === 0) {
+        curConcept = [
+          {
+            id: Date.now(),
+            chapter: '01_제곱근과_실수',
+            subunit: '01_제곱근과_실수',
+            stage: '유형별',
+            numbers: '1-3',
+            count: 3,
+          },
+        ];
+        setConcept31Items(curConcept);
+      }
+    } else if (activeTb === 'concept-middle-2-2') {
+      curConcept = curConcept.filter((it) => it.chapter in conceptHierarchy);
+      if (curConcept.length === 0) {
+        curConcept = [
+          {
+            id: Date.now(),
+            chapter: '01_삼각형의_성질',
+            subunit: '01_이등변삼각형의_성질',
+            stage: '01_개념익히기',
+            numbers: '1-3',
+            count: 3,
+          },
+        ];
+        setConcept22Items(curConcept);
+      }
     }
     if (activeTb === 'olympus-calculus' && curOlympus.length === 0) {
       setPreviewPdfUrl(null);
@@ -2141,82 +2177,131 @@ export default function Home() {
                           🏷️ 블랙라벨 단원·단계 선택기
                         </span>
                         <span className="text-xs text-slate-400">
-                          대단원/소단원/단계를 고르고 번호를 추가하세요
+                          {textbook === 'blacklabel-middle-3-1'
+                            ? '단원과 단계를 고르고 번호를 추가하세요'
+                            : '대단원/소단원/단계를 고르고 번호를 추가하세요'}
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
-                        <div>
-                          <label htmlFor="bl-chapter-select" className="block text-xs font-semibold text-slate-400 mb-1">
-                            대단원
-                          </label>
-                          <select
-                            id="bl-chapter-select"
-                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
-                            value={blacklabelChapter}
-                            onChange={(e) => {
-                              const newCh = e.target.value;
-                              setBlacklabelChapter(newCh);
-                              const subs = Object.keys(currentBlacklabelHierarchy[newCh] || {});
-                              const firstSub = subs[0] || '';
-                              setBlacklabelSubunit(firstSub);
-                              const stages = currentBlacklabelHierarchy[newCh]?.[firstSub] || [];
-                              setBlacklabelStage(stages[0] || '');
-                            }}
-                          >
-                            {Object.keys(currentBlacklabelHierarchy).map((ch) => (
-                              <option key={ch} value={ch}>
-                                {ch.replace(/_/g, ' ')}
-                              </option>
-                            ))}
-                          </select>
+                      {textbook === 'blacklabel-middle-3-1' ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
+                          <div className="sm:col-span-2">
+                            <label htmlFor="bl-chapter-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                              단원
+                            </label>
+                            <select
+                              id="bl-chapter-select"
+                              className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                              value={blacklabelChapter}
+                              onChange={(e) => {
+                                const newCh = e.target.value;
+                                setBlacklabelChapter(newCh);
+                                setBlacklabelSubunit(newCh);
+                                const stages = blacklabel31Hierarchy[newCh]?.[newCh] || ['Step1', 'Step2', 'Step3', 'Step4'];
+                                setBlacklabelStage(stages[0] || 'Step1');
+                              }}
+                            >
+                              {Object.keys(blacklabel31Hierarchy).map((ch) => (
+                                <option key={ch} value={ch}>
+                                  {ch.replace(/_/g, ' ')}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label htmlFor="bl-stage-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                              단계(난이도)
+                            </label>
+                            <select
+                              id="bl-stage-select"
+                              className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                              value={blacklabelStage}
+                              onChange={(e) => setBlacklabelStage(e.target.value)}
+                            >
+                              {['Step1', 'Step2', 'Step3', 'Step4'].map((stg) => (
+                                <option key={stg} value={stg}>
+                                  {stg}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
-                        <div>
-                          <label htmlFor="bl-subunit-select" className="block text-xs font-semibold text-slate-400 mb-1">
-                            소단원
-                          </label>
-                          <select
-                            id="bl-subunit-select"
-                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
-                            value={blacklabelSubunit}
-                            onChange={(e) => {
-                              const newSub = e.target.value;
-                              setBlacklabelSubunit(newSub);
-                              const stages = currentBlacklabelHierarchy[blacklabelChapter]?.[newSub] || [];
-                              setBlacklabelStage(stages[0] || '');
-                            }}
-                          >
-                            {Object.keys(currentBlacklabelHierarchy[blacklabelChapter] || {}).map((sub) => (
-                              <option key={sub} value={sub}>
-                                {sub.replace(/_/g, ' ')}
-                              </option>
-                            ))}
-                          </select>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
+                          <div>
+                            <label htmlFor="bl-chapter-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                              대단원
+                            </label>
+                            <select
+                              id="bl-chapter-select"
+                              className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                              value={blacklabelChapter}
+                              onChange={(e) => {
+                                const newCh = e.target.value;
+                                setBlacklabelChapter(newCh);
+                                const subs = Object.keys(blacklabelHierarchy[newCh] || {});
+                                const firstSub = subs[0] || '';
+                                setBlacklabelSubunit(firstSub);
+                                const stages = blacklabelHierarchy[newCh]?.[firstSub] || [];
+                                setBlacklabelStage(stages[0] || '');
+                              }}
+                            >
+                              {Object.keys(blacklabelHierarchy).map((ch) => (
+                                <option key={ch} value={ch}>
+                                  {ch}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label htmlFor="bl-subunit-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                              소단원
+                            </label>
+                            <select
+                              id="bl-subunit-select"
+                              className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                              value={blacklabelSubunit}
+                              onChange={(e) => {
+                                const newSub = e.target.value;
+                                setBlacklabelSubunit(newSub);
+                                const stages = blacklabelHierarchy[blacklabelChapter]?.[newSub] || [];
+                                setBlacklabelStage(stages[0] || '');
+                              }}
+                            >
+                              {Object.keys(blacklabelHierarchy[blacklabelChapter] || {}).map((sub) => (
+                                <option key={sub} value={sub}>
+                                  {sub}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label htmlFor="bl-stage-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                              단계(난이도)
+                            </label>
+                            <select
+                              id="bl-stage-select"
+                              className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                              value={blacklabelStage}
+                              onChange={(e) => setBlacklabelStage(e.target.value)}
+                            >
+                              {(blacklabelHierarchy[blacklabelChapter]?.[blacklabelSubunit] || []).map((stg) => (
+                                <option key={stg} value={stg}>
+                                  {stg}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
-                        <div>
-                          <label htmlFor="bl-stage-select" className="block text-xs font-semibold text-slate-400 mb-1">
-                            단계(난이도)
-                          </label>
-                          <select
-                            id="bl-stage-select"
-                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
-                            value={blacklabelStage}
-                            onChange={(e) => setBlacklabelStage(e.target.value)}
-                          >
-                            {(currentBlacklabelHierarchy[blacklabelChapter]?.[blacklabelSubunit] || []).map((stg) => (
-                              <option key={stg} value={stg}>
-                                {stg.replace(/_/g, ' ')}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
+                      )}
 
                       <div className="flex items-center gap-2 p-2.5 bg-slate-950/60 rounded-lg border border-white/5">
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-1">
                             <span className="block text-xs font-bold text-purple-400">
-                              {blacklabelSubunit} · {blacklabelStage}
+                              {textbook === 'blacklabel-middle-3-1'
+                                ? `${blacklabelChapter.replace(/_/g, ' ')} · ${blacklabelStage}`
+                                : `${blacklabelSubunit} · ${blacklabelStage}`}
                             </span>
                             {currentBlacklabelRange && (
                               <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
@@ -2260,7 +2345,9 @@ export default function Home() {
                             >
                               <span className="text-slate-200">
                                 <span className="text-purple-400 font-semibold">
-                                  [{item.subunit}]
+                                  [{textbook === 'blacklabel-middle-3-1'
+                                    ? item.chapter.replace(/_/g, ' ')
+                                    : item.subunit}]
                                 </span>{' '}
                                 {item.stage} :{' '}
                                 <span className="font-mono text-emerald-400 font-bold">
@@ -2291,85 +2378,134 @@ export default function Home() {
                     <div className="bg-slate-900/90 border border-emerald-500/30 rounded-xl p-3.5 mb-3.5 shadow-lg">
                       <div className="flex items-center justify-between flex-wrap gap-2 pb-2.5 mb-3 border-b border-white/10">
                         <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                          📐 개념유형파워 단원·단계 선택기
+                          ▲ 개념유형파워 단원·단계 선택기
                         </span>
                         <span className="text-xs text-slate-400">
-                          대단원/소단원/단계를 고르고 번호를 추가하세요
+                          {textbook === 'concept-middle-3-1'
+                            ? '단원과 단계를 고르고 번호를 추가하세요'
+                            : '대단원/소단원/단계를 고르고 번호를 추가하세요'}
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
-                        <div>
-                          <label htmlFor="cp-chapter-select" className="block text-xs font-semibold text-slate-400 mb-1">
-                            대단원
-                          </label>
-                          <select
-                            id="cp-chapter-select"
-                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-emerald-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
-                            value={conceptChapter}
-                            onChange={(e) => {
-                              const newCh = e.target.value;
-                              setConceptChapter(newCh);
-                              const subs = Object.keys(currentConceptHierarchy[newCh] || {});
-                              const firstSub = subs[0] || '';
-                              setConceptSubunit(firstSub);
-                              const stages = currentConceptHierarchy[newCh]?.[firstSub] || [];
-                              setConceptStage(stages[0] || '');
-                            }}
-                          >
-                            {Object.keys(currentConceptHierarchy).map((ch) => (
-                              <option key={ch} value={ch}>
-                                {ch.replace(/_/g, ' ')}
-                              </option>
-                            ))}
-                          </select>
+                      {textbook === 'concept-middle-3-1' ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
+                          <div className="sm:col-span-2">
+                            <label htmlFor="cp-chapter-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                              단원
+                            </label>
+                            <select
+                              id="cp-chapter-select"
+                              className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-emerald-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                              value={conceptChapter}
+                              onChange={(e) => {
+                                const newCh = e.target.value;
+                                setConceptChapter(newCh);
+                                setConceptSubunit(newCh);
+                                const stages = concept31Hierarchy[newCh]?.[newCh] || ['유형별', '단원마무리'];
+                                setConceptStage(stages[0] || '유형별');
+                              }}
+                            >
+                              {Object.keys(concept31Hierarchy).map((ch) => (
+                                <option key={ch} value={ch}>
+                                  {ch.replace(/_/g, ' ')}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label htmlFor="cp-stage-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                              단계(유형)
+                            </label>
+                            <select
+                              id="cp-stage-select"
+                              className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-emerald-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                              value={conceptStage}
+                              onChange={(e) => setConceptStage(e.target.value)}
+                            >
+                              {['유형별', '단원마무리'].map((stg) => (
+                                <option key={stg} value={stg}>
+                                  {stg}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
-                        <div>
-                          <label htmlFor="cp-subunit-select" className="block text-xs font-semibold text-slate-400 mb-1">
-                            소단원
-                          </label>
-                          <select
-                            id="cp-subunit-select"
-                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-emerald-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
-                            value={conceptSubunit}
-                            onChange={(e) => {
-                              const newSub = e.target.value;
-                              setConceptSubunit(newSub);
-                              const stages = currentConceptHierarchy[conceptChapter]?.[newSub] || [];
-                              setConceptStage(stages[0] || '');
-                            }}
-                          >
-                            {Object.keys(currentConceptHierarchy[conceptChapter] || {}).map((sub) => (
-                              <option key={sub} value={sub}>
-                                {sub.replace(/_/g, ' ')}
-                              </option>
-                            ))}
-                          </select>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
+                          <div>
+                            <label htmlFor="cp-chapter-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                              대단원
+                            </label>
+                            <select
+                              id="cp-chapter-select"
+                              className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-emerald-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                              value={conceptChapter}
+                              onChange={(e) => {
+                                const newCh = e.target.value;
+                                setConceptChapter(newCh);
+                                const subs = Object.keys(conceptHierarchy[newCh] || {});
+                                const firstSub = subs[0] || '';
+                                setConceptSubunit(firstSub);
+                                const stages = conceptHierarchy[newCh]?.[firstSub] || [];
+                                setConceptStage(stages[0] || '');
+                              }}
+                            >
+                              {Object.keys(conceptHierarchy).map((ch) => (
+                                <option key={ch} value={ch}>
+                                  {ch.replace(/_/g, ' ')}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label htmlFor="cp-subunit-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                              소단원
+                            </label>
+                            <select
+                              id="cp-subunit-select"
+                              className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-emerald-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                              value={conceptSubunit}
+                              onChange={(e) => {
+                                const newSub = e.target.value;
+                                setConceptSubunit(newSub);
+                                const stages = conceptHierarchy[conceptChapter]?.[newSub] || [];
+                                setConceptStage(stages[0] || '');
+                              }}
+                            >
+                              {Object.keys(conceptHierarchy[conceptChapter] || {}).map((sub) => (
+                                <option key={sub} value={sub}>
+                                  {sub.replace(/_/g, ' ')}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label htmlFor="cp-stage-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                              단계(유형)
+                            </label>
+                            <select
+                              id="cp-stage-select"
+                              className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-emerald-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                              value={conceptStage}
+                              onChange={(e) => setConceptStage(e.target.value)}
+                            >
+                              {(conceptHierarchy[conceptChapter]?.[conceptSubunit] || []).map((stg) => (
+                                <option key={stg} value={stg}>
+                                  {stg.replace(/_/g, ' ')}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
-                        <div>
-                          <label htmlFor="cp-stage-select" className="block text-xs font-semibold text-slate-400 mb-1">
-                            단계(유형)
-                          </label>
-                          <select
-                            id="cp-stage-select"
-                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-emerald-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
-                            value={conceptStage}
-                            onChange={(e) => setConceptStage(e.target.value)}
-                          >
-                            {(currentConceptHierarchy[conceptChapter]?.[conceptSubunit] || []).map((stg) => (
-                              <option key={stg} value={stg}>
-                                {stg.replace(/_/g, ' ')}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
+                      )}
 
                       <div className="flex items-center gap-2 p-2.5 bg-slate-950/60 rounded-lg border border-white/5">
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-1">
                             <span className="block text-xs font-bold text-emerald-400">
-                              {conceptSubunit.replace(/_/g, ' ')} · {conceptStage.replace(/_/g, ' ')}
+                              {textbook === 'concept-middle-3-1'
+                                ? `${conceptChapter.replace(/_/g, ' ')} · ${conceptStage.replace(/_/g, ' ')}`
+                                : `${conceptSubunit.replace(/_/g, ' ')} · ${conceptStage.replace(/_/g, ' ')}`}
                             </span>
                             {currentConceptRange && (
                               <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
@@ -2413,7 +2549,9 @@ export default function Home() {
                             >
                               <span className="text-slate-200">
                                 <span className="text-emerald-400 font-semibold">
-                                  [{item.subunit.replace(/_/g, ' ')}]
+                                  [{textbook === 'concept-middle-3-1'
+                                    ? item.chapter.replace(/_/g, ' ')
+                                    : item.subunit.replace(/_/g, ' ')}]
                                 </span>{' '}
                                 {item.stage.replace(/_/g, ' ')} :{' '}
                                 <span className="font-mono text-emerald-400 font-bold">
@@ -3201,8 +3339,47 @@ export default function Home() {
                       </label>
                     </>
                   )}
-                  {(textbook === 'blacklabel-middle-2-2' ||
-                    textbook === 'blacklabel-middle-3-1') && (
+                  {textbook === 'blacklabel-middle-3-1' ? (
+                    <>
+                      <label htmlFor="blacklabel-chapter" className="space-y-2">
+                        <span className="font-medium">단원</span>
+                        <NativeSelect
+                          id="blacklabel-chapter"
+                          className="w-full"
+                          value={blacklabelChapter}
+                          onChange={(e) => {
+                            const newCh = e.target.value;
+                            setBlacklabelChapter(newCh);
+                            setBlacklabelSubunit(newCh);
+                            const stages =
+                              blacklabel31Hierarchy[newCh]?.[newCh] || ['Step1', 'Step2', 'Step3', 'Step4'];
+                            setBlacklabelStage(stages[0] || 'Step1');
+                          }}
+                        >
+                          {Object.keys(blacklabel31Hierarchy).map((ch) => (
+                            <NativeSelectOption key={ch} value={ch}>
+                              {ch.replace(/_/g, ' ')}
+                            </NativeSelectOption>
+                          ))}
+                        </NativeSelect>
+                      </label>
+                      <label htmlFor="blacklabel-stage" className="space-y-2">
+                        <span className="font-medium">단계(난이도)</span>
+                        <NativeSelect
+                          id="blacklabel-stage"
+                          className="w-full"
+                          value={blacklabelStage}
+                          onChange={(e) => setBlacklabelStage(e.target.value)}
+                        >
+                          {['Step1', 'Step2', 'Step3', 'Step4'].map((stg) => (
+                            <NativeSelectOption key={stg} value={stg}>
+                              {stg}
+                            </NativeSelectOption>
+                          ))}
+                        </NativeSelect>
+                      </label>
+                    </>
+                  ) : textbook === 'blacklabel-middle-2-2' ? (
                     <>
                       <label htmlFor="blacklabel-chapter" className="space-y-2">
                         <span className="font-medium">대단원</span>
@@ -3214,16 +3391,16 @@ export default function Home() {
                             const newCh = e.target.value;
                             setBlacklabelChapter(newCh);
                             const subs = Object.keys(
-                              currentBlacklabelHierarchy[newCh] || {},
+                              blacklabelHierarchy[newCh] || {},
                             );
                             const firstSub = subs[0] || '';
                             setBlacklabelSubunit(firstSub);
                             const stages =
-                              currentBlacklabelHierarchy[newCh]?.[firstSub] || [];
+                              blacklabelHierarchy[newCh]?.[firstSub] || [];
                             setBlacklabelStage(stages[0] || '');
                           }}
                         >
-                          {Object.keys(currentBlacklabelHierarchy).map((ch) => (
+                          {Object.keys(blacklabelHierarchy).map((ch) => (
                             <NativeSelectOption key={ch} value={ch}>
                               {ch}
                             </NativeSelectOption>
@@ -3240,14 +3417,14 @@ export default function Home() {
                             const newSub = e.target.value;
                             setBlacklabelSubunit(newSub);
                             const stages =
-                              currentBlacklabelHierarchy[blacklabelChapter]?.[
+                              blacklabelHierarchy[blacklabelChapter]?.[
                                 newSub
                               ] || [];
                             setBlacklabelStage(stages[0] || '');
                           }}
                         >
                           {Object.keys(
-                            currentBlacklabelHierarchy[blacklabelChapter] || {},
+                            blacklabelHierarchy[blacklabelChapter] || {},
                           ).map((sub) => (
                             <NativeSelectOption key={sub} value={sub}>
                               {sub}
@@ -3267,7 +3444,7 @@ export default function Home() {
                           onChange={(e) => setBlacklabelStage(e.target.value)}
                         >
                           {(
-                            currentBlacklabelHierarchy[blacklabelChapter]?.[
+                            blacklabelHierarchy[blacklabelChapter]?.[
                               blacklabelSubunit
                             ] || []
                           ).map((stg) => (
@@ -3278,9 +3455,48 @@ export default function Home() {
                         </NativeSelect>
                       </label>
                     </>
-                  )}
-                  {(textbook === 'concept-middle-2-2' ||
-                    textbook === 'concept-middle-3-1') && (
+                  ) : null}
+                  {textbook === 'concept-middle-3-1' ? (
+                    <>
+                      <label htmlFor="concept-chapter" className="space-y-2">
+                        <span className="font-medium">단원</span>
+                        <NativeSelect
+                          id="concept-chapter"
+                          className="w-full"
+                          value={conceptChapter}
+                          onChange={(e) => {
+                            const newCh = e.target.value;
+                            setConceptChapter(newCh);
+                            setConceptSubunit(newCh);
+                            const stages =
+                              concept31Hierarchy[newCh]?.[newCh] || ['유형별', '단원마무리'];
+                            setConceptStage(stages[0] || '유형별');
+                          }}
+                        >
+                          {Object.keys(concept31Hierarchy).map((ch) => (
+                            <NativeSelectOption key={ch} value={ch}>
+                              {ch.replace(/_/g, ' ')}
+                            </NativeSelectOption>
+                          ))}
+                        </NativeSelect>
+                      </label>
+                      <label htmlFor="concept-stage" className="space-y-2">
+                        <span className="font-medium">단계(유형)</span>
+                        <NativeSelect
+                          id="concept-stage"
+                          className="w-full"
+                          value={conceptStage}
+                          onChange={(e) => setConceptStage(e.target.value)}
+                        >
+                          {['유형별', '단원마무리'].map((stg) => (
+                            <NativeSelectOption key={stg} value={stg}>
+                              {stg}
+                            </NativeSelectOption>
+                          ))}
+                        </NativeSelect>
+                      </label>
+                    </>
+                  ) : textbook === 'concept-middle-2-2' ? (
                     <>
                       <label htmlFor="concept-chapter" className="space-y-2">
                         <span className="font-medium">대단원</span>
@@ -3292,16 +3508,16 @@ export default function Home() {
                             const newCh = e.target.value;
                             setConceptChapter(newCh);
                             const subs = Object.keys(
-                              currentConceptHierarchy[newCh] || {},
+                              conceptHierarchy[newCh] || {},
                             );
                             const firstSub = subs[0] || '';
                             setConceptSubunit(firstSub);
                             const stages =
-                              currentConceptHierarchy[newCh]?.[firstSub] || [];
+                              conceptHierarchy[newCh]?.[firstSub] || [];
                             setConceptStage(stages[0] || '');
                           }}
                         >
-                          {Object.keys(currentConceptHierarchy).map((ch) => (
+                          {Object.keys(conceptHierarchy).map((ch) => (
                             <NativeSelectOption key={ch} value={ch}>
                               {ch.replace(/_/g, ' ')}
                             </NativeSelectOption>
@@ -3318,13 +3534,13 @@ export default function Home() {
                             const newSub = e.target.value;
                             setConceptSubunit(newSub);
                             const stages =
-                              currentConceptHierarchy[conceptChapter]?.[newSub] ||
+                              conceptHierarchy[conceptChapter]?.[newSub] ||
                               [];
                             setConceptStage(stages[0] || '');
                           }}
                         >
                           {Object.keys(
-                            currentConceptHierarchy[conceptChapter] || {},
+                            conceptHierarchy[conceptChapter] || {},
                           ).map((sub) => (
                             <NativeSelectOption key={sub} value={sub}>
                               {sub.replace(/_/g, ' ')}
@@ -3344,7 +3560,7 @@ export default function Home() {
                           onChange={(e) => setConceptStage(e.target.value)}
                         >
                           {(
-                            currentConceptHierarchy[conceptChapter]?.[
+                            conceptHierarchy[conceptChapter]?.[
                               conceptSubunit
                             ] || []
                           ).map((stg) => (
@@ -3355,7 +3571,7 @@ export default function Home() {
                         </NativeSelect>
                       </label>
                     </>
-                  )}
+                  ) : null}
                   <label htmlFor="numbers" className="space-y-2 sm:col-span-2">
                     <span className="font-medium">문제번호</span>
                     <Textarea
@@ -3504,7 +3720,7 @@ export default function Home() {
                         </div>
                         {blacklabelItems.length === 0 ? (
                           <p className="rounded-lg bg-white p-3 text-sm text-slate-500">
-                            대단원, 소단원, 단계를 선택하고 번호를 목록에 추가하세요.
+                            단원과 단계를 선택하고 번호를 목록에 추가하세요.
                           </p>
                         ) : (
                           <ol className="space-y-2">
@@ -3514,7 +3730,11 @@ export default function Home() {
                                 className="flex items-center justify-between gap-3 rounded-lg bg-white p-3 text-sm"
                               >
                                 <span>
-                                  {index + 1}. [{item.chapter} &gt; {item.subunit}] {item.stage} · {item.numbers}번
+                                  {index + 1}. [
+                                  {textbook === 'blacklabel-middle-3-1'
+                                    ? item.chapter.replace(/_/g, ' ')
+                                    : `${item.chapter} > ${item.subunit}`}
+                                  ] {item.stage} · {item.numbers}번
                                   <span className="ml-2 text-slate-500">
                                     ({item.count}문제)
                                   </span>
@@ -3579,7 +3799,7 @@ export default function Home() {
                         </div>
                         {conceptItems.length === 0 ? (
                           <p className="rounded-lg bg-white p-3 text-sm text-slate-500">
-                            대단원, 소단원, 단계를 선택하고 번호를 목록에 추가하세요.
+                            단원과 단계를 선택하고 번호를 목록에 추가하세요.
                           </p>
                         ) : (
                           <ol className="space-y-2">
@@ -3589,7 +3809,11 @@ export default function Home() {
                                 className="flex items-center justify-between gap-3 rounded-lg bg-white p-3 text-sm"
                               >
                                 <span>
-                                  {index + 1}. [{item.chapter.replace(/_/g, ' ')} &gt; {item.subunit.replace(/_/g, ' ')}] {item.stage.replace(/_/g, ' ')} · {item.numbers}번
+                                  {index + 1}. [
+                                  {textbook === 'concept-middle-3-1'
+                                    ? item.chapter.replace(/_/g, ' ')
+                                    : `${item.chapter.replace(/_/g, ' ')} > ${item.subunit.replace(/_/g, ' ')}`}
+                                  ] {item.stage.replace(/_/g, ' ')} · {item.numbers}번
                                   <span className="ml-2 text-slate-500">
                                     ({item.count}문제)
                                   </span>
