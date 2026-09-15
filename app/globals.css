@@ -100,7 +100,7 @@ select {
 
 .editorial-choice {
   position: relative;
-  min-height: 19rem;
+  min-height: 15rem;
   overflow: hidden;
   background: #100904;
   padding: 1.25rem 1.5rem;
@@ -123,19 +123,20 @@ select {
 }
 .choice-icon {
   position: absolute;
-  inset: 31% auto auto 50%;
+  top: 3.5rem;
+  left: 50%;
   width: 5rem;
   height: 5rem;
   color: #6c5f51;
   stroke-width: 1;
-  transform: translate(-50%, -55%);
+  transform: translateX(-50%);
   transition:
     color 0.25s ease,
     transform 0.25s ease;
 }
 .editorial-choice:hover .choice-icon {
   color: #ffedd7;
-  transform: translate(-50%, -60%);
+  transform: translateX(-50%) translateY(-0.25rem);
 }
 .editorial-choice-middle .choice-icon,
 .editorial-choice-middle .choice-footer h3 {
@@ -286,7 +287,7 @@ select {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .editorial-choice {
-    min-height: 21rem;
+    min-height: 16rem;
     padding: 1.5rem 2rem;
   }
   .choice-footer {
