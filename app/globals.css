@@ -306,3 +306,29 @@ select {
   .textbook-name-line { gap: 0.45rem; }
   .textbook-subject { padding: 0.18rem 0.42rem; font-size: 0.65rem; }
 }
+
+/* The generator uses a warmer palette to connect with the textbook selection screen. */
+.generator-canvas {
+  background: #160d09 !important;
+  color: #f7eadf !important;
+}
+.generator-canvas [class~="bg-[#151822]"] {
+  background-color: #241510 !important;
+  border-color: #4a3023 !important;
+}
+.generator-canvas [class~="bg-[#0F1118]"],
+.generator-canvas [class~="bg-[#0D1017]"],
+.generator-canvas [class~="bg-[#090A0E]"] {
+  background-color: #190f0b !important;
+  border-color: #4a3023 !important;
+}
+.generator-canvas [class~="bg-[#1B1E2B]"],
+.generator-canvas [class~="bg-[#1F2433]"] {
+  background-color: #2d1b12 !important;
+  border-color: #5a3b28 !important;
+}
+.generator-canvas [class~="border-[#242938]"],
+.generator-canvas [class~="border-[#1C202E]"],
+.generator-canvas [class~="border-[#30384F]"] {
+  border-color: #4a3023 !important;
+}

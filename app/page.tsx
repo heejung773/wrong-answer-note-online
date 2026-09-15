@@ -1757,7 +1757,7 @@ export default function Home() {
     };
 
     return (
-      <div className="min-h-screen bg-[#0B0C10] text-[#E2E8F0] p-3 sm:p-6 font-sans">
+      <div className="generator-canvas min-h-screen bg-[#0B0C10] text-[#E2E8F0] p-3 sm:p-6 font-sans">
         <div className="max-w-[1680px] mx-auto flex flex-col gap-4">
           {/* Top Header */}
           <header className="flex flex-wrap items-center justify-between gap-4 p-4 bg-[#151822] border border-[#242938] rounded-xl shadow-lg">
