@@ -372,6 +372,10 @@ export default function Home() {
   const [password, setPassword] = useState('');
   const [student, setStudent] = useState('홍길동');
   const [grade, setGrade] = useState('1학년');
+  const [studentMode, setStudentMode] = useState<'single' | 'batch'>('single');
+  const [studentNamesText, setStudentNamesText] = useState(
+    '김민준\n이서진\n박도윤\n정시우',
+  );
   const [numbers, setNumbers] = useState('1, 2, 3, 4');
   const [department, setDepartment] = useState<Department | null>(null);
   const [textbook, setTextbook] = useState<TextbookId | null>(null);
@@ -435,6 +439,18 @@ export default function Home() {
   const currentCoverTitle =
     coverTitle ||
     (textbook ? textbooks.find((t) => t.id === textbook)?.title || '' : '');
+
+  const parsedBatchStudentNames = useMemo(() => {
+    return Array.from(
+      new Set(
+        studentNamesText
+          .replace(/,/g, '\n')
+          .split('\n')
+          .map((n) => n.trim())
+          .filter(Boolean),
+      ),
+    );
+  }, [studentNamesText]);
 
   const parsedProblemNumbers = useMemo(() => {
     const result: number[] = [];
@@ -562,6 +578,10 @@ export default function Home() {
       setStatus('올림포스 문항을 목록에 추가한 뒤 미리보기를 갱신하세요.');
       return;
     }
+    const activePreviewStudent =
+      studentMode === 'batch'
+        ? parsedBatchStudentNames[0] || '학생'
+        : student || '학생';
     setPreviewLoading(true);
     setStatus('실시간 미리보기 PDF를 생성하고 있습니다…');
     try {
@@ -573,7 +593,10 @@ export default function Home() {
         },
         body: JSON.stringify({
           textbook,
-          student,
+          student: activePreviewStudent,
+          studentNames: studentMode === 'batch' ? parsedBatchStudentNames : [student],
+          isBatch: false,
+          preview: true,
           grade,
           numbers,
           olympusUnit,
@@ -643,8 +666,17 @@ export default function Home() {
     if (!sessionToken || !textbook) return;
     const selectedTextbook = textbooks.find((item) => item.id === textbook);
     if (!selectedTextbook?.available) return;
+    const isBatch = studentMode === 'batch' && parsedBatchStudentNames.length > 1;
+    const primaryStudent =
+      studentMode === 'batch'
+        ? parsedBatchStudentNames[0] || '학생'
+        : student || '학생';
     setBusy(true);
-    setStatus('오답노트 PDF를 다운로드하는 중…');
+    setStatus(
+      isBatch
+        ? `총 ${parsedBatchStudentNames.length}명 학생별 오답노트 ZIP을 생성하고 있습니다…`
+        : '오답노트 PDF를 다운로드하는 중…',
+    );
     try {
       const response = await fetch('/api/generate', {
         method: 'POST',
@@ -654,7 +686,10 @@ export default function Home() {
         },
         body: JSON.stringify({
           textbook,
-          student,
+          student: primaryStudent,
+          studentNames: studentMode === 'batch' ? parsedBatchStudentNames : [student],
+          isBatch,
+          preview: false,
           grade,
           numbers,
           olympusUnit,
@@ -695,18 +730,28 @@ export default function Home() {
           .catch(() => ({ error: 'PDF 생성에 실패했습니다.' }));
         throw new Error(message.error);
       }
-      const filename = `${student || '학생'}_${grade}_${selectedTextbook.title}_오답노트.pdf`;
+      const filename = isBatch
+        ? `${selectedTextbook.title}_학생별_오답노트_모음.zip`
+        : `${primaryStudent}_${grade}_${selectedTextbook.title}_오답노트.pdf`;
       const contentType = response.headers.get('content-type') ?? '';
       if (contentType.includes('application/json')) {
-        const result = (await response.json()) as { downloadUrl?: string };
+        const result = (await response.json()) as {
+          downloadUrl?: string;
+          filename?: string;
+        };
         if (!result.downloadUrl) {
           throw new Error('다운로드 주소를 받지 못했습니다.');
         }
+        const targetFilename = result.filename || filename;
         const separator = result.downloadUrl.includes('?') ? '&' : '?';
         const link = document.createElement('a');
-        link.href = `${result.downloadUrl}${separator}download=${encodeURIComponent(filename)}`;
+        link.href = `${result.downloadUrl}${separator}download=${encodeURIComponent(targetFilename)}`;
         link.click();
-        setStatus('다운로드가 시작되었습니다.');
+        setStatus(
+          isBatch
+            ? `총 ${parsedBatchStudentNames.length}명 학생별 ZIP 다운로드가 시작되었습니다.`
+            : '다운로드가 시작되었습니다.',
+        );
         return;
       }
       const blob = await response.blob();
@@ -716,7 +761,11 @@ export default function Home() {
       link.download = filename;
       link.click();
       URL.revokeObjectURL(url);
-      setStatus('오답노트 PDF 다운로드가 완료되었습니다.');
+      setStatus(
+        isBatch
+          ? `총 ${parsedBatchStudentNames.length}명 학생별 ZIP 다운로드가 완료되었습니다.`
+          : '오답노트 PDF 다운로드가 완료되었습니다.',
+      );
     } catch (error) {
       setStatus(
         error instanceof Error ? error.message : '다운로드에 실패했습니다.',
@@ -1218,38 +1267,106 @@ export default function Home() {
                     </span>
                     <h3 className="text-sm font-bold text-slate-100">학생 정보 입력</h3>
                   </div>
+                  <div className="flex items-center bg-[#0F1118] p-0.5 rounded-lg border border-[#242938]">
+                    <button
+                      type="button"
+                      onClick={() => setStudentMode('single')}
+                      className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
+                        studentMode === 'single'
+                          ? 'bg-purple-600 text-white shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      개별 학생
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setStudentMode('batch')}
+                      className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
+                        studentMode === 'batch'
+                          ? 'bg-purple-600 text-white shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      다중 일괄(반 전체)
+                    </button>
+                  </div>
                 </div>
                 <div className="p-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label htmlFor="hs-student-name" className="block text-xs font-semibold text-slate-400 mb-1.5">
-                        학생 성명
-                      </label>
-                      <input
-                        id="hs-student-name"
-                        type="text"
-                        className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-lg text-slate-100 placeholder-slate-500 text-sm outline-none transition-all"
-                        placeholder="예: 홍길동"
-                        value={student}
-                        onChange={(e) => setStudent(e.target.value)}
+                  {studentMode === 'single' ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label htmlFor="hs-student-name" className="block text-xs font-semibold text-slate-400 mb-1.5">
+                          학생 성명
+                        </label>
+                        <input
+                          id="hs-student-name"
+                          type="text"
+                          className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-lg text-slate-100 placeholder-slate-500 text-sm outline-none transition-all"
+                          placeholder="예: 홍길동 (또는 여러 명 쉼표 구분)"
+                          value={student}
+                          onChange={(e) => setStudent(e.target.value)}
+                        />
+                        <small className="block mt-1 text-[11px] text-slate-500">
+                          ※ 쉼표로 여러 명(예: 김민준, 이서진)을 적거나 우측 [다중 일괄] 탭을 선택하세요.
+                        </small>
+                      </div>
+                      <div>
+                        <label htmlFor="hs-student-grade" className="block text-xs font-semibold text-slate-400 mb-1.5">
+                          학년 구분
+                        </label>
+                        <select
+                          id="hs-student-grade"
+                          className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-lg text-slate-100 text-sm outline-none transition-all cursor-pointer"
+                          value={grade}
+                          onChange={(e) => setGrade(e.target.value)}
+                        >
+                          <option value="1학년">1학년</option>
+                          <option value="2학년">2학년</option>
+                          <option value="3학년">3학년</option>
+                        </select>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label htmlFor="hs-batch-names" className="block text-xs font-semibold text-slate-300">
+                          학생 성명 목록 <span className="text-slate-500 font-normal">(줄바꿈 또는 쉼표 구분)</span>
+                        </label>
+                        <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300">
+                          총 {parsedBatchStudentNames.length}명 입력됨
+                        </span>
+                      </div>
+                      <textarea
+                        id="hs-batch-names"
+                        rows={3}
+                        className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-lg text-slate-100 placeholder-slate-500 text-sm outline-none font-mono transition-all resize-y"
+                        placeholder={'김민준\n이서진\n박도윤\n정시우'}
+                        value={studentNamesText}
+                        onChange={(e) => setStudentNamesText(e.target.value)}
                       />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                        <div>
+                          <label htmlFor="hs-batch-grade" className="block text-xs font-semibold text-slate-400 mb-1">
+                            공통 학년 구분
+                          </label>
+                          <select
+                            id="hs-batch-grade"
+                            className="w-full px-3 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-lg text-slate-100 text-xs outline-none transition-all cursor-pointer"
+                            value={grade}
+                            onChange={(e) => setGrade(e.target.value)}
+                          >
+                            <option value="1학년">1학년</option>
+                            <option value="2학년">2학년</option>
+                            <option value="3학년">3학년</option>
+                          </select>
+                        </div>
+                        <p className="text-[11px] text-purple-300/80 leading-relaxed bg-purple-950/20 border border-purple-800/30 p-2.5 rounded-lg">
+                          💡 <strong>일괄 생성 안내:</strong> 각 학생 이름이 표지에 개별 인쇄된 시험지가 한 번에 생성되어 <strong>ZIP 압축파일</strong>로 자동 다운로드됩니다.
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <label htmlFor="hs-student-grade" className="block text-xs font-semibold text-slate-400 mb-1.5">
-                        학년 구분
-                      </label>
-                      <select
-                        id="hs-student-grade"
-                        className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-lg text-slate-100 text-sm outline-none transition-all cursor-pointer"
-                        value={grade}
-                        onChange={(e) => setGrade(e.target.value)}
-                      >
-                        <option value="1학년">1학년</option>
-                        <option value="2학년">2학년</option>
-                        <option value="3학년">3학년</option>
-                      </select>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
@@ -1637,7 +1754,13 @@ export default function Home() {
                   disabled={busy || previewLoading}
                 >
                   <FileDown className="size-5" />
-                  <span>{busy ? 'PDF 생성 중…' : 'PDF 생성 및 다운로드'}</span>
+                  <span>
+                    {busy
+                      ? '생성 중…'
+                      : studentMode === 'batch' && parsedBatchStudentNames.length > 1
+                        ? `📦 ${parsedBatchStudentNames.length}명 일괄 생성 (ZIP 압축)`
+                        : 'PDF 생성 및 다운로드'}
+                  </span>
                 </button>
 
                 <button
@@ -1666,8 +1789,13 @@ export default function Home() {
               }`}
             >
               <div className="flex flex-wrap items-center justify-between pb-3.5 mb-3.5 border-b border-[#242938] gap-2.5">
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2.5 flex-wrap">
                   <h3 className="text-sm font-bold text-slate-100">실시간 오답노트 미리보기</h3>
+                  {studentMode === 'batch' && parsedBatchStudentNames.length > 0 && (
+                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300">
+                      1번 학생 ({parsedBatchStudentNames[0]}) 미리보기
+                    </span>
+                  )}
                   <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400">
                     {previewLoading
                       ? '생성 중…'

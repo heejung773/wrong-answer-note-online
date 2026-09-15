@@ -11,6 +11,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
+import zipfile
 
 from PIL import Image
 from pypdf import PdfReader
@@ -113,21 +114,23 @@ def request_bytes(url: str, headers: dict[str, str]) -> bytes:
         return response.read()
 
 
-def upload_temporary_pdf(
+def upload_temporary_file(
     supabase_url: str,
     secret_key: str,
     bucket: str,
-    pdf: bytes,
+    file_bytes: bytes,
+    content_type: str = "application/pdf",
+    ext: str = "pdf",
 ) -> str:
-    """Upload a large PDF and return a short-lived private download URL."""
-    object_name = f"temporary-pdfs/{uuid.uuid4().hex}.pdf"
+    """Upload a large PDF or ZIP and return a short-lived private download URL."""
+    object_name = f"temporary-files/{uuid.uuid4().hex}.{ext}"
     object_path = urllib.parse.quote(f"{bucket}/{object_name}", safe="/")
     upload_request = urllib.request.Request(
         f"{supabase_url}/storage/v1/object/{object_path}",
-        data=pdf,
+        data=file_bytes,
         headers={
             "apikey": secret_key,
-            "Content-Type": "application/pdf",
+            "Content-Type": content_type,
             "x-upsert": "false",
         },
         method="POST",
@@ -153,20 +156,19 @@ def upload_temporary_pdf(
             headers={"apikey": secret_key},
             method="DELETE",
         )
-        try:
-            urllib.request.urlopen(delete_request, timeout=10).close()
-        except Exception:
+        with urllib.request.urlopen(delete_request, timeout=20):
             pass
         raise
+    return f"{supabase_url}/storage/v1{signed['signedURL']}"
 
-    signed_path = signed.get("signedURL") or signed.get("signedUrl")
-    if not isinstance(signed_path, str) or not signed_path:
-        raise ValueError("임시 PDF 다운로드 주소를 만들지 못했습니다.")
-    if signed_path.startswith("http://") or signed_path.startswith("https://"):
-        return signed_path
-    if signed_path.startswith("/object/"):
-        return f"{supabase_url}/storage/v1{signed_path}"
-    return f"{supabase_url}{signed_path if signed_path.startswith('/') else '/' + signed_path}"
+
+def upload_temporary_pdf(
+    supabase_url: str,
+    secret_key: str,
+    bucket: str,
+    pdf: bytes,
+) -> str:
+    return upload_temporary_file(supabase_url, secret_key, bucket, pdf, "application/pdf", "pdf")
 
 
 def pdf_image_reader(data: bytes, max_width: int, max_height: int) -> ImageReader:
@@ -464,8 +466,13 @@ def draw_test_cover(
 
     # Info Items
     total_pages = max(1, (total_problems + 3) // 4)
+    disp_name = (
+        student_name
+        if ("," in student_name or "\n" in student_name or "외" in student_name or student_name.endswith("학생"))
+        else f"{student_name} 학생"
+    )
     info_items = [
-        ("학 생 성 명", f"{student_name} 학생", True),
+        ("학 생 성 명", disp_name, True),
         ("소 속 학 원", academy_name, False),
         ("출 제 문 항", f"총 {total_problems}문항 ({total_pages}페이지)", False),
         ("응 시 일 자", date_str, False),
@@ -487,7 +494,12 @@ def draw_test_cover(
 
         if is_hl:
             c.setFillColorRGB(*C_COBALT)
-            c.setFont(font_name, 13)
+            font_sz = 13.0
+            if len(val) > 20:
+                font_sz = 9.5
+            elif len(val) > 13:
+                font_sz = 11.0
+            c.setFont(font_name, font_sz)
             c.drawString(card_x + 138, row_y + 2, val)
         else:
             c.setFillColorRGB(*C_MIDNIGHT)
@@ -1146,6 +1158,35 @@ class handler(BaseHTTPRequestHandler):
                 "custom_character_bytes": custom_character_bytes,
             }
 
+            # Student(s) parsing (support single student or batch list)
+            is_preview = bool(payload.get("preview", False))
+            is_batch_req = bool(payload.get("isBatch", False))
+            raw_students = payload.get("studentNames")
+            student_list: list[str] = []
+            if raw_students:
+                if isinstance(raw_students, str):
+                    student_list = [n.strip() for n in raw_students.replace(",", "\n").split("\n") if n.strip()]
+                elif isinstance(raw_students, list):
+                    student_list = [str(n).strip() for n in raw_students if str(n).strip()]
+
+            if not student_list:
+                single_s = str(payload.get("student", "")).strip()
+                if not single_s:
+                    raise ValueError("학생 이름을 입력해 주세요.")
+                student_list = [single_s]
+
+            seen = set()
+            unique_students: list[str] = []
+            for s in student_list:
+                if s not in seen:
+                    unique_students.append(s)
+                    seen.add(s)
+
+            if not unique_students:
+                raise ValueError("학생 이름을 1명 이상 입력해 주세요.")
+
+            is_batch = (len(unique_students) > 1 and not is_preview and is_batch_req)
+
             if textbook == "olympus-calculus":
                 raw_items = payload.get("olympusItems")
                 if not isinstance(raw_items, list) or not raw_items:
@@ -1166,7 +1207,10 @@ class handler(BaseHTTPRequestHandler):
                     images = load_olympus_images(supabase_url, secret_key, bucket, unit, problem_type, numbers)
                     olympus_items.extend((unit, problem_type, number, data) for number, data in images)
                 olympus_answers = load_olympus_answers(supabase_url, secret_key, bucket)
-                pdf = create_olympus_pdf(student, grade, olympus_items, olympus_answers, cover_options)
+
+                def make_pdf(st: str) -> bytes:
+                    return create_olympus_pdf(st, grade, olympus_items, olympus_answers, cover_options)
+
             elif textbook == "blacklabel-middle-2-2":
                 raw_items = payload.get("blacklabelItems")
                 if not isinstance(raw_items, list) or not raw_items:
@@ -1187,7 +1231,10 @@ class handler(BaseHTTPRequestHandler):
                         data = load_blacklabel_image(supabase_url, secret_key, bucket, chapter, subunit, stage, num_str)
                         blacklabel_items.append((chapter, subunit, stage, num_str, data))
                 blacklabel_answers = load_blacklabel_answers(supabase_url, secret_key, bucket)
-                pdf = create_blacklabel_pdf(student, grade, blacklabel_items, blacklabel_answers, cover_options)
+
+                def make_pdf(st: str) -> bytes:
+                    return create_blacklabel_pdf(st, grade, blacklabel_items, blacklabel_answers, cover_options)
+
             elif textbook == "concept-middle-2-2":
                 raw_items = payload.get("conceptItems")
                 if not isinstance(raw_items, list) or not raw_items:
@@ -1207,7 +1254,10 @@ class handler(BaseHTTPRequestHandler):
                     for num_str in tokens:
                         data = load_concept_image(supabase_url, secret_key, bucket, chapter, subunit, stage, num_str)
                         concept_items.append((chapter, subunit, stage, num_str, data))
-                pdf = create_concept_pdf(student, grade, concept_items, cover_options)
+
+                def make_pdf(st: str) -> bytes:
+                    return create_concept_pdf(st, grade, concept_items, cover_options)
+
             else:
                 numbers = parse_numbers(str(payload.get("numbers", "")))
                 images = load_images(supabase_url, secret_key, bucket, textbook, numbers)
@@ -1219,7 +1269,48 @@ class handler(BaseHTTPRequestHandler):
                         listed = ", ".join(f"{number:04d}" for number in missing_answers)
                         raise ValueError(f"빠른정답에 없는 문제번호입니다: {listed}")
                     selected_answers = {number: all_answers[number] for number in numbers}
-                pdf = create_pdf(student, grade, images, selected_answers, textbook, cover_options)
+
+                def make_pdf(st: str) -> bytes:
+                    return create_pdf(st, grade, images, selected_answers, textbook, cover_options)
+
+            title_label = cover_title or TEXTBOOKS.get(textbook, {}).get("title", "오답노트")
+
+            if is_batch:
+                zip_buffer = BytesIO()
+                with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+                    for idx, st_name in enumerate(unique_students):
+                        safe_name = "".join(c for c in st_name if c.isalnum() or c in (" ", "_", "-")).strip() or f"학생{idx+1}"
+                        pdf_data = make_pdf(st_name)
+                        zf.writestr(f"{safe_name}_{title_label}_오답노트.pdf", pdf_data)
+
+                zip_bytes = zip_buffer.getvalue()
+                zip_filename = f"{title_label}_학생별_오답노트_모음.zip"
+                if len(zip_bytes) > 4_300_000:
+                    download_url = upload_temporary_file(
+                        supabase_url, secret_key, bucket, zip_bytes, "application/zip", "zip"
+                    )
+                    return self.send_json_data(
+                        200,
+                        {
+                            "downloadUrl": download_url,
+                            "expiresIn": 1800,
+                            "filename": zip_filename,
+                        },
+                    )
+                self.send_response(200)
+                self.send_header("Content-Type", "application/zip")
+                encoded_zip_name = urllib.parse.quote(zip_filename)
+                self.send_header(
+                    "Content-Disposition",
+                    f'attachment; filename="{encoded_zip_name}"; filename*=UTF-8\'\'{encoded_zip_name}',
+                )
+                self.send_header("Access-Control-Expose-Headers", "Content-Disposition, Content-Type")
+                self.send_header("Content-Length", str(len(zip_bytes)))
+                self.end_headers()
+                self.wfile.write(zip_bytes)
+                return
+
+            pdf = make_pdf(unique_students[0])
             if len(pdf) > 4_300_000:
                 download_url = upload_temporary_pdf(supabase_url, secret_key, bucket, pdf)
                 return self.send_json_data(
