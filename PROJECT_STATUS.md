@@ -177,6 +177,25 @@
   - `npm run build`: Next.js 16.3.4 (Turbopack) 프로덕션 빌드 성공.
   - GitHub `main` 푸시 완료.
 
+## 2026-09-15 중등부 교재 문항 범위 안내 배지 및 입력 편의 개선
+
+- **블랙라벨 및 개념유형파워 문항 번호 범위 안내 및 사전 검증**:
+  - `conceptRanges`, `blacklabelRanges` 정밀 매핑 테이블을 프런트엔드에 구축.
+  - 단계 선택 시 `💡 제공 문항: min ~ max번 (N문제)` 실시간 안내 뱃지 및 맞춤형 플레이스홀더 표시.
+  - 제공 범위 밖의 번호 입력 시 사전에 명확한 한글 안내 메시지 발생 (`선택한 단계(...)의 제공 문항은 min~max번입니다`).
+- **실시간 미리보기 반응성 및 인터랙션 강화**:
+  - 문항 입력란에서 Enter 키 입력 시 즉시 문항 추가 및 미리보기 자동 갱신.
+  - 문항 삭제(`×`) 시 즉시 미리보기 자동 갱신.
+- **백엔드 예외 처리 및 번호 파싱 강화 ([api/generate.py](file:///d:/오답노트_온라인_테스트/api/generate.py))**:
+  - 문항 번호 파싱 시 물결표(`~`)뿐 아니라 하이픈(`-`) 범위 파싱 완벽 지원.
+  - Supabase Storage 400/404 HTTP 오류에 대한 상세 한글 안내 및 안전한 fallback 처리.
+- **검증 및 배포 완료**:
+  - `scripts/verify_online_textbooks.py`: 6종 전 교재 PDF 생성 테스트 100% 정상 통과.
+  - `oxlint app`: 0 warnings, 0 errors.
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run build`: Next.js 16.3.4 (Turbopack) 프로덕션 빌드 성공.
+  - GitHub `main` 푸시 완료.
+
 ## 현재 작업 트리 주의사항
 
 - 2026-09-10 확인 시 `output/` 폴더가 Git 미추적 상태이다.

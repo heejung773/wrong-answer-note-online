@@ -1,6 +1,6 @@
 'use client';
 
-import { SyntheticEvent, useEffect, useMemo, useState } from 'react';
+import { SyntheticEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
 import {
@@ -1110,11 +1110,13 @@ export default function Home() {
     }
   }
 
+  const handleRefreshPreviewRef = useRef(handleRefreshPreview);
+  handleRefreshPreviewRef.current = handleRefreshPreview;
+
   useEffect(() => {
     if (sessionToken && textbook) {
-      void handleRefreshPreview(textbook);
+      void handleRefreshPreviewRef.current(textbook);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [textbook, sessionToken]);
 
   async function handleDownloadPdf() {

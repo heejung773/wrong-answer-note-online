@@ -347,7 +347,7 @@ def draw_test_cover(
 
     # 1-1. Center Mascot / Logo Stage
     if include_character:
-        c.setFillColorRGB(0.94, 0.965, 1.0)
+        c.setFillColorRGB(1.0, 1.0, 1.0)
         c.setStrokeColorRGB(*C_BORDER)
         c.setLineWidth(0.8)
         c.circle(center_x, slot_center_y, 74, stroke=1, fill=1)
