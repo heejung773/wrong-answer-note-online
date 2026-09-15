@@ -13,7 +13,9 @@ import {
   LogOut,
   Printer,
   RefreshCw,
+  RotateCcw,
   School,
+  Upload,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -390,10 +392,12 @@ export default function Home() {
   const [checkingSession, setCheckingSession] = useState(configured);
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
-  const [optionsCollapsed, setOptionsCollapsed] = useState(false);
+  const [optionsCollapsed, setOptionsCollapsed] = useState(true);
   const [activeStep, setActiveStep] = useState<number>(3);
   const [olympusQuickInput, setOlympusQuickInput] = useState('1-4');
   const [includeCover, setIncludeCover] = useState(true);
+  const [includeCharacter, setIncludeCharacter] = useState(true);
+  const [customCharacter, setCustomCharacter] = useState<string | null>(null);
   const [coverTitle, setCoverTitle] = useState('');
   const [academyName, setAcademyName] = useState('다산미래학원');
   const [coverSubtitle, setCoverSubtitle] = useState(
@@ -403,6 +407,27 @@ export default function Home() {
     const d = new Date();
     return `${d.getFullYear()}. ${String(d.getMonth() + 1).padStart(2, '0')}. ${String(d.getDate()).padStart(2, '0')}`;
   });
+
+  function handleCharacterUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setStatus('이미지 파일(PNG, JPG, WebP 등)만 업로드할 수 있습니다.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      setCustomCharacter(base64);
+      setStatus('표지 마스코트/로고 이미지가 등록되었습니다. [미리보기 갱신]을 눌러 확인하세요.');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleResetCharacter() {
+    setCustomCharacter(null);
+    setStatus('기본 마스코트 캐릭터로 복원되었습니다.');
+  }
 
   const currentCoverTitle =
     coverTitle ||
@@ -555,8 +580,29 @@ export default function Home() {
             problemType,
             numbers,
           })),
-          blacklabelItems: [],
-          conceptItems: [],
+          blacklabelItems: blacklabelItems.map(
+            ({ chapter, subunit, stage, numbers }) => ({
+              chapter,
+              subunit,
+              stage,
+              numbers,
+            }),
+          ),
+          conceptItems: conceptItems.map(
+            ({ chapter, subunit, stage, numbers }) => ({
+              chapter,
+              subunit,
+              stage,
+              numbers,
+            }),
+          ),
+          includeCover,
+          coverTitle: currentCoverTitle,
+          academyName,
+          coverSubtitle,
+          testDate,
+          includeCharacter,
+          customCharacter,
         }),
       });
       if (!response.ok) {
@@ -615,8 +661,29 @@ export default function Home() {
             problemType,
             numbers,
           })),
-          blacklabelItems: [],
-          conceptItems: [],
+          blacklabelItems: blacklabelItems.map(
+            ({ chapter, subunit, stage, numbers }) => ({
+              chapter,
+              subunit,
+              stage,
+              numbers,
+            }),
+          ),
+          conceptItems: conceptItems.map(
+            ({ chapter, subunit, stage, numbers }) => ({
+              chapter,
+              subunit,
+              stage,
+              numbers,
+            }),
+          ),
+          includeCover,
+          coverTitle: currentCoverTitle,
+          academyName,
+          coverSubtitle,
+          testDate,
+          includeCharacter,
+          customCharacter,
         }),
       });
       if (!response.ok) {
@@ -851,6 +918,13 @@ export default function Home() {
               numbers,
             }),
           ),
+          includeCover,
+          coverTitle: currentCoverTitle,
+          academyName,
+          coverSubtitle,
+          testDate,
+          includeCharacter,
+          customCharacter,
         }),
       });
       if (!response.ok) {
@@ -1454,18 +1528,85 @@ export default function Home() {
                         />
                       </div>
                     </div>
-                    <div className="pt-2.5 border-t border-slate-800/80">
-                      <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-200">
-                        <input
-                          type="checkbox"
-                          className="size-4 rounded accent-blue-600"
-                          checked={includeCover}
-                          onChange={(e) => setIncludeCover(e.target.checked)}
-                        />
-                        <span>표지(Cover) 페이지 포함</span>
-                      </label>
-                      <small className="block mt-1 text-xs text-slate-400">
-                        ※ 2×2 그리드 문제 배열 / 하단 학생 풀이 공간 최적화 / 바닥글 {academyName} 적용
+                    <div className="pt-2.5 border-t border-slate-800/80 space-y-3">
+                      <div className="flex flex-wrap items-center gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-200">
+                          <input
+                            type="checkbox"
+                            className="size-4 rounded accent-blue-600"
+                            checked={includeCover}
+                            onChange={(e) => setIncludeCover(e.target.checked)}
+                          />
+                          <span className="font-semibold">표지(Cover) 페이지 포함</span>
+                        </label>
+
+                        {includeCover && (
+                          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-200">
+                            <input
+                              type="checkbox"
+                              className="size-4 rounded accent-blue-600"
+                              checked={includeCharacter}
+                              onChange={(e) => setIncludeCharacter(e.target.checked)}
+                            />
+                            <span>표지 중앙 로고/마스코트 표시</span>
+                          </label>
+                        )}
+                      </div>
+
+                      {includeCover && includeCharacter && (
+                        <div className="p-3.5 bg-[#0D1017] border border-[#242938] rounded-xl flex items-center gap-4">
+                          <div className="relative size-16 shrink-0 rounded-full border-2 border-blue-500/40 bg-[#161B26] overflow-hidden flex items-center justify-center shadow-inner">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={customCharacter || '/character.png'}
+                              alt="표지 로고"
+                              className="w-full h-full object-contain p-1"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold text-slate-200">
+                                표지 중앙 로고 / 마스코트
+                              </span>
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-400">
+                                {customCharacter ? '커스텀 로고 적용 중' : '기본 마스코트 적용 중'}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-400 mt-0.5">
+                              표지 상단 원형 엠블럼 중앙에 깔끔하고 선명하게 인쇄됩니다.
+                            </p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <label
+                                htmlFor="character-upload-input"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-200 bg-[#1F2433] hover:bg-[#2B3247] border border-[#30384F] hover:border-slate-500 transition-colors cursor-pointer"
+                              >
+                                <Upload className="size-3.5" />
+                                <span>다른 로고/이미지로 변경</span>
+                              </label>
+                              <input
+                                id="character-upload-input"
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleCharacterUpload}
+                              />
+                              {customCharacter && (
+                                <button
+                                  type="button"
+                                  onClick={handleResetCharacter}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
+                                >
+                                  <RotateCcw className="size-3" />
+                                  기본값 복원
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <small className="block text-xs text-slate-400">
+                        ※ 표지 중앙 &quot;{currentCoverTitle}&quot; / 하단 학생 이름 / 2×2 문제 배열 / 바닥글 {academyName} 적용
                       </small>
                     </div>
                   </div>

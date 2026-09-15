@@ -1,3 +1,5 @@
+import base64
+from datetime import datetime
 from http.server import BaseHTTPRequestHandler
 from io import BytesIO
 import json
@@ -241,451 +243,292 @@ def load_quick_answers(supabase_url: str, secret_key: str, bucket: str, textbook
     return answers
 
 
-def draw_common_math_2_cover(c: canvas.Canvas, student: str, grade: str, page_width: float, page_height: float) -> None:
-    """Reproduce the approved Common Mathematics 2 cover from the local generator."""
-    charcoal = (0.08, 0.18, 0.17)
-    emerald = (0.08, 0.48, 0.38)
-    mint = (0.25, 0.72, 0.59)
-    orange = (0.95, 0.48, 0.20)
-    plum = (0.55, 0.25, 0.47)
-    gold = (0.94, 0.68, 0.18)
+def draw_test_cover(
+    c: canvas.Canvas,
+    student_name: str = "홍길동",
+    title: str = "시너지_미적분",
+    academy_name: str = "다산미래학원",
+    subtitle: str = "학생 맞춤형 클리닉 & 실전 평가",
+    date_str: str | None = None,
+    total_problems: int = 0,
+    include_character: bool = True,
+    custom_character_bytes: bytes | None = None,
+    textbook: str = "synergy-calculus",
+) -> None:
+    page_width, page_height = A4
+    pdfmetrics.registerFont(UnicodeCIDFont("HYGothic-Medium"))
+    font_name = "HYGothic-Medium"
 
-    c.setFillColorRGB(0.975, 0.992, 0.982)
-    c.rect(0, 0, page_width, page_height, stroke=0, fill=1)
+    if not date_str:
+        now = datetime.now()
+        date_str = f"{now.year}년 {now.month}월 {now.day}일"
 
-    c.saveState()
-    c.setStrokeColorRGB(0.79, 0.91, 0.85)
-    c.setLineWidth(0.25)
-    for x in range(-20, 241, 14):
-        c.line(x * mm, 0, x * mm, page_height)
-    for y in range(-20, 321, 14):
-        c.line(0, y * mm, page_width, y * mm)
+    # Color Palette: Deep Midnight Navy & Vivid Royal Cobalt
+    C_MIDNIGHT = (0.07, 0.11, 0.22)   # #121C38
+    C_COBALT = (0.13, 0.42, 0.90)     # #216BE6
+    C_COBALT_ICE = (0.93, 0.96, 1.0)  # #EDF5FF
+    C_SLATE_TXT = (0.38, 0.45, 0.55)  # #61738C
+    C_BORDER = (0.80, 0.85, 0.92)     # #CCD9EB
+    C_BG_PAGE = (0.988, 0.990, 0.996)
 
-    origin_x, origin_y = 106 * mm, 250 * mm
-    c.setStrokeColorRGB(*emerald)
-    c.setLineWidth(1.2)
-    c.line(25 * mm, origin_y, 190 * mm, origin_y)
-    c.line(origin_x, 218 * mm, origin_x, 282 * mm)
-    c.line(190 * mm, origin_y, 186 * mm, origin_y + 2 * mm)
-    c.line(190 * mm, origin_y, 186 * mm, origin_y - 2 * mm)
-    c.line(origin_x, 282 * mm, origin_x - 2 * mm, 278 * mm)
-    c.line(origin_x, 282 * mm, origin_x + 2 * mm, 278 * mm)
+    # 1. Double Border & Canvas Tone
+    c.setFillColorRGB(*C_BG_PAGE)
+    c.rect(30, 30, page_width - 60, page_height - 60, stroke=0, fill=1)
 
-    c.setStrokeColorRGB(*orange)
-    c.setLineWidth(2.0)
-    c.circle(78 * mm, 250 * mm, 18 * mm, stroke=1, fill=0)
-    c.setFillColorRGB(*orange)
-    c.circle(78 * mm, 250 * mm, 2.1 * mm, stroke=0, fill=1)
-
-    c.setStrokeColorRGB(*plum)
-    c.setLineWidth(1.8)
-    c.line(118 * mm, 225 * mm, 180 * mm, 275 * mm)
-    for x, y, color in ((132, 236, plum), (154, 254, gold), (173, 269, mint)):
-        c.setFillColorRGB(*color)
-        c.circle(x * mm, y * mm, 2.2 * mm, stroke=0, fill=1)
-        c.setFillColorRGB(1, 1, 1)
-        c.circle(x * mm, y * mm, 0.8 * mm, stroke=0, fill=1)
-
-    c.setStrokeColorRGB(*mint)
-    c.setLineWidth(1.2)
-    c.ellipse(28 * mm, 218 * mm, 50 * mm, 239 * mm, stroke=1, fill=0)
-    c.ellipse(57 * mm, 218 * mm, 79 * mm, 239 * mm, stroke=1, fill=0)
-    for source_y, target_y in ((233, 232), (228, 224)):
-        c.line(44 * mm, source_y * mm, 61 * mm, target_y * mm)
-    c.restoreState()
-
-    c.setFillColorRGB(*charcoal)
-    c.setFont("Helvetica-Bold", 48)
-    c.setFillAlpha(0.07)
-    c.drawString(21 * mm, 259 * mm, "x² + y²")
-    c.setFillAlpha(1)
-
-    center_y = 145 * mm
-    c.setFillColorRGB(1, 1, 1)
-    c.setFillAlpha(0.93)
-    c.roundRect(19 * mm, center_y - 31 * mm, page_width - 38 * mm, 75 * mm, 7 * mm, stroke=0, fill=1)
-    c.setFillAlpha(1)
-    c.setFillColorRGB(*emerald)
-    c.roundRect(page_width / 2 - 20 * mm, center_y + 34 * mm, 40 * mm, 4 * mm, 2 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(*charcoal)
-    c.setFont("HYSMyeongJo-Medium", 40)
-    c.drawCentredString(page_width / 2, center_y, "시너지 공통수학2")
-    c.setFillColorRGB(*plum)
-    c.setFont("HYSMyeongJo-Medium", 19)
-    c.drawCentredString(page_width / 2, center_y - 15 * mm, "오답을 실력으로 바꾸는 수학 기록")
-
-    card_x, card_y, card_w, card_h = 39 * mm, 31 * mm, page_width - 78 * mm, 25 * mm
-    c.setFillColorRGB(1, 1, 1)
-    c.setStrokeColorRGB(0.70, 0.85, 0.79)
-    c.setLineWidth(0.8)
-    c.roundRect(card_x, card_y, card_w, card_h, 4 * mm, stroke=1, fill=1)
-    c.setFillColorRGB(0.34, 0.43, 0.40)
-    c.setFont("Helvetica", 9)
-    c.drawString(card_x + 9 * mm, card_y + 9.5 * mm, "STUDENT")
-    c.setFillColorRGB(*charcoal)
-    c.setFont("HYSMyeongJo-Medium", 14)
-    c.drawRightString(card_x + card_w - 9 * mm, card_y + 8.5 * mm, f"{grade}  {student}")
-
-
-def draw_ssen_middle_2_2_cover(c: canvas.Canvas, student: str, grade: str, page_width: float, page_height: float) -> None:
-    navy = (0.055, 0.13, 0.24)
-    blue = (0.10, 0.34, 0.62)
-    cyan = (0.18, 0.67, 0.76)
-
-    c.setFillColorRGB(0.975, 0.985, 0.995)
-    c.rect(0, 0, page_width, page_height, stroke=0, fill=1)
-
-    c.setFillColorRGB(0.92, 0.95, 0.98)
-    c.circle(page_width - 25 * mm, page_height - 25 * mm, 60 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(0.95, 0.97, 0.99)
-    c.circle(35 * mm, 45 * mm, 45 * mm, stroke=0, fill=1)
-
-    c.setFillColorRGB(*navy)
-    c.setFont("HYSMyeongJo-Medium", 30)
-    c.drawString(18 * mm, page_height - 38 * mm, "중2-2 쎈수학 오답노트")
-
-    c.setFillColorRGB(*blue)
-    c.setFont("HYSMyeongJo-Medium", 13)
-    c.drawString(18 * mm, page_height - 48 * mm, "개념 반복과 유형 마스터를 위한 맞춤 클리닉")
-
-    c.setStrokeColorRGB(*cyan)
+    c.setStrokeColorRGB(*C_MIDNIGHT)
     c.setLineWidth(1.6)
-    c.line(18 * mm, page_height - 54 * mm, 65 * mm, page_height - 54 * mm)
+    c.rect(30, 30, page_width - 60, page_height - 60, stroke=1, fill=0)
 
-    card_x, card_y, card_w, card_h = 18 * mm, 28 * mm, page_width - 36 * mm, 46 * mm
-    c.setFillColorRGB(1, 1, 1)
-    c.setStrokeColorRGB(0.83, 0.87, 0.92)
-    c.setLineWidth(0.8)
-    c.roundRect(card_x, card_y, card_w, card_h, 4 * mm, stroke=1, fill=1)
-
-    c.setFillColorRGB(*navy)
-    c.setFont("HYSMyeongJo-Medium", 14)
-    c.drawString(card_x + 8 * mm, card_y + card_h - 13 * mm, f"이름: {student}")
-    c.setFont("HYSMyeongJo-Medium", 11)
-    c.drawString(card_x + 8 * mm, card_y + card_h - 23 * mm, f"학년: {grade}")
-    c.setFillColorRGB(0.4, 0.45, 0.5)
-    c.drawString(card_x + 8 * mm, card_y + 9 * mm, "다산미래학원 맞춤 학습 시스템")
-
-
-def draw_blacklabel_middle_2_2_cover(c: canvas.Canvas, student: str, grade: str, w: float, h: float) -> None:
-    bg_clean = (0.985, 0.995, 0.99)
-    sky_blue = (0.05, 0.58, 0.88)
-    mint_green = (0.05, 0.75, 0.55)
-    lime_gold = (0.45, 0.80, 0.18)
-    soft_aqua = (0.88, 0.96, 0.96)
-    soft_mint = (0.90, 0.97, 0.93)
-    soft_sky = (0.90, 0.95, 0.99)
-    deep_teal = (0.04, 0.16, 0.24)
-    sub_slate = (0.32, 0.44, 0.50)
-    card_shadow = (0.88, 0.93, 0.92)
-
-    c.setFillColorRGB(*bg_clean)
-    c.rect(0, 0, w, h, stroke=0, fill=1)
-
-    c.setFillColorRGB(*soft_mint)
-    c.circle(w - 15 * mm, h - 20 * mm, 80 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(*soft_sky)
-    c.circle(w - 40 * mm, h - 45 * mm, 55 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(*soft_aqua)
-    c.circle(w - 60 * mm, h - 25 * mm, 38 * mm, stroke=0, fill=1)
-
-    c.setFillColorRGB(*soft_sky)
-    c.circle(30 * mm, 55 * mm, 60 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(*soft_mint)
-    c.circle(48 * mm, 35 * mm, 40 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(*soft_aqua)
-    c.circle(18 * mm, 75 * mm, 28 * mm, stroke=0, fill=1)
-
-    c.setFillColorRGB(*lime_gold)
-    c.circle(26 * mm, h - 22 * mm, 2.5 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(*sky_blue)
-    c.circle(34 * mm, h - 19 * mm, 1.8 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(*mint_green)
-    c.circle(42 * mm, h - 23 * mm, 2.2 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(*lime_gold)
-    c.circle(w - 25 * mm, 110 * mm, 2.2 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(*sky_blue)
-    c.circle(w - 32 * mm, 118 * mm, 1.6 * mm, stroke=0, fill=1)
-
-    badge_x, badge_y, badge_w, badge_h = 18 * mm, h - 40 * mm, 68 * mm, 7.5 * mm
-    c.setFillColorRGB(*sky_blue)
-    c.roundRect(badge_x, badge_y, badge_w, badge_h, badge_h / 2, stroke=0, fill=1)
-    c.setFillColorRGB(1, 1, 1)
-    c.setFont("Helvetica-Bold", 9.5)
-    c.drawCentredString(badge_x + badge_w / 2, badge_y + 2.0 * mm, "★ BLACKLABEL MATH CLINIC")
-
-    c.setFillColorRGB(*deep_teal)
-    c.setFont("HYSMyeongJo-Medium", 32)
-    c.drawString(18 * mm, h - 56 * mm, "중2-2 블랙라벨")
-
-    c.setFillColorRGB(*mint_green)
-    c.setFont("HYSMyeongJo-Medium", 35)
-    c.drawString(18 * mm, h - 70 * mm, "오답노트")
-
-    c.setFillColorRGB(*sky_blue)
-    c.rect(18 * mm, h - 77 * mm, 38 * mm, 2.4 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(*mint_green)
-    c.rect(58 * mm, h - 77 * mm, 24 * mm, 2.4 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(*lime_gold)
-    c.rect(84 * mm, h - 77 * mm, 14 * mm, 2.4 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(0.82, 0.90, 0.88)
-    c.rect(100 * mm, h - 77 * mm, w - 118 * mm, 0.8 * mm, stroke=0, fill=1)
-
-    c.setFont("HYSMyeongJo-Medium", 12)
-    c.setFillColorRGB(*sub_slate)
-    c.drawString(18 * mm, h - 88 * mm, "최고난도 수학의 완성 | 상위권 도약을 위한 1:1 맞춤 클리닉")
-
-    card_w, card_h = 125 * mm, 56 * mm
-    card_x = (w - card_w) / 2
-    card_y = 65 * mm
-
-    c.setFillColorRGB(*card_shadow)
-    c.roundRect(card_x + 1.5 * mm, card_y - 1.5 * mm, card_w, card_h, 5 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(1, 1, 1)
-    c.setStrokeColorRGB(0.85, 0.91, 0.90)
-    c.setLineWidth(0.9)
-    c.roundRect(card_x, card_y, card_w, card_h, 5 * mm, stroke=1, fill=1)
-
-    c.setFillColorRGB(*sky_blue)
-    c.roundRect(card_x + 15 * mm, card_y + card_h - 2.5 * mm, 32 * mm, 2.5 * mm, 1 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(*mint_green)
-    c.roundRect(card_x + 49 * mm, card_y + card_h - 2.5 * mm, 20 * mm, 2.5 * mm, 1 * mm, stroke=0, fill=1)
-
-    c.setFillColorRGB(*mint_green)
-    c.roundRect(card_x, card_y + 9 * mm, 4 * mm, card_h - 18 * mm, 2 * mm, stroke=0, fill=1)
-
-    c.setFillColorRGB(0.45, 0.55, 0.58)
-    c.setFont("Helvetica", 8.5)
-    c.drawString(card_x + 13 * mm, card_y + card_h - 13 * mm, "STUDENT CLINIC PROFILE")
-
-    c.setStrokeColorRGB(0.90, 0.94, 0.93)
+    c.setStrokeColorRGB(*C_COBALT)
     c.setLineWidth(0.6)
-    c.line(card_x + 13 * mm, card_y + card_h - 16 * mm, card_x + card_w - 13 * mm, card_y + card_h - 16 * mm)
+    c.rect(36, 36, page_width - 72, page_height - 72, stroke=1, fill=0)
 
-    c.setFillColorRGB(*deep_teal)
-    c.setFont("HYSMyeongJo-Medium", 15)
-    c.drawString(card_x + 13 * mm, card_y + card_h - 28 * mm, f"이 름 :  {student}")
-
-    c.setFont("HYSMyeongJo-Medium", 12.5)
-    c.setFillColorRGB(0.25, 0.35, 0.40)
-    c.drawString(card_x + 13 * mm, card_y + card_h - 40 * mm, f"학 년 :  {grade}")
-
-    c.setFont("HYSMyeongJo-Medium", 11)
-    c.setFillColorRGB(*sky_blue)
-    c.drawRightString(card_x + card_w - 13 * mm, card_y + 10 * mm, "다산미래학원")
-
-    c.setFont("Helvetica", 8.5)
-    c.setFillColorRGB(0.50, 0.60, 0.64)
-    c.drawCentredString(w / 2, 18 * mm, "DASAN MIRAE ACADEMY • BLACKLABEL CUSTOM CLINIC")
-
-
-def draw_concept_middle_2_2_cover(c: canvas.Canvas, student: str, grade: str, w: float, h: float) -> None:
-    bg_clean = (0.985, 0.99, 1.0)
-    vibrant_orange = (1.0, 0.40, 0.15)
-    sunshine_gold = (1.0, 0.72, 0.05)
-    ocean_cyan = (0.02, 0.65, 0.90)
-    deep_navy = (0.05, 0.14, 0.28)
-    soft_slate = (0.38, 0.46, 0.58)
-
-    c.setFillColorRGB(*bg_clean)
-    c.rect(0, 0, w, h, stroke=0, fill=1)
-
-    c.setFillColorRGB(1.0, 0.94, 0.90)
-    c.circle(w - 10 * mm, h - 15 * mm, 85 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(0.92, 0.97, 1.0)
-    c.circle(w - 35 * mm, h - 45 * mm, 60 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(1.0, 0.96, 0.92)
-    c.circle(w - 55 * mm, h - 20 * mm, 40 * mm, stroke=0, fill=1)
-
-    p = c.beginPath()
-    p.moveTo(w - 70 * mm, h)
-    p.lineTo(w, h - 70 * mm)
-    p.lineTo(w, h - 55 * mm)
-    p.lineTo(w - 55 * mm, h)
-    p.close()
-    c.setFillColorRGB(1.0, 0.85, 0.75)
-    c.drawPath(p, stroke=0, fill=1)
-
-    c.setFillColorRGB(0.93, 0.97, 1.0)
-    c.circle(25 * mm, 45 * mm, 55 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(1.0, 0.95, 0.90)
-    c.circle(45 * mm, 30 * mm, 35 * mm, stroke=0, fill=1)
-
-    c.setFillColorRGB(*sunshine_gold)
-    c.circle(25 * mm, h - 22 * mm, 2.8 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(*ocean_cyan)
-    c.circle(34 * mm, h - 20 * mm, 1.8 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(*vibrant_orange)
-    c.circle(41 * mm, h - 23 * mm, 2.2 * mm, stroke=0, fill=1)
-
-    badge_x, badge_y, badge_w, badge_h = 18 * mm, h - 40 * mm, 68 * mm, 7.5 * mm
-    c.setFillColorRGB(*vibrant_orange)
-    c.roundRect(badge_x, badge_y, badge_w, badge_h, badge_h / 2, stroke=0, fill=1)
-    c.setFillColorRGB(1, 1, 1)
-    c.setFont("Helvetica-Bold", 9.5)
-    c.drawCentredString(badge_x + badge_w / 2, badge_y + 2.0 * mm, "★ CONCEPT + TYPE POWER")
-
-    c.setFillColorRGB(*deep_navy)
-    c.setFont("HYSMyeongJo-Medium", 32)
-    c.drawString(18 * mm, h - 56 * mm, "중2-2 개념+유형 파워")
-
-    c.setFillColorRGB(*vibrant_orange)
-    c.setFont("HYSMyeongJo-Medium", 35)
-    c.drawString(18 * mm, h - 70 * mm, "오답노트")
-
-    c.setFillColorRGB(*vibrant_orange)
-    c.rect(18 * mm, h - 77 * mm, 38 * mm, 2.4 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(*sunshine_gold)
-    c.rect(58 * mm, h - 77 * mm, 24 * mm, 2.4 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(*ocean_cyan)
-    c.rect(84 * mm, h - 77 * mm, 14 * mm, 2.4 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(0.85, 0.90, 0.94)
-    c.rect(100 * mm, h - 77 * mm, w - 118 * mm, 0.8 * mm, stroke=0, fill=1)
-
-    c.setFont("HYSMyeongJo-Medium", 12)
-    c.setFillColorRGB(*soft_slate)
-    c.drawString(18 * mm, h - 88 * mm, "유형 마스터 & 실전력 완성을 위한 1:1 맞춤 클리닉")
-
-    card_w, card_h = 125 * mm, 56 * mm
-    card_x = (w - card_w) / 2
-    card_y = 65 * mm
-
-    c.setFillColorRGB(0.90, 0.93, 0.96)
-    c.roundRect(card_x + 1.5 * mm, card_y - 1.5 * mm, card_w, card_h, 5 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(1, 1, 1)
-    c.setStrokeColorRGB(0.87, 0.91, 0.95)
-    c.setLineWidth(0.9)
-    c.roundRect(card_x, card_y, card_w, card_h, 5 * mm, stroke=1, fill=1)
-
-    c.setFillColorRGB(*vibrant_orange)
-    c.roundRect(card_x + 15 * mm, card_y + card_h - 2.5 * mm, 32 * mm, 2.5 * mm, 1 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(*sunshine_gold)
-    c.roundRect(card_x + 49 * mm, card_y + card_h - 2.5 * mm, 20 * mm, 2.5 * mm, 1 * mm, stroke=0, fill=1)
-
-    c.setFillColorRGB(*vibrant_orange)
-    c.roundRect(card_x, card_y + 9 * mm, 4 * mm, card_h - 18 * mm, 2 * mm, stroke=0, fill=1)
-
-    c.setFillColorRGB(0.52, 0.58, 0.68)
-    c.setFont("Helvetica", 8.5)
-    c.drawString(card_x + 13 * mm, card_y + card_h - 13 * mm, "STUDENT CLINIC PROFILE")
-
-    c.setStrokeColorRGB(0.92, 0.94, 0.97)
-    c.setLineWidth(0.6)
-    c.line(card_x + 13 * mm, card_y + card_h - 16 * mm, card_x + card_w - 13 * mm, card_y + card_h - 16 * mm)
-
-    c.setFillColorRGB(*deep_navy)
-    c.setFont("HYSMyeongJo-Medium", 15)
-    c.drawString(card_x + 13 * mm, card_y + card_h - 28 * mm, f"이 름 :  {student}")
-
-    c.setFont("HYSMyeongJo-Medium", 12.5)
-    c.setFillColorRGB(0.25, 0.32, 0.42)
-    c.drawString(card_x + 13 * mm, card_y + card_h - 40 * mm, f"학 년 :  {grade}")
-
-    c.setFont("HYSMyeongJo-Medium", 11)
-    c.setFillColorRGB(*vibrant_orange)
-    c.drawRightString(card_x + card_w - 13 * mm, card_y + 10 * mm, "다산미래학원")
-
-    c.setFont("Helvetica", 8.5)
-    c.setFillColorRGB(0.60, 0.66, 0.76)
-    c.drawCentredString(w / 2, 18 * mm, "DASAN MIRAE ACADEMY • FRESH POWER LEARNING SYSTEM")
-
-
-def draw_cover(c: canvas.Canvas, student: str, grade: str, page_width: float, page_height: float, textbook: str) -> None:
-    """Draw the textbook-specific cover used by the local generators."""
-    if textbook == "synergy-common-math-2":
-        draw_common_math_2_cover(c, student, grade, page_width, page_height)
-        return
-    if textbook == "ssen-middle-2-2":
-        draw_ssen_middle_2_2_cover(c, student, grade, page_width, page_height)
-        return
-    if textbook == "blacklabel-middle-2-2":
-        draw_blacklabel_middle_2_2_cover(c, student, grade, page_width, page_height)
-        return
-    if textbook == "concept-middle-2-2":
-        draw_concept_middle_2_2_cover(c, student, grade, page_width, page_height)
-        return
-    navy = (0.055, 0.13, 0.24)
-    blue = (0.10, 0.34, 0.62)
-    cyan = (0.18, 0.67, 0.76)
-    coral = (0.94, 0.34, 0.38)
-    violet = (0.43, 0.28, 0.76)
-    gold = (0.96, 0.64, 0.16)
-
-    c.setFillColorRGB(0.975, 0.985, 0.995)
-    c.rect(0, 0, page_width, page_height, stroke=0, fill=1)
-
-    c.saveState()
-    c.setStrokeColorRGB(0.82, 0.89, 0.95)
-    c.setLineWidth(0.25)
-    for x in range(-20, 241, 14):
-        c.line(x * mm, 0, x * mm, page_height)
-    for y in range(-20, 321, 14):
-        c.line(0, y * mm, page_width, y * mm)
-
-    c.setStrokeColorRGB(*cyan)
-    c.setLineWidth(1.8)
-    path = c.beginPath()
-    for index in range(181):
-        x = 15 * mm + index * (180 * mm / 180)
-        y = 247 * mm + (12 * math.sin(index / 16) + 0.055 * (index - 90)) * mm
-        path.moveTo(x, y) if index == 0 else path.lineTo(x, y)
-    c.drawPath(path, stroke=1, fill=0)
-
-    c.setStrokeColorRGB(*violet)
+    # Architectural Corner Markers
+    c.setStrokeColorRGB(*C_COBALT)
+    c.setFillColorRGB(*C_COBALT)
     c.setLineWidth(1.5)
-    path = c.beginPath()
-    for index in range(121):
-        x = 69 * mm + index * (115 * mm / 120)
-        y = 226 * mm + (5 * math.exp(index / 50)) * mm
-        path.moveTo(x, y) if index == 0 else path.lineTo(x, y)
-    c.drawPath(path, stroke=1, fill=0)
+    corners = [
+        (36, 36, 1, 1),
+        (page_width - 36, 36, -1, 1),
+        (36, page_height - 36, 1, -1),
+        (page_width - 36, page_height - 36, -1, -1),
+    ]
+    for cx, cy, dx, dy in corners:
+        c.line(cx, cy, cx + dx * 16, cy)
+        c.line(cx, cy, cx, cy + dy * 16)
+        c.rect(cx + dx * 4 - 1.5, cy + dy * 4 - 1.5, 3, 3, stroke=0, fill=1)
 
-    c.setStrokeColorRGB(*coral)
-    c.setLineWidth(1.1)
-    c.setDash(4, 3)
-    c.line(41 * mm, 228 * mm, 171 * mm, 263 * mm)
-    c.setDash()
-    for x, y, color in ((78, 251, coral), (131, 258, gold), (166, 264, violet)):
-        c.setFillColorRGB(*color)
-        c.circle(x * mm, y * mm, 2.2 * mm, stroke=0, fill=1)
-        c.setFillColorRGB(1, 1, 1)
-        c.circle(x * mm, y * mm, 0.8 * mm, stroke=0, fill=1)
+    # Top Subject Badge
+    if "미적분" in title or "calculus" in textbook:
+        badge_text = "고등 수학 영역  |  미적분"
+        eng_sub = "SYNERGY CALCULUS CUSTOM TEST" if "시너지" in title else "CALCULUS CUSTOM TEST"
+    elif "공통수학" in title:
+        badge_text = "고등 수학 영역  |  공통수학2"
+        eng_sub = "COMMON MATHEMATICS II CUSTOM TEST"
+    elif "중2" in textbook or "middle" in textbook:
+        badge_text = "중등 수학 영역  |  중2-2"
+        eng_sub = "MIDDLE SCHOOL MATHEMATICS TEST"
+    else:
+        badge_text = "고등 수학 영역  |  맞춤 클리닉"
+        eng_sub = "MATHEMATICS CLINIC TEST"
+
+    badge_w = 175
+    badge_h = 26
+    badge_x = 50
+    badge_y = page_height - 56 - badge_h
+    c.setFillColorRGB(*C_COBALT_ICE)
+    c.setStrokeColorRGB(*C_BORDER)
+    c.setLineWidth(0.8)
+    c.rect(badge_x, badge_y, badge_w, badge_h, stroke=1, fill=1)
+
+    # Left indicator
+    c.setFillColorRGB(*C_COBALT)
+    c.rect(badge_x, badge_y, 6, badge_h, stroke=0, fill=1)
+
+    c.setFillColorRGB(*C_MIDNIGHT)
+    c.setFont(font_name, 9.5)
+    c.drawString(badge_x + 16, badge_y + 8, badge_text)
+
+    # Top Right Academy Name & Target Emblem Dot
+    c.setFont(font_name, 12.5)
+    acad_w = c.stringWidth(academy_name, font_name, 12.5)
+    rx = page_width - 52 - acad_w
+    c.setFillColorRGB(*C_COBALT)
+    c.circle(rx - 10, page_height - 68, 3.5, stroke=0, fill=1)
+    c.setFillColorRGB(1, 1, 1)
+    c.circle(rx - 10, page_height - 68, 1.5, stroke=0, fill=1)
+    c.setFillColorRGB(*C_MIDNIGHT)
+    c.drawString(rx, page_height - 72, academy_name)
+
+    center_x = page_width / 2.0
+    slot_center_y = page_height - 195.0
+
+    # 1-1. Center Mascot / Logo Stage
+    if include_character:
+        c.setFillColorRGB(0.94, 0.965, 1.0)
+        c.setStrokeColorRGB(*C_BORDER)
+        c.setLineWidth(0.8)
+        c.circle(center_x, slot_center_y, 74, stroke=1, fill=1)
+
+        c.setStrokeColorRGB(0.78, 0.84, 0.92)
+        c.setLineWidth(0.6)
+        c.circle(center_x, slot_center_y, 67, stroke=1, fill=0)
+
+        # 4 Crosshair Ticks
+        c.setStrokeColorRGB(*C_COBALT)
+        c.setLineWidth(1.0)
+        for deg_dx, deg_dy in [(0, -74), (0, 74), (-74, 0), (74, 0)]:
+            c.line(center_x + deg_dx * 0.94, slot_center_y + deg_dy * 0.94,
+                   center_x + deg_dx * 1.06, slot_center_y + deg_dy * 1.06)
+
+        char_bytes = custom_character_bytes
+        if not char_bytes:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            candidates = [
+                os.path.join(base_dir, "character.png"),
+                os.path.join(base_dir, "dasan-mirae-logo.png"),
+                os.path.join(base_dir, "..", "public", "character.png"),
+                os.path.join(base_dir, "..", "public", "dasan-mirae-logo.png"),
+            ]
+            for cand in candidates:
+                if os.path.exists(cand):
+                    try:
+                        with open(cand, "rb") as f:
+                            char_bytes = f.read()
+                        break
+                    except Exception:
+                        pass
+
+        if char_bytes:
+            try:
+                pil_img = Image.open(BytesIO(char_bytes))
+                iw, ih = pil_img.size
+                aspect = ih / iw if iw > 0 else 1.0
+                max_w, max_h = 88.0, 112.0
+                tw = max_w
+                th = tw * aspect
+                if th > max_h:
+                    th = max_h
+                    tw = th / aspect
+                c.drawImage(ImageReader(BytesIO(char_bytes)), center_x - tw / 2, slot_center_y - th / 2, tw, th, mask="auto")
+            except Exception as e:
+                print("[-] Cover character insert error:", e)
+
+    # 2. Center Title Area
+    center_y = page_height - 385.0
+    c.setStrokeColorRGB(*C_BORDER)
+    c.setLineWidth(0.8)
+    c.line(100, center_y + 75, page_width - 100, center_y + 75)
+    c.setStrokeColorRGB(*C_COBALT)
+    c.setLineWidth(1.8)
+    c.line(center_x - 45, center_y + 75, center_x + 45, center_y + 75)
+
+    # English Sub Label
+    c.setFillColorRGB(*C_COBALT)
+    c.setFont("Helvetica-Bold", 9.5)
+    c.drawCentredString(center_x, center_y + 52, eng_sub)
+
+    # Main Title
+    c.setFillColorRGB(*C_MIDNIGHT)
+    c.setFont(font_name, 36)
+    c.drawCentredString(center_x, center_y + 5, title)
+
+    # Subtitle
+    c.setFillColorRGB(*C_SLATE_TXT)
+    c.setFont(font_name, 13.5)
+    c.drawCentredString(center_x, center_y - 32, subtitle)
+
+    # Bottom Accent Line & Diamond Jewel
+    c.setStrokeColorRGB(*C_BORDER)
+    c.setLineWidth(0.8)
+    c.line(100, center_y - 65, page_width - 100, center_y - 65)
+    c.setStrokeColorRGB(*C_COBALT)
+    c.setLineWidth(1.8)
+    c.line(center_x - 45, center_y - 65, center_x + 45, center_y - 65)
+
+    # Diamond Jewel
+    c.saveState()
+    c.translate(center_x, center_y - 65)
+    c.rotate(45)
+    c.setFillColorRGB(*C_COBALT)
+    c.rect(-4.5, -4.5, 9, 9, stroke=0, fill=1)
+    c.setFillColorRGB(1, 1, 1)
+    c.rect(-1.5, -1.5, 3, 3, stroke=0, fill=1)
     c.restoreState()
 
-    c.setFillColorRGB(*navy)
-    c.setFont("Helvetica", 70)
-    c.setFillAlpha(0.075)
-    c.drawString(20 * mm, 251 * mm, "f(x)")
-    c.setFillAlpha(1)
+    # 3. Bottom Student Info Card
+    card_w = 400
+    card_h = 168
+    card_x = (page_width - card_w) / 2
+    card_y = page_height - 595 - card_h
 
-    center_y = 145 * mm
+    # Card background & border
     c.setFillColorRGB(1, 1, 1)
-    c.setFillAlpha(0.92)
-    c.roundRect(19 * mm, center_y - 31 * mm, page_width - 38 * mm, 75 * mm, 7 * mm, stroke=0, fill=1)
-    c.setFillAlpha(1)
-    c.setFillColorRGB(*blue)
-    c.roundRect(page_width / 2 - 20 * mm, center_y + 34 * mm, 40 * mm, 4 * mm, 2 * mm, stroke=0, fill=1)
-    c.setFillColorRGB(*navy)
-    c.setFont("HYSMyeongJo-Medium", 46)
-    c.drawCentredString(page_width / 2, center_y, TEXTBOOKS[textbook]["title"])
-    c.setFillColorRGB(*violet)
-    c.setFont("HYSMyeongJo-Medium", 19)
-    c.drawCentredString(page_width / 2, center_y - 15 * mm, "오답을 실력으로 바꾸는 수학 기록")
+    c.setStrokeColorRGB(*C_BORDER)
+    c.setLineWidth(1.0)
+    c.rect(card_x, card_y, card_w, card_h, stroke=1, fill=1)
 
-    card_x, card_y, card_w, card_h = 39 * mm, 31 * mm, page_width - 78 * mm, 25 * mm
+    # Card Header Band
+    c.setFillColorRGB(*C_MIDNIGHT)
+    c.rect(card_x, card_y + card_h - 36, card_w, 36, stroke=0, fill=1)
+    c.setFillColorRGB(*C_COBALT)
+    c.rect(card_x, card_y + card_h - 36, 6, 36, stroke=0, fill=1)
+
     c.setFillColorRGB(1, 1, 1)
-    c.setStrokeColorRGB(0.76, 0.84, 0.91)
-    c.setLineWidth(0.8)
-    c.roundRect(card_x, card_y, card_w, card_h, 4 * mm, stroke=1, fill=1)
-    c.setFillColorRGB(0.36, 0.43, 0.51)
-    c.setFont("Helvetica", 9)
-    c.drawString(card_x + 9 * mm, card_y + 9.5 * mm, "STUDENT")
-    c.setFillColorRGB(*navy)
-    c.setFont("HYSMyeongJo-Medium", 14)
-    c.drawRightString(card_x + card_w - 9 * mm, card_y + 8.5 * mm, f"{grade}  {student}")
+    c.setFont(font_name, 11.5)
+    c.drawString(card_x + 22, card_y + card_h - 23, "수험생 및 평가 정보")
+
+    c.setFont("Helvetica-Bold", 8)
+    c.setFillColorRGB(0.70, 0.80, 0.95)
+    c.drawRightString(card_x + card_w - 18, card_y + card_h - 22, "CUSTOM CLINIC")
+
+    # Info Items
+    total_pages = max(1, (total_problems + 3) // 4)
+    info_items = [
+        ("학 생 성 명", f"{student_name} 학생", True),
+        ("소 속 학 원", academy_name, False),
+        ("출 제 문 항", f"총 {total_problems}문항 ({total_pages}페이지)", False),
+        ("응 시 일 자", date_str, False),
+    ]
+
+    row_y = card_y + card_h - 60
+    for idx, (lbl, val, is_hl) in enumerate(info_items):
+        if idx % 2 == 1:
+            c.setFillColorRGB(0.975, 0.985, 0.995)
+            c.rect(card_x + 4, row_y - 5, card_w - 8, 22, stroke=0, fill=1)
+
+        c.setFillColorRGB(*C_COBALT)
+        c.circle(card_x + 24, row_y + 5, 2.5, stroke=0, fill=1)
+
+        c.setFillColorRGB(*C_SLATE_TXT)
+        c.setFont(font_name, 10.5)
+        c.drawString(card_x + 36, row_y + 2, lbl)
+        c.drawString(card_x + 118, row_y + 2, ":")
+
+        if is_hl:
+            c.setFillColorRGB(*C_COBALT)
+            c.setFont(font_name, 13)
+            c.drawString(card_x + 138, row_y + 2, val)
+        else:
+            c.setFillColorRGB(*C_MIDNIGHT)
+            c.setFont(font_name, 10.5)
+            c.drawString(card_x + 138, row_y + 2, val)
+
+        row_y -= 24.5
+
+    # Bottom Footer Guide Quote
+    guide_text = f"{academy_name}  |  성실한 풀이와 오답 정리가 실력을 만듭니다."
+    c.setFillColorRGB(*C_SLATE_TXT)
+    c.setFont(font_name, 9)
+    c.drawCentredString(center_x, 38, guide_text)
 
 
-def draw_footer(c: canvas.Canvas, page_number: int, page_width: float) -> None:
+def draw_cover(
+    c: canvas.Canvas,
+    student: str,
+    grade: str,
+    page_width: float,
+    page_height: float,
+    textbook: str,
+    cover_options: dict | None = None,
+) -> None:
+    """Delegates to draw_test_cover for complete test generator styling."""
+    opts = cover_options or {}
+    draw_test_cover(
+        c,
+        student_name=student,
+        title=opts.get("title") or TEXTBOOKS.get(textbook, {}).get("title", "맞춤 오답노트"),
+        academy_name=opts.get("academy_name") or "다산미래학원",
+        subtitle=opts.get("subtitle") or "학생 맞춤형 클리닉 & 실전 평가",
+        date_str=opts.get("date_str") or None,
+        total_problems=opts.get("total_problems", 0),
+        include_character=opts.get("include_character", True),
+        custom_character_bytes=opts.get("custom_character_bytes"),
+        textbook=textbook,
+    )
+
+
+def draw_footer(c: canvas.Canvas, page_number: int, page_width: float, academy_name: str = "다산미래학원") -> None:
     left = 10 * mm
     right = page_width - 10 * mm
     c.setStrokeColorRGB(0.72, 0.72, 0.72)
@@ -693,11 +536,11 @@ def draw_footer(c: canvas.Canvas, page_number: int, page_width: float) -> None:
     c.line(left, 9.5 * mm, right, 9.5 * mm)
     c.setFillColorRGB(0.16, 0.16, 0.16)
     c.setFont("HYSMyeongJo-Medium", 8)
-    c.drawString(left, 5.2 * mm, "다산미래학원")
+    c.drawString(left, 5.2 * mm, academy_name)
     c.drawRightString(right, 5.2 * mm, str(page_number))
 
 
-def draw_answer_page(c: canvas.Canvas, numbers: list[int], answers: dict[int, str], page_number: int, page_width: float, page_height: float, textbook: str) -> None:
+def draw_answer_page(c: canvas.Canvas, numbers: list[int], answers: dict[int, str], page_number: int, page_width: float, page_height: float, textbook: str, academy_name: str = "다산미래학원") -> None:
     left = 16 * mm
     right = page_width - 16 * mm
     top = page_height - 18 * mm
@@ -733,16 +576,22 @@ def draw_answer_page(c: canvas.Canvas, numbers: list[int], answers: dict[int, st
     c.setFillColorRGB(0.45, 0.45, 0.45)
     c.setFont("HYSMyeongJo-Medium", 7.5)
     c.drawString(left, 13.5 * mm, TEXTBOOKS[textbook]["answer_source"])
-    draw_footer(c, page_number, page_width)
+    draw_footer(c, page_number, page_width, academy_name)
 
 
-def create_pdf(student: str, grade: str, images: list[tuple[int, bytes]], answers: dict[int, str] | None, textbook: str) -> bytes:
+def create_pdf(student: str, grade: str, images: list[tuple[int, bytes]], answers: dict[int, str] | None, textbook: str, cover_options: dict | None = None) -> bytes:
+    opts = cover_options or {}
+    include_cover = opts.get("include_cover", True)
+    academy_name = opts.get("academy_name") or "다산미래학원"
     pdfmetrics.registerFont(UnicodeCIDFont("HYSMyeongJo-Medium"))
     output = BytesIO()
     page_width, page_height = A4
     c = canvas.Canvas(output, pagesize=A4, pageCompression=1)
-    draw_cover(c, student, grade, page_width, page_height, textbook)
-    c.showPage()
+    if include_cover:
+        opts_with_prob = dict(opts)
+        opts_with_prob.setdefault("total_problems", len(images))
+        draw_cover(c, student, grade, page_width, page_height, textbook, opts_with_prob)
+        c.showPage()
 
     side, bottom, gap = 10 * mm, 14 * mm, 5 * mm
     cell_w = (page_width - side * 2 - gap) / 2
@@ -761,14 +610,14 @@ def create_pdf(student: str, grade: str, images: list[tuple[int, bytes]], answer
             scale = min(available_w / iw, available_h / ih)
             dw, dh = iw * scale, ih * scale
             c.drawImage(reader, x + (cell_w - dw) / 2, y + cell_h - 10 * mm - dh, dw, dh, preserveAspectRatio=True)
-        draw_footer(c, page_index, page_width)
+        draw_footer(c, page_index, page_width, academy_name)
         c.showPage()
     if answers is not None:
         numbers = [number for number, _ in images]
         answer_chunks = [numbers[i:i + 60] for i in range(0, len(numbers), 60)]
         first_answer_page = (len(images) + 3) // 4 + 1
         for index, chunk in enumerate(answer_chunks):
-            draw_answer_page(c, chunk, answers, first_answer_page + index, page_width, page_height, textbook)
+            draw_answer_page(c, chunk, answers, first_answer_page + index, page_width, page_height, textbook, academy_name)
             if index < len(answer_chunks) - 1:
                 c.showPage()
     c.save()
@@ -827,13 +676,19 @@ def load_olympus_answers(supabase_url: str, secret_key: str, bucket: str) -> dic
     return result
 
 
-def create_olympus_pdf(student: str, grade: str, items: list[tuple[str, str, int, bytes]], answers: dict[tuple[int, str, int], str]) -> bytes:
+def create_olympus_pdf(student: str, grade: str, items: list[tuple[str, str, int, bytes]], answers: dict[tuple[int, str, int], str], cover_options: dict | None = None) -> bytes:
+    opts = cover_options or {}
+    include_cover = opts.get("include_cover", True)
+    academy_name = opts.get("academy_name") or "다산미래학원"
     pdfmetrics.registerFont(UnicodeCIDFont("HYSMyeongJo-Medium"))
     output = BytesIO()
     width, height = A4
     c = canvas.Canvas(output, pagesize=A4, pageCompression=1)
-    draw_cover(c, student, grade, width, height, "olympus-calculus")
-    c.showPage()
+    if include_cover:
+        opts_with_prob = dict(opts)
+        opts_with_prob.setdefault("total_problems", len(items))
+        draw_cover(c, student, grade, width, height, "olympus-calculus", opts_with_prob)
+        c.showPage()
     side, bottom, gap = 10 * mm, 14 * mm, 5 * mm
     normal_items = [item for item in items if item[1] != "고난도도전"]
     wide_items = [item for item in items if item[1] == "고난도도전"]
@@ -861,7 +716,7 @@ def create_olympus_pdf(student: str, grade: str, items: list[tuple[str, str, int
             scale = min((box_w - 6 * mm) / iw, (box_h - 14 * mm) / ih)
             dw, dh = iw * scale, ih * scale
             c.drawImage(reader, x + (box_w - dw) / 2, y + box_h - 10 * mm - dh, dw, dh, preserveAspectRatio=True)
-        draw_footer(c, page_index, width)
+        draw_footer(c, page_index, width, academy_name)
         c.showPage()
     selected = [
         (unit, problem_type, number, answers.get((int(unit.split(".", 1)[0]), problem_type, number)))
@@ -872,14 +727,14 @@ def create_olympus_pdf(student: str, grade: str, items: list[tuple[str, str, int
         raise ValueError("빠른정답에 없는 문제번호입니다: " + ", ".join(missing))
     answer_chunks = [selected[i:i + 40] for i in range(0, len(selected), 40)]
     for index, chunk in enumerate(answer_chunks):
-        draw_olympus_answer_page(c, chunk, len(groups) + index + 1, width, height)
+        draw_olympus_answer_page(c, chunk, len(groups) + index + 1, width, height, academy_name)
         if index < len(answer_chunks) - 1:
             c.showPage()
     c.save()
     return output.getvalue()
 
 
-def draw_olympus_answer_page(c: canvas.Canvas, items: list[tuple[str, str, int, str]], page_number: int, width: float, height: float) -> None:
+def draw_olympus_answer_page(c: canvas.Canvas, items: list[tuple[str, str, int, str]], page_number: int, width: float, height: float, academy_name: str = "다산미래학원") -> None:
     left, right, top = 16 * mm, width - 16 * mm, height - 18 * mm
     c.setFillColorRGB(0.12, 0.27, 0.48)
     c.setFont("HYSMyeongJo-Medium", 22)
@@ -909,7 +764,7 @@ def draw_olympus_answer_page(c: canvas.Canvas, items: list[tuple[str, str, int, 
     c.setFillColorRGB(0.45, 0.45, 0.45)
     c.setFont("HYSMyeongJo-Medium", 7.5)
     c.drawString(left, 13.5 * mm, TEXTBOOKS["olympus-calculus"]["answer_source"])
-    draw_footer(c, page_number, width)
+    draw_footer(c, page_number, width, academy_name)
 
 
 BLACKLABEL_CHAPTER_SLUGS = {
@@ -975,6 +830,7 @@ def draw_blacklabel_answer_page(
     page_height: float,
     answer_page_index: int,
     total_answer_pages: int,
+    academy_name: str = "다산미래학원",
 ) -> None:
     left = 16 * mm
     right = page_width - 16 * mm
@@ -1030,7 +886,7 @@ def draw_blacklabel_answer_page(
     c.setFillColorRGB(0.45, 0.45, 0.45)
     c.setFont("HYSMyeongJo-Medium", 7.5)
     c.drawString(left, 13.5 * mm, TEXTBOOKS["blacklabel-middle-2-2"]["answer_source"])
-    draw_footer(c, page_number, page_width)
+    draw_footer(c, page_number, page_width, academy_name)
 
 
 def create_blacklabel_pdf(
@@ -1038,13 +894,20 @@ def create_blacklabel_pdf(
     grade: str,
     items: list[tuple[str, str, str, str, bytes]],
     answers: dict[str, str],
+    cover_options: dict | None = None,
 ) -> bytes:
+    opts = cover_options or {}
+    include_cover = opts.get("include_cover", True)
+    academy_name = opts.get("academy_name") or "다산미래학원"
     pdfmetrics.registerFont(UnicodeCIDFont("HYSMyeongJo-Medium"))
     output = BytesIO()
     width, height = A4
     c = canvas.Canvas(output, pagesize=A4, pageCompression=1)
-    draw_cover(c, student, grade, width, height, "blacklabel-middle-2-2")
-    c.showPage()
+    if include_cover:
+        opts_with_prob = dict(opts)
+        opts_with_prob.setdefault("total_problems", len(items))
+        draw_cover(c, student, grade, width, height, "blacklabel-middle-2-2", opts_with_prob)
+        c.showPage()
 
     side, bottom, gap = 10 * mm, 14 * mm, 5 * mm
     cell_w = (width - side * 2 - gap) / 2
@@ -1070,13 +933,13 @@ def create_blacklabel_pdf(
             scale = min(available_w / iw, available_h / ih)
             dw, dh = iw * scale, ih * scale
             c.drawImage(reader, x + (cell_w - dw) / 2, y + cell_h - 9.5 * mm - dh, dw, dh, preserveAspectRatio=True)
-        draw_footer(c, p + 1, width)
+        draw_footer(c, p + 1, width, academy_name)
         c.showPage()
 
     answer_chunks = [items[i:i + 48] for i in range(0, len(items), 48)]
     for chunk_idx, chunk in enumerate(answer_chunks, start=1):
         draw_blacklabel_answer_page(
-            c, chunk, answers, total_prob_pages + chunk_idx, width, height, chunk_idx, len(answer_chunks)
+            c, chunk, answers, total_prob_pages + chunk_idx, width, height, chunk_idx, len(answer_chunks), academy_name
         )
         if chunk_idx < len(answer_chunks):
             c.showPage()
@@ -1127,13 +990,20 @@ def create_concept_pdf(
     student: str,
     grade: str,
     items: list[tuple[str, str, str, str, bytes]],
+    cover_options: dict | None = None,
 ) -> bytes:
+    opts = cover_options or {}
+    include_cover = opts.get("include_cover", True)
+    academy_name = opts.get("academy_name") or "다산미래학원"
     pdfmetrics.registerFont(UnicodeCIDFont("HYSMyeongJo-Medium"))
     output = BytesIO()
     width, height = A4
     c = canvas.Canvas(output, pagesize=A4, pageCompression=1)
-    draw_cover(c, student, grade, width, height, "concept-middle-2-2")
-    c.showPage()
+    if include_cover:
+        opts_with_prob = dict(opts)
+        opts_with_prob.setdefault("total_problems", len(items))
+        draw_cover(c, student, grade, width, height, "concept-middle-2-2", opts_with_prob)
+        c.showPage()
 
     concept_items = [it for it in items if "개념익히기" in it[2] or "01_개념" in it[2]]
     grid_items = [it for it in items if "개념익히기" not in it[2] and "01_개념" not in it[2]]
@@ -1159,7 +1029,7 @@ def create_concept_pdf(
                 scale = min((box_w - 6 * mm) / iw, (cell_h - 12 * mm) / ih)
                 dw, dh = iw * scale, ih * scale
                 c.drawImage(reader, side + 3 * mm, y + cell_h - 9 * mm - dh, dw, dh, preserveAspectRatio=True)
-            draw_footer(c, current_page, width)
+            draw_footer(c, current_page, width, academy_name)
             c.showPage()
             current_page += 1
 
@@ -1188,7 +1058,7 @@ def create_concept_pdf(
                 scale = min(available_w / iw, available_h / ih)
                 dw, dh = iw * scale, ih * scale
                 c.drawImage(reader, x + 3 * mm, y + cell_h - 9 * mm - dh, dw, dh, preserveAspectRatio=True)
-            draw_footer(c, current_page, width)
+            draw_footer(c, current_page, width, academy_name)
             c.showPage()
             current_page += 1
 
@@ -1238,6 +1108,44 @@ class handler(BaseHTTPRequestHandler):
                 raise ValueError("학생 이름과 학년을 확인해 주세요.")
             if textbook not in TEXTBOOKS:
                 raise ValueError("지원하지 않는 교재입니다.")
+
+            # Cover & Styling options
+            include_cover = payload.get("includeCover", True)
+            if isinstance(include_cover, str):
+                include_cover = include_cover.lower() not in ("false", "0", "no")
+            else:
+                include_cover = bool(include_cover)
+
+            include_character = payload.get("includeCharacter", True)
+            if isinstance(include_character, str):
+                include_character = include_character.lower() not in ("false", "0", "no")
+            else:
+                include_character = bool(include_character)
+
+            cover_title = payload.get("coverTitle") or None
+            academy_name = payload.get("academyName") or "다산미래학원"
+            cover_subtitle = payload.get("coverSubtitle") or None
+            test_date = payload.get("testDate") or None
+            custom_character_str = payload.get("customCharacter")
+            custom_character_bytes = None
+            if custom_character_str and isinstance(custom_character_str, str):
+                try:
+                    if "," in custom_character_str:
+                        custom_character_str = custom_character_str.split(",", 1)[1]
+                    custom_character_bytes = base64.b64decode(custom_character_str)
+                except Exception as e:
+                    print("[-] Failed to decode customCharacter:", e)
+
+            cover_options = {
+                "include_cover": include_cover,
+                "include_character": include_character,
+                "title": cover_title,
+                "academy_name": academy_name,
+                "subtitle": cover_subtitle,
+                "date_str": test_date,
+                "custom_character_bytes": custom_character_bytes,
+            }
+
             if textbook == "olympus-calculus":
                 raw_items = payload.get("olympusItems")
                 if not isinstance(raw_items, list) or not raw_items:
@@ -1258,7 +1166,7 @@ class handler(BaseHTTPRequestHandler):
                     images = load_olympus_images(supabase_url, secret_key, bucket, unit, problem_type, numbers)
                     olympus_items.extend((unit, problem_type, number, data) for number, data in images)
                 olympus_answers = load_olympus_answers(supabase_url, secret_key, bucket)
-                pdf = create_olympus_pdf(student, grade, olympus_items, olympus_answers)
+                pdf = create_olympus_pdf(student, grade, olympus_items, olympus_answers, cover_options)
             elif textbook == "blacklabel-middle-2-2":
                 raw_items = payload.get("blacklabelItems")
                 if not isinstance(raw_items, list) or not raw_items:
@@ -1279,7 +1187,7 @@ class handler(BaseHTTPRequestHandler):
                         data = load_blacklabel_image(supabase_url, secret_key, bucket, chapter, subunit, stage, num_str)
                         blacklabel_items.append((chapter, subunit, stage, num_str, data))
                 blacklabel_answers = load_blacklabel_answers(supabase_url, secret_key, bucket)
-                pdf = create_blacklabel_pdf(student, grade, blacklabel_items, blacklabel_answers)
+                pdf = create_blacklabel_pdf(student, grade, blacklabel_items, blacklabel_answers, cover_options)
             elif textbook == "concept-middle-2-2":
                 raw_items = payload.get("conceptItems")
                 if not isinstance(raw_items, list) or not raw_items:
@@ -1299,7 +1207,7 @@ class handler(BaseHTTPRequestHandler):
                     for num_str in tokens:
                         data = load_concept_image(supabase_url, secret_key, bucket, chapter, subunit, stage, num_str)
                         concept_items.append((chapter, subunit, stage, num_str, data))
-                pdf = create_concept_pdf(student, grade, concept_items)
+                pdf = create_concept_pdf(student, grade, concept_items, cover_options)
             else:
                 numbers = parse_numbers(str(payload.get("numbers", "")))
                 images = load_images(supabase_url, secret_key, bucket, textbook, numbers)
@@ -1311,7 +1219,7 @@ class handler(BaseHTTPRequestHandler):
                         listed = ", ".join(f"{number:04d}" for number in missing_answers)
                         raise ValueError(f"빠른정답에 없는 문제번호입니다: {listed}")
                     selected_answers = {number: all_answers[number] for number in numbers}
-                pdf = create_pdf(student, grade, images, selected_answers, textbook)
+                pdf = create_pdf(student, grade, images, selected_answers, textbook, cover_options)
             if len(pdf) > 4_300_000:
                 download_url = upload_temporary_pdf(supabase_url, secret_key, bucket, pdf)
                 return self.send_json_data(
