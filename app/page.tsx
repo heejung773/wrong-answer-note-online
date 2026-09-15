@@ -1797,64 +1797,6 @@ export default function Home() {
             </div>
           </header>
 
-          {/* Step Guide Rail */}
-          <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-[#151822] border border-[#242938] rounded-xl shadow-md">
-            <button
-              type="button"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                activeStep === 1 ? 'bg-white/5 ring-1 ring-cyan-500/50' : 'hover:bg-white/5'
-              }`}
-              onClick={() => setActiveStep(1)}
-            >
-              <span className="size-6 flex items-center justify-center rounded-full text-xs font-extrabold text-white bg-gradient-to-br from-cyan-500 to-cyan-600 shadow-md shadow-cyan-500/30">
-                01
-              </span>
-              <span className="text-xs sm:text-sm font-bold text-slate-200">교재 정보</span>
-            </button>
-            <span className="text-slate-600 font-bold hidden sm:inline">›</span>
-
-            <button
-              type="button"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                activeStep === 2 ? 'bg-white/5 ring-1 ring-purple-500/50' : 'hover:bg-white/5'
-              }`}
-              onClick={() => setActiveStep(2)}
-            >
-              <span className="size-6 flex items-center justify-center rounded-full text-xs font-extrabold text-white bg-gradient-to-br from-purple-500 to-purple-600 shadow-md shadow-purple-500/30">
-                02
-              </span>
-              <span className="text-xs sm:text-sm font-bold text-slate-200">학생 정보</span>
-            </button>
-            <span className="text-slate-600 font-bold hidden sm:inline">›</span>
-
-            <button
-              type="button"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                activeStep === 3 ? 'bg-white/5 ring-1 ring-blue-500/50' : 'hover:bg-white/5'
-              }`}
-              onClick={() => setActiveStep(3)}
-            >
-              <span className="size-6 flex items-center justify-center rounded-full text-xs font-extrabold text-white bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/40 ring-1 ring-blue-400/50">
-                03
-              </span>
-              <span className="text-xs sm:text-sm font-bold text-slate-200">문항 선택</span>
-            </button>
-            <span className="text-slate-600 font-bold hidden sm:inline">›</span>
-
-            <button
-              type="button"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                activeStep === 4 ? 'bg-white/5 ring-1 ring-amber-500/50' : 'hover:bg-white/5'
-              }`}
-              onClick={() => setActiveStep(4)}
-            >
-              <span className="size-6 flex items-center justify-center rounded-full text-xs font-extrabold text-white bg-gradient-to-br from-amber-500 to-amber-600 shadow-md shadow-amber-500/30">
-                04
-              </span>
-              <span className="text-xs sm:text-sm font-bold text-slate-200">표지·서식</span>
-            </button>
-          </div>
-
           {/* Main 2-Column Workspace Grid */}
           <main className="grid grid-cols-1 xl:grid-cols-[480px_1fr] gap-5 items-start">
             {/* Left Config Panel */}
