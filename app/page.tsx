@@ -4,6 +4,7 @@ import { SyntheticEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
 import {
+  ArrowDownAZ,
   BookOpen,
   CheckCircle2,
   ExternalLink,
@@ -16,6 +17,7 @@ import {
   RefreshCw,
   RotateCcw,
   School,
+  Trash2,
   Upload,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -2553,17 +2555,17 @@ export default function Home() {
                       <div className="mt-2.5 flex gap-2 flex-wrap">
                         <button
                           type="button"
-                          className="px-3 py-1.5 bg-[#1B1E2B] hover:bg-[#252A3B] border border-[#242938] hover:border-slate-600 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition-all cursor-pointer"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#2a1912] hover:bg-[#4d2c20] border border-[#4a3023] hover:border-[#63c5ae] rounded-lg text-[11px] font-semibold text-[#d8c5b6] hover:text-white transition-all cursor-pointer"
                           onClick={handleSortNumbers}
                         >
-                          🔢 번호 오름차순 정렬
+                          <ArrowDownAZ className="size-3.5" /> 번호 오름차순 정렬
                         </button>
                         <button
                           type="button"
-                          className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg text-xs font-semibold text-red-400 hover:text-red-300 transition-all cursor-pointer"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#2a1912] hover:bg-[#4d2c20] border border-[#8b563d] hover:border-[#e08a5b] rounded-lg text-[11px] font-semibold text-[#e08a5b] hover:text-[#f0c1a6] transition-all cursor-pointer"
                           onClick={() => setNumbers('')}
                         >
-                          🗑️ 번호 전체 비우기
+                          <Trash2 className="size-3.5" /> 번호 전체 비우기
                         </button>
                       </div>
 
@@ -2787,7 +2789,7 @@ export default function Home() {
 
                 <button
                   type="button"
-                  className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl text-sm font-extrabold bg-[#2a1912] hover:bg-[#4d2c20] border border-[#d8784c] text-[#f0c1a6] hover:text-white transition-all cursor-pointer disabled:opacity-50"
+                  className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl text-sm font-extrabold bg-[#c58b32] hover:bg-[#e0aa4f] border border-[#f2c66d] text-[#160d09] hover:text-[#160d09] transition-all cursor-pointer disabled:opacity-50"
                   onClick={handlePrintPdf}
                   disabled={previewLoading}
                 >
