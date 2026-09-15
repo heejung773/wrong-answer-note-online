@@ -361,13 +361,13 @@ function countProblemTokens(raw: string) {
   let count = 0;
   for (const token of raw.trim().split(/[\s,]+/)) {
     if (!token) continue;
-    if (/^\d+$/.test(token) || /^\d+-\d+$/.test(token)) {
-      count += 1;
-      continue;
-    }
-    const range = token.match(/^(\d+)\s*~\s*(\d+)$/);
+    const range = token.match(/^(\d+)\s*[-~]\s*(\d+)$/);
     if (range) {
       count += Math.abs(Number(range[2]) - Number(range[1])) + 1;
+      continue;
+    }
+    if (/^\d+$/.test(token)) {
+      count += 1;
       continue;
     }
     count += 1;
@@ -1466,39 +1466,29 @@ export default function Home() {
                   </span>
                 </div>
                 <div className="p-4 space-y-3">
-                  {/* Department Toggle */}
-                  <div className="flex items-center bg-[#0F1118] p-1 rounded-lg border border-[#242938]">
+                  {/* Selected Department Indicator */}
+                  <div className="flex items-center justify-between px-3.5 py-2.5 bg-[#0F1118] rounded-lg border border-[#242938]">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-slate-400">구분:</span>
+                      {department === 'middle' ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                          🌱 중등부 교재
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-blue-500/15 border border-blue-500/30 text-blue-400">
+                          🎓 고등부 교재
+                        </span>
+                      )}
+                    </div>
                     <button
                       type="button"
                       onClick={() => {
-                        setDepartment('high');
-                        if (textbooks.find((t) => t.id === textbook)?.department !== 'high') {
-                          selectTextbook('synergy-calculus');
-                        }
+                        setTextbook(null);
+                        setPreviewPdfUrl(null);
                       }}
-                      className={`flex-1 py-1.5 px-3 text-xs font-bold rounded-md transition-all cursor-pointer ${
-                        department === 'high'
-                          ? 'bg-blue-600 text-white shadow-sm'
-                          : 'text-slate-400 hover:text-slate-200'
-                      }`}
+                      className="text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
                     >
-                      고등부 교재
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setDepartment('middle');
-                        if (textbooks.find((t) => t.id === textbook)?.department !== 'middle') {
-                          selectTextbook('ssen-middle-2-2');
-                        }
-                      }}
-                      className={`flex-1 py-1.5 px-3 text-xs font-bold rounded-md transition-all cursor-pointer ${
-                        department === 'middle'
-                          ? 'bg-emerald-600 text-white shadow-sm'
-                          : 'text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      중등부 교재
+                      ← 학부/교재 다시 선택
                     </button>
                   </div>
 
@@ -1511,7 +1501,7 @@ export default function Home() {
                       }}
                     >
                       {textbooks
-                        .filter((tb) => !department || tb.department === department)
+                        .filter((tb) => (department ? tb.department === department : true))
                         .map((tb) => (
                           <option key={tb.id} value={tb.id}>
                             {tb.title} ({allTextbookInfo[tb.id]?.name || tb.title} - {tb.subject})

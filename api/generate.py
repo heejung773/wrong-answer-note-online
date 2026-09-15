@@ -94,7 +94,7 @@ def parse_problem_tokens(raw: str) -> list[str]:
     for token in re.split(r"[\s,]+", raw.strip()):
         if not token:
             continue
-        match = re.fullmatch(r"(\d+)\s*~\s*(\d+)", token)
+        match = re.fullmatch(r"(\d+)\s*[-~]\s*(\d+)", token)
         if match:
             start, end = map(int, match.groups())
             step = 1 if end >= start else -1
