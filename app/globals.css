@@ -430,3 +430,22 @@ select {
 .generator-canvas .generator-actions button {
   font-size: 0.875rem !important;
 }
+.generator-canvas button,
+.generator-canvas label,
+.generator-canvas select,
+.generator-canvas input,
+.generator-canvas textarea,
+.generator-canvas p,
+.generator-canvas small,
+.generator-canvas span {
+  font-size: 0.75rem !important;
+}
+.generator-canvas h3 {
+  font-size: 0.85rem !important;
+}
+.generator-canvas [class*="size-5.5"] {
+  font-size: 0.78rem !important;
+}
+.generator-canvas .generator-actions button {
+  font-size: 0.875rem !important;
+}
