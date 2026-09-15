@@ -249,7 +249,7 @@ select {
   line-height: 1.1;
 }
 .textbook-name-line {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.7rem;
   min-width: 0;

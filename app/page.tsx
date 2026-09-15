@@ -3246,9 +3246,11 @@ export default function Home() {
                     >
                       <span className="textbook-index">{String(index + 1).padStart(2, '0')}</span>
                       <BookOpen className="textbook-icon" />
-                      <div className="textbook-name-line min-w-0 flex-1">
-                        <h3>{item.title}</h3>
-                        <span className="textbook-subject">{item.subject}</span>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="textbook-name-line">
+                          <span>{item.title}</span>
+                          <span className="textbook-subject">{item.subject}</span>
+                        </h3>
                       </div>
                       <span className="textbook-action">{item.available ? '선택 →' : '준비 중'}</span>
                     </button>
