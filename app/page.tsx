@@ -3185,9 +3185,13 @@ export default function Home() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setTextbook(null)}
+                    onClick={() => {
+                      setDepartment('middle');
+                      setTextbook(null);
+                      setPreviewPdfUrl(null);
+                    }}
                   >
-                    교재 다시 선택
+                    중등부 교재 바로가기
                   </Button>
                 </div>
               </CardHeader>
