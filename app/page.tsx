@@ -3225,33 +3225,34 @@ export default function Home() {
               {textbooks
                 .filter((item) => item.department === department)
                 .map((item, index) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => {
-                      if (!item.available) {
-                        setStatus(
-                          `${item.title}는 아직 준비 중인 교재입니다.`,
-                        );
-                        return;
-                      }
-                      selectTextbook(item.id);
-                      setStatus('학생 정보와 문제번호를 입력하세요.');
-                    }}
-                    className="textbook-row group"
-                  >
-                    <span className="textbook-index">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                    <BookOpen className="textbook-icon" />
-                    <div className="min-w-0 flex-1">
-                      <h3>{item.title}</h3>
-                      <p>{item.subject}</p>
-                    </div>
-                    <span className="textbook-action">
-                      {item.available ? '선택 →' : '준비 중'}
-                    </span>
-                  </button>
+                  <div key={item.id} className="textbook-entry">
+                    {index === 0 || item.subject !== textbooks.filter((tb) => tb.department === department)[index - 1]?.subject ? (
+                      <div className={`textbook-semester-heading ${item.subject === '중3-1' ? 'semester-3-1' : 'semester-2-2'}`}>
+                        <span>{item.subject}</span>
+                        <span>{item.subject === '중3-1' ? '3학년 1학기 교재' : '2학년 2학기 교재'}</span>
+                      </div>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!item.available) {
+                          setStatus(`${item.title}는 아직 준비 중인 교재입니다.`);
+                          return;
+                        }
+                        selectTextbook(item.id);
+                        setStatus('학생 정보와 문제번호를 입력하세요.');
+                      }}
+                      className={`textbook-row group ${item.subject === '중3-1' ? 'textbook-row-3-1' : 'textbook-row-2-2'}`}
+                    >
+                      <span className="textbook-index">{String(index + 1).padStart(2, '0')}</span>
+                      <BookOpen className="textbook-icon" />
+                      <div className="min-w-0 flex-1">
+                        <h3>{item.title}</h3>
+                        <p className="textbook-subject">{item.subject}</p>
+                      </div>
+                      <span className="textbook-action">{item.available ? '선택 →' : '준비 중'}</span>
+                    </button>
+                  </div>
                 ))}
             </div>
           </section>
