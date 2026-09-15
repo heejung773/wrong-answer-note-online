@@ -1774,9 +1774,14 @@ export default function Home() {
                     </span>
                     <h3 className="text-sm font-bold text-slate-100">교재 선택 (Textbook)</h3>
                   </div>
-                  <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
-                    📚 DB 연동
-                  </span>
+                  <button
+                    type="button"
+                    onClick={logout}
+                    disabled={busy}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-[#e0aa4f] bg-[#5a3b1b] px-3 py-2 text-xs font-extrabold text-[#f7d58a] shadow-sm transition-all hover:bg-[#7a5125] hover:text-white cursor-pointer disabled:opacity-50"
+                  >
+                    <LogOut className="size-3.5" /> 로그아웃
+                  </button>
                 </div>
                 <div className="p-4 space-y-3">
                   {/* Selected Department Indicator */}
