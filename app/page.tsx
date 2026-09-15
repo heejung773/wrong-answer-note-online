@@ -7,9 +7,12 @@ import {
   BookOpen,
   CheckCircle2,
   FileDown,
+  FileText,
   GraduationCap,
   LockKeyhole,
   LogOut,
+  Printer,
+  RefreshCw,
   School,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -289,6 +292,32 @@ const olympusUnits = [
   '4. 도함수의 활용',
 ];
 
+const highSchoolTextbookInfo: Record<
+  string,
+  { name: string; max_num: number; desc: string }
+> = {
+  'synergy-calculus': {
+    name: '마플시너지 미적분',
+    max_num: 904,
+    desc: '총 904문항 데이터베이스 연동',
+  },
+  'synergy-common-math-2': {
+    name: '마플시너지 공통수학2',
+    max_num: 991,
+    desc: '총 991문항 데이터베이스 연동',
+  },
+  'olympus-calculus': {
+    name: 'EBS 올림포스 미적분',
+    max_num: 348,
+    desc: '4개 대단원 · 소단원별 총 348문항 데이터베이스 연동',
+  },
+  'gojaengi-common-math-2': {
+    name: '고쟁이 공통수학2',
+    max_num: 380,
+    desc: '총 380문항 데이터베이스 연동',
+  },
+};
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? '';
 const loginDomain =
@@ -359,6 +388,283 @@ export default function Home() {
   );
   const [busy, setBusy] = useState(false);
   const [checkingSession, setCheckingSession] = useState(configured);
+  const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [optionsCollapsed, setOptionsCollapsed] = useState(false);
+  const [activeStep, setActiveStep] = useState<number>(3);
+  const [olympusQuickInput, setOlympusQuickInput] = useState('1-4');
+  const [includeCover, setIncludeCover] = useState(true);
+  const [coverTitle, setCoverTitle] = useState('');
+  const [academyName, setAcademyName] = useState('다산미래학원');
+  const [coverSubtitle, setCoverSubtitle] = useState(
+    '학생 맞춤형 오답 클리닉 & 실전 평가',
+  );
+  const [testDate, setTestDate] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}. ${String(d.getMonth() + 1).padStart(2, '0')}. ${String(d.getDate()).padStart(2, '0')}`;
+  });
+
+  const currentCoverTitle =
+    coverTitle ||
+    (textbook ? textbooks.find((t) => t.id === textbook)?.title || '' : '');
+
+  const parsedProblemNumbers = useMemo(() => {
+    const result: number[] = [];
+    for (const token of numbers.trim().split(/[\s,]+/)) {
+      if (!token) continue;
+      if (/^\d+$/.test(token)) {
+        result.push(Number(token));
+        continue;
+      }
+      const match = token.match(/^(\d+)\s*[-~]\s*(\d+)$/);
+      if (match) {
+        const start = Number(match[1]);
+        const end = Number(match[2]);
+        const min = Math.min(start, end);
+        const max = Math.max(start, end);
+        for (let i = min; i <= max; i++) {
+          result.push(i);
+        }
+      }
+    }
+    return result;
+  }, [numbers]);
+
+  const highSchoolProblemCount = useMemo(() => {
+    if (textbook === 'olympus-calculus') {
+      return olympusItems.reduce((acc, item) => acc + item.count, 0);
+    }
+    return parsedProblemNumbers.length;
+  }, [textbook, olympusItems, parsedProblemNumbers]);
+
+  const highSchoolPageCount = useMemo(() => {
+    return Math.ceil(highSchoolProblemCount / 4) + (includeCover ? 1 : 0);
+  }, [highSchoolProblemCount, includeCover]);
+
+  function handleSortNumbers() {
+    try {
+      const tokens = numbers.trim().split(/[\s,]+/);
+      const numList: number[] = [];
+      for (const t of tokens) {
+        if (!t) continue;
+        if (/^\d+$/.test(t)) {
+          numList.push(Number(t));
+        } else {
+          const m = t.match(/^(\d+)\s*[-~]\s*(\d+)$/);
+          if (m) {
+            const s = Number(m[1]);
+            const e = Number(m[2]);
+            const min = Math.min(s, e);
+            const max = Math.max(s, e);
+            for (let i = min; i <= max; i++) numList.push(i);
+          }
+        }
+      }
+      const uniqueSorted = Array.from(new Set(numList)).sort((a, b) => a - b);
+      setNumbers(uniqueSorted.join(', '));
+      setStatus('문제 번호를 오름차순으로 정렬했습니다.');
+    } catch {
+      setStatus('번호 정렬 중 문제가 발생했습니다.');
+    }
+  }
+
+  function handleRemoveTag(targetNum: number) {
+    const tokens = numbers.trim().split(/[\s,]+/);
+    const remaining: string[] = [];
+    for (const t of tokens) {
+      if (!t) continue;
+      if (t === String(targetNum)) continue;
+      const m = t.match(/^(\d+)\s*[-~]\s*(\d+)$/);
+      if (m) {
+        const s = Number(m[1]);
+        const e = Number(m[2]);
+        const min = Math.min(s, e);
+        const max = Math.max(s, e);
+        if (targetNum >= min && targetNum <= max) {
+          for (let i = min; i <= max; i++) {
+            if (i !== targetNum) remaining.push(String(i));
+          }
+          continue;
+        }
+      }
+      remaining.push(t);
+    }
+    setNumbers(remaining.join(', '));
+  }
+
+  function handleAddOlympusQuick() {
+    try {
+      const count = countProblemNumbers(olympusQuickInput);
+      const currentCount = olympusItems.reduce(
+        (total, item) => total + item.count,
+        0,
+      );
+      if (currentCount + count > 100) {
+        throw new Error('전체 목록에서 최대 100문제까지 추가할 수 있습니다.');
+      }
+      setOlympusItems((items) => [
+        ...items,
+        {
+          id: Date.now(),
+          unit: olympusUnit,
+          problemType: olympusType,
+          numbers: olympusQuickInput.trim(),
+          count,
+        },
+      ]);
+      setOlympusQuickInput('');
+      setStatus(`${count}문제를 올림포스 목록에 추가했습니다.`);
+    } catch (error) {
+      setStatus(
+        error instanceof Error ? error.message : '문제번호를 확인해 주세요.',
+      );
+    }
+  }
+
+  async function handleRefreshPreview() {
+    if (!sessionToken || !textbook) return;
+    const selectedTextbook = textbooks.find((item) => item.id === textbook);
+    if (!selectedTextbook?.available) {
+      setStatus(
+        `${selectedTextbook?.title ?? '선택한 교재'}는 아직 준비 중입니다.`,
+      );
+      return;
+    }
+    if (textbook === 'olympus-calculus' && olympusItems.length === 0) {
+      setStatus('올림포스 문항을 목록에 추가한 뒤 미리보기를 갱신하세요.');
+      return;
+    }
+    setPreviewLoading(true);
+    setStatus('실시간 미리보기 PDF를 생성하고 있습니다…');
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionToken}`,
+        },
+        body: JSON.stringify({
+          textbook,
+          student,
+          grade,
+          numbers,
+          olympusUnit,
+          olympusType,
+          olympusItems: olympusItems.map(({ unit, problemType, numbers }) => ({
+            unit,
+            problemType,
+            numbers,
+          })),
+          blacklabelItems: [],
+          conceptItems: [],
+        }),
+      });
+      if (!response.ok) {
+        const message = await response
+          .json()
+          .catch(() => ({ error: 'PDF 생성에 실패했습니다.' }));
+        throw new Error(message.error);
+      }
+      const contentType = response.headers.get('content-type') ?? '';
+      if (contentType.includes('application/json')) {
+        const result = (await response.json()) as { downloadUrl?: string };
+        if (result.downloadUrl) {
+          setPreviewPdfUrl(result.downloadUrl);
+          setStatus('미리보기가 갱신되었습니다.');
+          return;
+        }
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      if (previewPdfUrl) {
+        URL.revokeObjectURL(previewPdfUrl);
+      }
+      setPreviewPdfUrl(url);
+      setStatus('미리보기가 최신 상태로 갱신되었습니다.');
+    } catch (error) {
+      setStatus(
+        error instanceof Error ? error.message : '미리보기 생성에 실패했습니다.',
+      );
+    } finally {
+      setPreviewLoading(false);
+    }
+  }
+
+  async function handleDownloadPdf() {
+    if (!sessionToken || !textbook) return;
+    const selectedTextbook = textbooks.find((item) => item.id === textbook);
+    if (!selectedTextbook?.available) return;
+    setBusy(true);
+    setStatus('오답노트 PDF를 다운로드하는 중…');
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionToken}`,
+        },
+        body: JSON.stringify({
+          textbook,
+          student,
+          grade,
+          numbers,
+          olympusUnit,
+          olympusType,
+          olympusItems: olympusItems.map(({ unit, problemType, numbers }) => ({
+            unit,
+            problemType,
+            numbers,
+          })),
+          blacklabelItems: [],
+          conceptItems: [],
+        }),
+      });
+      if (!response.ok) {
+        const message = await response
+          .json()
+          .catch(() => ({ error: 'PDF 생성에 실패했습니다.' }));
+        throw new Error(message.error);
+      }
+      const filename = `${student || '학생'}_${grade}_${selectedTextbook.title}_오답노트.pdf`;
+      const contentType = response.headers.get('content-type') ?? '';
+      if (contentType.includes('application/json')) {
+        const result = (await response.json()) as { downloadUrl?: string };
+        if (!result.downloadUrl) {
+          throw new Error('다운로드 주소를 받지 못했습니다.');
+        }
+        const separator = result.downloadUrl.includes('?') ? '&' : '?';
+        const link = document.createElement('a');
+        link.href = `${result.downloadUrl}${separator}download=${encodeURIComponent(filename)}`;
+        link.click();
+        setStatus('다운로드가 시작되었습니다.');
+        return;
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+      setStatus('오답노트 PDF 다운로드가 완료되었습니다.');
+    } catch (error) {
+      setStatus(
+        error instanceof Error ? error.message : '다운로드에 실패했습니다.',
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handlePrintPdf() {
+    if (previewPdfUrl) {
+      const printWin = window.open(previewPdfUrl, '_blank');
+      printWin?.focus();
+      printWin?.print();
+    } else {
+      await handleRefreshPreview();
+    }
+  }
 
   useEffect(() => {
     if (!supabase) return;
@@ -673,6 +979,560 @@ export default function Home() {
         error instanceof Error ? error.message : '문제번호를 확인해 주세요.',
       );
     }
+  }
+
+  if (sessionToken && department === 'high' && textbook) {
+    const currentTbInfo = highSchoolTextbookInfo[textbook] || {
+      name: textbooks.find((t) => t.id === textbook)?.title || '고등부 교재',
+      max_num: 1000,
+      desc: '데이터베이스 연동',
+    };
+    const currentTb = textbooks.find((t) => t.id === textbook);
+
+    return (
+      <div className="test-workspace-root">
+        <div className="test-app-container">
+          {/* Top Header */}
+          <header className="test-app-header">
+            <div className="test-header-left">
+              <div className="test-logo-badge">
+                <span className="test-math-icon">∫</span>
+                <span className="test-logo-text">다산미래학원</span>
+              </div>
+              <div className="test-header-title-wrap">
+                <h1 className="test-main-title">
+                  {currentTb?.title} 맞춤 오답노트 생성기
+                </h1>
+                <span className="test-sub-badge">수파베이스 클라우드 연동</span>
+              </div>
+            </div>
+            <div className="test-header-actions">
+              <button
+                type="button"
+                className="test-btn test-btn-outline"
+                onClick={() => {
+                  setTextbook(null);
+                  setPreviewPdfUrl(null);
+                }}
+              >
+                ← 교재 다시 선택
+              </button>
+              <button
+                type="button"
+                className="test-btn test-btn-secondary"
+                onClick={logout}
+                disabled={busy}
+              >
+                <LogOut className="size-4" /> 로그아웃
+              </button>
+            </div>
+          </header>
+
+          {/* Step Guide Rail */}
+          <div className="test-step-guide-rail">
+            <button
+              type="button"
+              className={`test-step-node ${activeStep === 1 ? 'active' : ''}`}
+              onClick={() => setActiveStep(1)}
+            >
+              <span className="test-step-node-pill test-step-pill-1">01</span>
+              <span className="test-step-node-label">교재 정보</span>
+            </button>
+            <div className="test-step-guide-arrow">›</div>
+            <button
+              type="button"
+              className={`test-step-node ${activeStep === 2 ? 'active' : ''}`}
+              onClick={() => setActiveStep(2)}
+            >
+              <span className="test-step-node-pill test-step-pill-2">02</span>
+              <span className="test-step-node-label">학생 정보</span>
+            </button>
+            <div className="test-step-guide-arrow">›</div>
+            <button
+              type="button"
+              className={`test-step-node ${activeStep === 3 ? 'active' : ''}`}
+              onClick={() => setActiveStep(3)}
+            >
+              <span className="test-step-node-pill test-step-pill-3">03</span>
+              <span className="test-step-node-label">문항 선택</span>
+            </button>
+            <div className="test-step-guide-arrow">›</div>
+            <button
+              type="button"
+              className={`test-step-node ${activeStep === 4 ? 'active' : ''}`}
+              onClick={() => setActiveStep(4)}
+            >
+              <span className="test-step-node-pill test-step-pill-4">04</span>
+              <span className="test-step-node-label">표지·서식</span>
+            </button>
+          </div>
+
+          {/* Main 2-Column Workspace Grid */}
+          <main className="test-workspace-grid">
+            {/* Left Config Panel */}
+            <section className="test-config-panel">
+              {/* Step 1: 교재 선택/정보 */}
+              <div className="test-card test-step-1-card">
+                <div className="test-card-header">
+                  <div className="test-card-title">
+                    <span className="test-step-num test-step-num-1">1</span>
+                    <h3>교재 선택 (Textbook)</h3>
+                  </div>
+                  <span className="test-badge-status-pill">📚 DB 연동</span>
+                </div>
+                <div className="test-card-body">
+                  <div className="test-form-group">
+                    <select
+                      className="test-form-control"
+                      value={textbook}
+                      onChange={(e) => {
+                        const nextTb = e.target.value as TextbookId;
+                        setTextbook(nextTb);
+                        setPreviewPdfUrl(null);
+                      }}
+                    >
+                      {textbooks
+                        .filter((tb) => tb.department === 'high')
+                        .map((tb) => (
+                          <option key={tb.id} value={tb.id}>
+                            {tb.title} ({highSchoolTextbookInfo[tb.id]?.name || tb.title} - 총{' '}
+                            {highSchoolTextbookInfo[tb.id]?.max_num || 0}제)
+                          </option>
+                        ))}
+                    </select>
+                    <small className="block mt-1 text-xs text-slate-400">
+                      {currentTbInfo.desc} (수파베이스 실시간 로드)
+                    </small>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 2: 학생 정보 */}
+              <div className="test-card test-step-2-card">
+                <div className="test-card-header">
+                  <div className="test-card-title">
+                    <span className="test-step-num test-step-num-2">2</span>
+                    <h3>학생 정보 입력</h3>
+                  </div>
+                </div>
+                <div className="test-card-body">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="test-form-group">
+                      <label htmlFor="hs-student-name">학생 성명</label>
+                      <input
+                        id="hs-student-name"
+                        type="text"
+                        className="test-form-control"
+                        placeholder="예: 김민준"
+                        value={student}
+                        onChange={(e) => setStudent(e.target.value)}
+                      />
+                    </div>
+                    <div className="test-form-group">
+                      <label htmlFor="hs-student-grade">학년 구분</label>
+                      <select
+                        id="hs-student-grade"
+                        className="test-form-control"
+                        value={grade}
+                        onChange={(e) => setGrade(e.target.value)}
+                      >
+                        <option value="1학년">1학년</option>
+                        <option value="2학년">2학년</option>
+                        <option value="3학년">3학년</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 3: 문항 번호 선택 */}
+              <div className="test-card test-step-3-card">
+                <div className="test-card-header">
+                  <div className="test-card-title">
+                    <span className="test-step-num test-step-num-3">3</span>
+                    <h3>
+                      문제 번호 선택{' '}
+                      <span className="text-xs font-normal text-blue-400">
+                        (1~{currentTbInfo.max_num}번)
+                      </span>
+                    </h3>
+                  </div>
+                  <div className="test-problem-count-badge">
+                    총 <strong>{highSchoolProblemCount}</strong>문항 ({highSchoolPageCount}장)
+                  </div>
+                </div>
+                <div className="test-card-body">
+                  {/* Olympus picker if textbook === 'olympus-calculus' */}
+                  {textbook === 'olympus-calculus' && (
+                    <div className="test-olympus-picker-panel">
+                      <div className="test-olympus-picker-header">
+                        <span className="test-olympus-badge">
+                          🏛️ 올림포스 단원·소단원 선택기
+                        </span>
+                        <span className="text-xs text-slate-400">
+                          단원과 유형을 고르고 번호를 추가하세요
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                        <div className="test-form-group">
+                          <label htmlFor="olympus-unit-select">대단원 선택</label>
+                          <select
+                            id="olympus-unit-select"
+                            className="test-form-control"
+                            value={olympusUnit}
+                            onChange={(e) => setOlympusUnit(e.target.value)}
+                          >
+                            {olympusUnits.map((u) => (
+                              <option key={u} value={u}>
+                                {u}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="test-form-group">
+                          <span className="block text-xs font-semibold text-slate-400 mb-1">
+                            소단원 구분
+                          </span>
+                          <div className="test-olympus-type-pills">
+                            {['유형완성하기', '서술형완성하기', '고난도도전'].map((t) => (
+                              <button
+                                key={t}
+                                type="button"
+                                className={`test-type-pill ${olympusType === t ? 'active' : ''}`}
+                                onClick={() => setOlympusType(t)}
+                              >
+                                {t}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="test-olympus-add-row">
+                        <div className="flex-1">
+                          <span className="block text-xs font-bold text-sky-400 mb-1">
+                            {olympusUnit.split('.')[0]}단원 · {olympusType}
+                          </span>
+                          <input
+                            type="text"
+                            className="test-form-control"
+                            placeholder="번호 입력 (예: 1-5 또는 1, 3, 7)"
+                            value={olympusQuickInput}
+                            onChange={(e) => setOlympusQuickInput(e.target.value)}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          className="test-btn test-btn-primary !py-2 !px-4 text-xs shrink-0 self-end"
+                          onClick={handleAddOlympusQuick}
+                        >
+                          + 문항 추가
+                        </button>
+                      </div>
+
+                      {olympusItems.length > 0 && (
+                        <div className="mt-3 space-y-1 max-h-36 overflow-y-auto pr-1">
+                          {olympusItems.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex items-center justify-between text-xs bg-slate-900/80 border border-slate-700/60 rounded px-2.5 py-1.5"
+                            >
+                              <span className="text-slate-200">
+                                <span className="text-sky-400 font-semibold">
+                                  [{item.unit.split('.')[0]}단원]
+                                </span>{' '}
+                                {item.problemType} :{' '}
+                                <span className="font-mono text-emerald-400">
+                                  {item.numbers}
+                                </span>{' '}
+                                ({item.count}제)
+                              </span>
+                              <button
+                                type="button"
+                                className="text-slate-400 hover:text-red-400 font-bold ml-2 px-1"
+                                onClick={() =>
+                                  setOlympusItems((prev) =>
+                                    prev.filter((it) => it.id !== item.id),
+                                  )
+                                }
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Standard problem input for Synergy & Gojaengi */}
+                  {textbook !== 'olympus-calculus' && (
+                    <>
+                      <div className="test-form-group">
+                        <div className="flex items-center justify-between mb-1">
+                          <label htmlFor="hs-problem-numbers">
+                            문제 번호 입력 (쉼표, 범위 지원)
+                          </label>
+                          <span className="text-xs text-slate-400">
+                            예:{' '}
+                            <code className="bg-slate-800 text-blue-300 px-1 py-0.5 rounded">
+                              1-8
+                            </code>
+                            ,{' '}
+                            <code className="bg-slate-800 text-blue-300 px-1 py-0.5 rounded">
+                              1, 3, 5-10, 42
+                            </code>
+                          </span>
+                        </div>
+                        <textarea
+                          id="hs-problem-numbers"
+                          className="test-form-control test-code-input"
+                          rows={2}
+                          placeholder="1-8"
+                          value={numbers}
+                          onChange={(e) => setNumbers(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="test-quick-tools">
+                        <button
+                          type="button"
+                          className="test-tool-btn"
+                          onClick={handleSortNumbers}
+                        >
+                          🔢 번호 오름차순 정렬
+                        </button>
+                        <button
+                          type="button"
+                          className="test-tool-btn danger"
+                          onClick={() => setNumbers('')}
+                        >
+                          🗑️ 번호 전체 비우기
+                        </button>
+                      </div>
+
+                      {/* Problem Tags Chips */}
+                      {parsedProblemNumbers.length > 0 && (
+                        <div className="test-selected-tags-container">
+                          {parsedProblemNumbers.map((num) => (
+                            <span key={num} className="test-tag-badge">
+                              No. {num}
+                              <button
+                                type="button"
+                                className="remove-tag"
+                                onClick={() => handleRemoveTag(num)}
+                                aria-label={`문항 ${num} 삭제`}
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Step 4: 상세 양식 & 표지 설정 (아코디언) */}
+              <div className="test-card test-step-4-card">
+                <button
+                  type="button"
+                  className="test-card-header pointer w-full text-left"
+                  onClick={() => setOptionsCollapsed(!optionsCollapsed)}
+                  aria-label="상세 양식 및 표지 설정 토글"
+                >
+                  <div className="test-card-title">
+                    <span className="test-step-num test-step-num-4">4</span>
+                    <h3>상세 양식 & 표지 설정</h3>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="test-step-status-tag">서식·표지 옵션</span>
+                    <span className="text-xs text-amber-400 font-bold">
+                      {optionsCollapsed ? '▼ 접기' : '▲ 펼치기'}
+                    </span>
+                  </div>
+                </button>
+                {optionsCollapsed && (
+                  <div className="test-card-body border-t border-slate-800/80">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                      <div className="test-form-group">
+                        <label htmlFor="cover-title-input">표지 메인 제목</label>
+                        <input
+                          id="cover-title-input"
+                          type="text"
+                          className="test-form-control"
+                          value={currentCoverTitle}
+                          onChange={(e) => setCoverTitle(e.target.value)}
+                        />
+                      </div>
+                      <div className="test-form-group">
+                        <label htmlFor="academy-name-input">학원/기관명 (바닥글)</label>
+                        <input
+                          id="academy-name-input"
+                          type="text"
+                          className="test-form-control"
+                          value={academyName}
+                          onChange={(e) => setAcademyName(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                      <div className="test-form-group">
+                        <label htmlFor="cover-subtitle-input">표지 부제목</label>
+                        <input
+                          id="cover-subtitle-input"
+                          type="text"
+                          className="test-form-control"
+                          value={coverSubtitle}
+                          onChange={(e) => setCoverSubtitle(e.target.value)}
+                        />
+                      </div>
+                      <div className="test-form-group">
+                        <label htmlFor="test-date-input">출제 일자</label>
+                        <input
+                          id="test-date-input"
+                          type="text"
+                          className="test-form-control"
+                          value={testDate}
+                          onChange={(e) => setTestDate(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="pt-2 border-t border-slate-800/80">
+                      <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-200">
+                        <input
+                          type="checkbox"
+                          className="size-4 rounded accent-blue-600"
+                          checked={includeCover}
+                          onChange={(e) => setIncludeCover(e.target.checked)}
+                        />
+                        <span>표지(Cover) 페이지 포함</span>
+                      </label>
+                      <small className="block mt-1 text-xs text-slate-400">
+                        ※ 2×2 그리드 문제 배열 / 하단 학생 풀이 공간 최적화 / 바닥글 {academyName} 적용
+                      </small>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="test-action-buttons-wrap">
+                <button
+                  type="button"
+                  className="test-btn test-btn-outline"
+                  onClick={handleRefreshPreview}
+                  disabled={previewLoading || busy}
+                >
+                  <RefreshCw
+                    className={`size-4 ${previewLoading ? 'animate-spin' : ''}`}
+                  />
+                  미리보기 갱신
+                </button>
+
+                <button
+                  type="button"
+                  className="test-btn test-btn-primary"
+                  onClick={handleDownloadPdf}
+                  disabled={busy || previewLoading}
+                >
+                  <FileDown className="size-5" />
+                  <span>{busy ? 'PDF 생성 중…' : 'PDF 생성 및 다운로드'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="test-btn test-btn-secondary"
+                  onClick={handlePrintPdf}
+                  disabled={previewLoading}
+                >
+                  <Printer className="size-4" />
+                  바로 인쇄
+                </button>
+              </div>
+
+              {/* Status banner */}
+              {status && (
+                <div className="mt-3 p-3 text-xs rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+                  📢 {status}
+                </div>
+              )}
+            </section>
+
+            {/* Right Preview Panel */}
+            <section className="test-preview-panel">
+              <div className="test-preview-header">
+                <div className="test-preview-title-group">
+                  <h3>실시간 오답노트 미리보기</h3>
+                  <span className="test-preview-status">
+                    {previewLoading
+                      ? '생성 중…'
+                      : previewPdfUrl
+                        ? '최신 반영됨'
+                        : '입력 대기 중'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="test-preview-canvas-container">
+                {previewLoading && (
+                  <div className="test-preview-loading">
+                    <div className="test-spinner" />
+                    <p className="text-sm text-slate-300 font-medium">
+                      오답노트 PDF를 실시간 렌더링하고 있습니다…
+                    </p>
+                  </div>
+                )}
+
+                {previewPdfUrl ? (
+                  <iframe
+                    src={`${previewPdfUrl}#toolbar=0&navpanes=0`}
+                    title="오답노트 실시간 미리보기"
+                    className="test-preview-iframe"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center p-8 text-center text-slate-400 max-w-md">
+                    <div className="size-16 mb-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                      <FileText className="size-8" />
+                    </div>
+                    <h4 className="text-base font-bold text-slate-200 mb-1">
+                      {currentTb?.title} 오답노트
+                    </h4>
+                    <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+                      좌측에서 틀린 문제 번호를 입력하신 후<br />
+                      <strong className="text-blue-400">[미리보기 갱신]</strong>{' '}
+                      버튼을 누르면 실제 시험지/오답노트 PDF가 이곳에 고화질로
+                      렌더링됩니다.
+                    </p>
+                    <div className="w-full bg-slate-900/90 border border-slate-800 rounded-lg p-3 text-left space-y-1.5 text-xs">
+                      <div className="flex justify-between text-slate-400">
+                        <span>학생 성명:</span>
+                        <strong className="text-slate-200">
+                          {student} ({grade})
+                        </strong>
+                      </div>
+                      <div className="flex justify-between text-slate-400">
+                        <span>선택 문항:</span>
+                        <strong className="text-blue-400">
+                          {highSchoolProblemCount}문제 ({highSchoolPageCount}장
+                          예상)
+                        </strong>
+                      </div>
+                      <div className="flex justify-between text-slate-400">
+                        <span>출제 일자:</span>
+                        <span className="text-slate-300">{testDate}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
+          </main>
+        </div>
+      </div>
+    );
   }
 
   return (
