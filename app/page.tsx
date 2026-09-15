@@ -1797,7 +1797,7 @@ export default function Home() {
                         setTextbook(null);
                         setPreviewPdfUrl(null);
                       }}
-                      className="text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                      className="inline-flex items-center rounded-lg border border-[#63c5ae] bg-[#26483f] px-3 py-2 text-xs font-extrabold text-[#f7eadf] shadow-sm transition-all hover:bg-[#356b5b] hover:text-white cursor-pointer"
                     >
                       ← 학부/교재 다시 선택
                     </button>
