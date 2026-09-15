@@ -1796,12 +1796,13 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={() => {
+                        setDepartment('middle');
                         setTextbook(null);
                         setPreviewPdfUrl(null);
                       }}
                       className="inline-flex items-center rounded-lg border border-[#63c5ae] bg-[#26483f] px-3 py-2 text-xs font-extrabold text-[#f7eadf] shadow-sm transition-all hover:bg-[#356b5b] hover:text-white cursor-pointer"
                     >
-                      ← 학부/교재 다시 선택
+                      중등부 교재 바로가기
                     </button>
                   </div>
 
