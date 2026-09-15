@@ -431,8 +431,8 @@ const allTextbookInfo: Record<
 > = {
   'synergy-calculus': {
     name: '마플시너지 미적분',
-    max_num: 904,
-    desc: '총 904문항 데이터베이스 연동',
+    max_num: 1200,
+    desc: '총 1200문항 데이터베이스 연동',
   },
   'synergy-common-math-2': {
     name: '마플시너지 공통수학2',
@@ -931,7 +931,7 @@ export default function Home() {
   }
 
   async function handleRefreshPreview(
-    overrideTb?: TextbookId | React.MouseEvent | unknown,
+    overrideTb?: unknown,
     overrideItems?: {
       conceptItems?: ConceptItem[];
       blacklabelItems?: BlacklabelItem[];
