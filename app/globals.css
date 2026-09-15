@@ -332,3 +332,45 @@ select {
 .generator-canvas [class*="border-[#30384F]"] {
   border-color: #4a3023 !important;
 }
+
+/* Keep generator accents restrained: warm cream, muted teal, and one amber tone. */
+.generator-canvas [class*="text-cyan-"],
+.generator-canvas [class*="text-emerald-"],
+.generator-canvas [class*="text-blue-"],
+.generator-canvas [class*="text-sky-"] {
+  color: #63c5ae !important;
+}
+.generator-canvas [class*="text-purple-"],
+.generator-canvas [class*="text-amber-"] {
+  color: #e08a5b !important;
+}
+.generator-canvas [class*="border-cyan-"],
+.generator-canvas [class*="border-emerald-"],
+.generator-canvas [class*="border-blue-"],
+.generator-canvas [class*="border-sky-"] {
+  border-color: #477f70 !important;
+}
+.generator-canvas [class*="border-purple-"],
+.generator-canvas [class*="border-amber-"] {
+  border-color: #8b563d !important;
+}
+.generator-canvas [class*="bg-cyan-"],
+.generator-canvas [class*="bg-emerald-"],
+.generator-canvas [class*="bg-blue-"],
+.generator-canvas [class*="bg-sky-"] {
+  background-color: #26483f !important;
+}
+.generator-canvas [class*="bg-purple-"],
+.generator-canvas [class*="bg-amber-"] {
+  background-color: #4d2c20 !important;
+}
+.generator-canvas [class*="border-l-cyan-"],
+.generator-canvas [class*="border-l-emerald-"],
+.generator-canvas [class*="border-l-blue-"],
+.generator-canvas [class*="border-l-sky-"] {
+  border-left-color: #63c5ae !important;
+}
+.generator-canvas [class*="border-l-purple-"],
+.generator-canvas [class*="border-l-amber-"] {
+  border-left-color: #d8784c !important;
+}
