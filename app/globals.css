@@ -405,3 +405,13 @@ select {
   background-image: none !important;
   background-color: #2a1912 !important;
 }
+.generator-canvas [class*="size-5.5"] {
+  width: 1.65rem !important;
+  height: 1.65rem !important;
+  background: #63c5ae !important;
+  border-color: #9be0ce !important;
+  color: #160d09 !important;
+  font-size: 0.78rem !important;
+  font-weight: 900 !important;
+  box-shadow: 0 0 0 2px #63c5ae22 !important;
+}
