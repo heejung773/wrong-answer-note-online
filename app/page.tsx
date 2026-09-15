@@ -2756,7 +2756,7 @@ export default function Home() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-2.5 pt-1">
+              <div className="generator-actions flex flex-wrap items-center gap-2.5 pt-1">
                 <button
                   type="button"
                   className="flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-semibold bg-[#1B1E2B] hover:bg-[#2d1b12] border border-[#4a3023] hover:border-[#63c5ae] text-[#d8c5b6] hover:text-white transition-all cursor-pointer disabled:opacity-50"

@@ -419,3 +419,14 @@ select {
   width: 1rem !important;
   height: 1rem !important;
 }
+.generator-canvas button {
+  font-size: 0.75rem !important;
+  line-height: 1.25 !important;
+}
+.generator-canvas button > svg {
+  width: 0.9rem !important;
+  height: 0.9rem !important;
+}
+.generator-canvas .generator-actions button {
+  font-size: 0.875rem !important;
+}
