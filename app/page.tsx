@@ -1759,44 +1759,6 @@ export default function Home() {
     return (
       <div className="generator-canvas min-h-screen bg-[#0B0C10] text-[#E2E8F0] p-3 sm:p-6 font-sans">
         <div className="max-w-[1680px] mx-auto flex flex-col gap-4">
-          {/* Top Header */}
-          <header className="flex flex-wrap items-center justify-between gap-4 p-4 bg-[#151822] border border-[#242938] rounded-xl shadow-lg">
-            <div className="flex items-center gap-3.5 flex-wrap">
-              <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/30 px-3.5 py-1.5 rounded-full">
-                <span className="text-xl font-black text-blue-400 leading-none">∫</span>
-                <span className="font-bold text-sm text-slate-100">다산미래학원</span>
-              </div>
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="text-base sm:text-lg font-bold text-slate-100">
-                  {currentTb?.title} 맞춤 오답노트 생성기
-                </h1>
-                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-                  수파베이스 클라우드 연동
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <button
-                type="button"
-                className="px-3.5 py-2 text-xs sm:text-sm font-semibold bg-[#1B1E2B] hover:bg-[#242938] border border-[#242938] hover:border-slate-600 text-slate-300 hover:text-white rounded-lg transition-all cursor-pointer"
-                onClick={() => {
-                  setTextbook(null);
-                  setPreviewPdfUrl(null);
-                }}
-              >
-                ← 교재 다시 선택
-              </button>
-              <button
-                type="button"
-                className="flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white rounded-lg transition-all cursor-pointer"
-                onClick={logout}
-                disabled={busy}
-              >
-                <LogOut className="size-4" /> 로그아웃
-              </button>
-            </div>
-          </header>
-
           {/* Main 2-Column Workspace Grid */}
           <main className="grid grid-cols-1 xl:grid-cols-[480px_1fr] gap-5 items-start">
             {/* Left Config Panel */}
