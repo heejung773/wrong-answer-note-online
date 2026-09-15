@@ -401,3 +401,7 @@ select {
   --tw-gradient-from: #4c9e88 !important;
   --tw-gradient-to: #bd704b !important;
 }
+.generator-canvas [class*="bg-gradient-"] {
+  background-image: none !important;
+  background-color: #2a1912 !important;
+}
