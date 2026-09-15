@@ -3248,8 +3248,7 @@ export default function Home() {
                       <BookOpen className="textbook-icon" />
                       <div className="min-w-0 flex-1">
                         <h3 className="textbook-name-line">
-                          <span>{item.title}</span>
-                          <span className="textbook-subject">{item.subject}</span>
+                          {item.title} <span className="textbook-subject">{item.subject}</span>
                         </h3>
                       </div>
                       <span className="textbook-action">{item.available ? '선택 →' : '준비 중'}</span>
