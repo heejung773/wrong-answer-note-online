@@ -6,6 +6,7 @@ import Image from 'next/image';
 import {
   BookOpen,
   CheckCircle2,
+  ExternalLink,
   FileDown,
   FileText,
   GraduationCap,
@@ -392,6 +393,8 @@ export default function Home() {
   const [checkingSession, setCheckingSession] = useState(configured);
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewViewMode, setPreviewViewMode] = useState<'Fit' | 'FitH'>('Fit');
+  const [previewExpanded, setPreviewExpanded] = useState(false);
   const [optionsCollapsed, setOptionsCollapsed] = useState(true);
   const [activeStep, setActiveStep] = useState<number>(3);
   const [olympusQuickInput, setOlympusQuickInput] = useState('1-4');
@@ -1163,7 +1166,7 @@ export default function Home() {
           </div>
 
           {/* Main 2-Column Workspace Grid */}
-          <main className="grid grid-cols-1 xl:grid-cols-[520px_1fr] gap-5 items-start">
+          <main className="grid grid-cols-1 xl:grid-cols-[480px_1fr] gap-5 items-start">
             {/* Left Config Panel */}
             <section className="flex flex-col gap-4">
               {/* Step 1: 교재 선택/정보 */}
@@ -1657,8 +1660,12 @@ export default function Home() {
             </section>
 
             {/* Right Preview Panel */}
-            <section className="bg-[#151822] border border-[#242938] rounded-xl shadow-xl flex flex-col p-4 sm:p-5 min-h-[720px] sticky top-6">
-              <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-[#242938]">
+            <section
+              className={`bg-[#151822] border border-[#242938] rounded-xl shadow-xl flex flex-col p-4 sm:p-5 sticky top-6 transition-all duration-200 ${
+                previewExpanded ? 'min-h-[1180px]' : 'min-h-[960px] xl:min-h-[1020px]'
+              }`}
+            >
+              <div className="flex flex-wrap items-center justify-between pb-3.5 mb-3.5 border-b border-[#242938] gap-2.5">
                 <div className="flex items-center gap-2.5">
                   <h3 className="text-sm font-bold text-slate-100">실시간 오답노트 미리보기</h3>
                   <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400">
@@ -1669,11 +1676,50 @@ export default function Home() {
                         : '입력 대기 중'}
                   </span>
                 </div>
+
+                {previewPdfUrl && (
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {/* View Mode Toggle: Fit vs FitH */}
+                    <button
+                      type="button"
+                      onClick={() => setPreviewViewMode((prev) => (prev === 'Fit' ? 'FitH' : 'Fit'))}
+                      className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#1F2433] hover:bg-[#2A3245] border border-[#30384F] text-slate-300 hover:text-white transition-all cursor-pointer"
+                      title={previewViewMode === 'Fit' ? '가로폭에 맞추어 확대' : 'A4 전체 페이지 한눈에 맞춤'}
+                    >
+                      {previewViewMode === 'Fit' ? '🔍 가로폭 확대' : '📄 전체 맞춤'}
+                    </button>
+
+                    {/* Expand Height Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => setPreviewExpanded((prev) => !prev)}
+                      className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#1F2433] hover:bg-[#2A3245] border border-[#30384F] text-slate-300 hover:text-white transition-all cursor-pointer"
+                      title={previewExpanded ? '기본 높이로 복원' : '미리보기 창 대형 확대'}
+                    >
+                      {previewExpanded ? '창 기본 크기' : '⤢ 창 대형 확대'}
+                    </button>
+
+                    {/* Open in New Window */}
+                    <button
+                      type="button"
+                      onClick={() => window.open(previewPdfUrl, '_blank')}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 hover:text-blue-200 transition-all cursor-pointer"
+                      title="새 창에서 원본 크기로 전체화면 보기"
+                    >
+                      <ExternalLink className="size-3.5" />
+                      <span>새 창으로 크게 보기</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
-              <div className="flex-1 bg-[#0F1118] border border-[#242938] rounded-lg overflow-hidden flex flex-col items-center justify-center relative min-h-[600px]">
+              <div
+                className={`flex-1 bg-[#090A0E] border border-[#1C202E] rounded-lg overflow-hidden flex flex-col items-center justify-center relative transition-all duration-200 ${
+                  previewExpanded ? 'min-h-[1100px]' : 'min-h-[900px] xl:min-h-[960px]'
+                }`}
+              >
                 {previewLoading && (
-                  <div className="absolute inset-0 bg-[#0F1118]/85 backdrop-blur-xs flex flex-col items-center justify-center z-10 gap-3">
+                  <div className="absolute inset-0 bg-[#090A0E]/85 backdrop-blur-xs flex flex-col items-center justify-center z-10 gap-3">
                     <div className="size-10 rounded-full border-3 border-blue-500/20 border-t-blue-500 animate-spin" />
                     <p className="text-sm text-slate-300 font-medium">
                       오답노트 PDF를 실시간 렌더링하고 있습니다…
@@ -1683,9 +1729,11 @@ export default function Home() {
 
                 {previewPdfUrl ? (
                   <iframe
-                    src={`${previewPdfUrl}#toolbar=0&navpanes=0`}
+                    key={`${previewPdfUrl}-${previewViewMode}`}
+                    src={`${previewPdfUrl}#toolbar=0&navpanes=0&view=${previewViewMode}`}
                     title="오답노트 실시간 미리보기"
-                    className="w-full h-full min-h-[650px] rounded-lg border-0 bg-white"
+                    className="w-full h-full rounded-lg border-0 bg-white shadow-2xl transition-all"
+                    style={{ minHeight: previewExpanded ? '1100px' : '960px' }}
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center p-8 text-center text-slate-400 max-w-md">
