@@ -2759,23 +2759,23 @@ export default function Home() {
               <div className="flex flex-wrap items-center gap-2.5 pt-1">
                 <button
                   type="button"
-                  className="flex-1 min-w-[130px] flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-[#1B1E2B] hover:bg-[#242938] border border-[#242938] hover:border-slate-600 text-slate-200 hover:text-white transition-all cursor-pointer disabled:opacity-50"
+                  className="flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-semibold bg-[#1B1E2B] hover:bg-[#2d1b12] border border-[#4a3023] hover:border-[#63c5ae] text-[#d8c5b6] hover:text-white transition-all cursor-pointer disabled:opacity-50"
                   onClick={() => void handleRefreshPreview()}
                   disabled={previewLoading || busy}
                 >
                   <RefreshCw
-                    className={`size-4 ${previewLoading ? 'animate-spin' : ''}`}
+                    className={`size-3.5 ${previewLoading ? 'animate-spin' : ''}`}
                   />
                   미리보기 갱신
                 </button>
 
                 <button
                   type="button"
-                  className="flex-[2] min-w-[190px] flex items-center justify-center gap-2 py-3 px-5 rounded-xl text-sm sm:text-base font-bold text-white bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer disabled:opacity-50"
+                  className="flex-[2] min-w-[210px] flex items-center justify-center gap-2 py-3 px-5 rounded-xl text-sm font-extrabold text-[#160d09] bg-[#63c5ae] hover:bg-[#8bd8c4] border border-[#9be0ce] shadow-lg shadow-[#63c5ae]/20 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer disabled:opacity-50"
                   onClick={handleDownloadPdf}
                   disabled={busy || previewLoading}
                 >
-                  <FileDown className="size-5" />
+                  <FileDown className="size-4" />
                   <span>
                     {busy
                       ? '생성 중…'
@@ -2787,11 +2787,11 @@ export default function Home() {
 
                 <button
                   type="button"
-                  className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition-all cursor-pointer disabled:opacity-50"
+                  className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl text-sm font-extrabold bg-[#2a1912] hover:bg-[#4d2c20] border border-[#d8784c] text-[#f0c1a6] hover:text-white transition-all cursor-pointer disabled:opacity-50"
                   onClick={handlePrintPdf}
                   disabled={previewLoading}
                 >
-                  <Printer className="size-4" />
+                  <Printer className="size-3.5" />
                   바로 인쇄
                 </button>
               </div>
