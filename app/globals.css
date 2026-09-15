@@ -100,10 +100,10 @@ select {
 
 .editorial-choice {
   position: relative;
-  min-height: 22rem;
+  min-height: 19rem;
   overflow: hidden;
   background: #100904;
-  padding: 1.5rem;
+  padding: 1.25rem 1.5rem;
   color: #ffedd7;
   text-align: left;
   transition: background-color 0.25s ease;
@@ -123,7 +123,7 @@ select {
 }
 .choice-icon {
   position: absolute;
-  inset: 50% auto auto 50%;
+  inset: 31% auto auto 50%;
   width: 5rem;
   height: 5rem;
   color: #6c5f51;
@@ -286,8 +286,8 @@ select {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .editorial-choice {
-    min-height: 27rem;
-    padding: 2rem;
+    min-height: 21rem;
+    padding: 1.5rem 2rem;
   }
   .choice-footer {
     right: 2rem;
