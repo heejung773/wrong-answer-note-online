@@ -2486,7 +2486,7 @@ export default function Home() {
 
                       {includeCover && includeCharacter && (
                         <div className="p-3.5 bg-[#0D1017] border border-[#242938] rounded-xl flex items-center gap-4">
-                          <div className="relative size-16 shrink-0 rounded-full border-2 border-blue-500/40 bg-[#161B26] overflow-hidden flex items-center justify-center shadow-inner">
+                          <div className="relative size-16 shrink-0 rounded-full border-2 border-slate-600/50 bg-slate-900/40 overflow-hidden flex items-center justify-center shadow-inner">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={customCharacter || '/character.png'}

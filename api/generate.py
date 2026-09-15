@@ -345,12 +345,11 @@ def draw_test_cover(
     center_x = page_width / 2.0
     slot_center_y = page_height - 195.0
 
-    # 1-1. Center Mascot / Logo Stage
+    # 1-1. Center Mascot / Logo Stage (방안 A: 배경 투명화 + 세련된 더블 테두리 링 유지)
     if include_character:
-        c.setFillColorRGB(1.0, 1.0, 1.0)
         c.setStrokeColorRGB(*C_BORDER)
         c.setLineWidth(0.8)
-        c.circle(center_x, slot_center_y, 74, stroke=1, fill=1)
+        c.circle(center_x, slot_center_y, 74, stroke=1, fill=0)
 
         c.setStrokeColorRGB(0.78, 0.84, 0.92)
         c.setLineWidth(0.6)
