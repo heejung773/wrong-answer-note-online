@@ -198,7 +198,7 @@ def load_images(supabase_url: str, secret_key: str, bucket: str, textbook: str, 
             Image.open(BytesIO(data)).verify()
             images.append((number, data))
         except urllib.error.HTTPError as error:
-            if error.code == 404:
+            if error.code in (400, 404):
                 raise ValueError(f"{number:04d}번 문제가 서버에 없습니다.") from error
             raise
     return images
@@ -219,7 +219,7 @@ def load_olympus_images(supabase_url: str, secret_key: str, bucket: str, unit: s
             Image.open(BytesIO(data)).verify()
             images.append((number, data))
         except urllib.error.HTTPError as error:
-            if error.code == 404:
+            if error.code in (400, 404):
                 raise ValueError(f"{unit} / {problem_type}에 {number}번 문제가 없습니다.") from error
             raise
     return images
@@ -817,10 +817,10 @@ def load_blacklabel_image(supabase_url: str, secret_key: str, bucket: str, chapt
         try:
             return request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
         except urllib.error.HTTPError as err:
-            if err.code == 404:
+            if err.code in (400, 404):
                 continue
             raise
-    raise ValueError(f"블랙라벨 문제 이미지를 찾을 수 없습니다: [{subunit}] {stage} {number_str}번")
+    raise ValueError(f"블랙라벨 문제 이미지를 찾을 수 없습니다: [{subunit} > {stage}] {number_str}번 (해당 단계의 제공 번호를 확인해 주세요)")
 
 
 def load_blacklabel_answers(supabase_url: str, secret_key: str, bucket: str) -> dict[str, str]:
@@ -992,10 +992,12 @@ def load_concept_image(supabase_url: str, secret_key: str, bucket: str, chapter:
         try:
             return request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
         except urllib.error.HTTPError as err:
-            if err.code == 404:
+            if err.code in (400, 404):
                 continue
             raise
-    raise ValueError(f"개념유형파워 문제 이미지를 찾을 수 없습니다: [{subunit} > {stage}] {number_str}번")
+    clean_sub = subunit.replace("_", " ")
+    clean_stg = stage.replace("_", " ")
+    raise ValueError(f"개념유형파워 문제 이미지를 찾을 수 없습니다: [{clean_sub} > {clean_stg}] {number_str}번 (해당 단계의 제공 번호를 확인해 주세요)")
 
 
 def create_concept_pdf(
@@ -1329,8 +1331,15 @@ class handler(BaseHTTPRequestHandler):
         except KeyError:
             self.send_json(503, "서버 연결 설정이 아직 완료되지 않았습니다.")
         except urllib.error.HTTPError as error:
-            self.send_json(401 if error.code in (401, 403) else 502, "로그인 또는 저장소 접근을 확인해 주세요.")
+            err_msg = "로그인 또는 저장소 접근을 확인해 주세요."
+            try:
+                err_body = json.loads(error.read().decode("utf-8", errors="ignore"))
+                if err_body.get("message"):
+                    err_msg = err_body["message"]
+            except Exception:
+                pass
+            self.send_json(401 if error.code in (401, 403) else 502, err_msg)
         except (ValueError, json.JSONDecodeError) as error:
             self.send_json(400, str(error))
-        except Exception:
-            self.send_json(500, "PDF 생성 중 오류가 발생했습니다.")
+        except Exception as err:
+            self.send_json(500, f"PDF 생성 중 오류가 발생했습니다: {err}")

@@ -288,6 +288,136 @@ const conceptHierarchy: Record<string, Record<string, string[]>> = {
   },
 };
 
+const conceptStageSlugs: Record<string, string> = {
+  '01_개념익히기': 'concept',
+  '01_개념익히기_1': 'concept1',
+  '01_개념익히기_2': 'concept2',
+  '02_핵심유형': 'type',
+  '02_핵심유형_1': 'type1',
+  '02_핵심유형_2': 'type2',
+  '03_실력UP문제': 'power',
+  '04_실전테스트': 'test',
+};
+
+const conceptRanges: Record<string, { min: number; max: number; count: number }> = {
+  'ch01/sub01/concept': { min: 1, max: 7, count: 7 },
+  'ch01/sub01/type': { min: 8, max: 26, count: 19 },
+  'ch01/sub02/concept': { min: 1, max: 8, count: 8 },
+  'ch01/sub02/type': { min: 9, max: 20, count: 12 },
+  'ch01/sub03/concept1': { min: 1, max: 5, count: 5 },
+  'ch01/sub03/concept2': { min: 1, max: 5, count: 5 },
+  'ch01/sub03/type1': { min: 6, max: 24, count: 19 },
+  'ch01/sub03/type2': { min: 6, max: 36, count: 31 },
+  'ch01/sub03/power': { min: 1, max: 3, count: 6 },
+  'ch01/sub03/test': { min: 1, max: 18, count: 18 },
+  'ch02/sub01/concept1': { min: 1, max: 5, count: 5 },
+  'ch02/sub01/concept2': { min: 1, max: 4, count: 4 },
+  'ch02/sub01/type1': { min: 6, max: 24, count: 19 },
+  'ch02/sub01/type2': { min: 5, max: 17, count: 13 },
+  'ch02/sub02/concept1': { min: 1, max: 9, count: 9 },
+  'ch02/sub02/concept2': { min: 1, max: 4, count: 4 },
+  'ch02/sub02/type1': { min: 10, max: 34, count: 25 },
+  'ch02/sub02/type2': { min: 5, max: 16, count: 12 },
+  'ch02/sub03/concept': { min: 1, max: 5, count: 5 },
+  'ch02/sub03/type': { min: 6, max: 18, count: 13 },
+  'ch02/sub03/power': { min: 1, max: 3, count: 6 },
+  'ch02/sub03/test': { min: 1, max: 25, count: 25 },
+  'ch03/sub01/concept': { min: 1, max: 9, count: 9 },
+  'ch03/sub01/type': { min: 10, max: 30, count: 21 },
+  'ch03/sub02/concept': { min: 1, max: 9, count: 9 },
+  'ch03/sub02/type': { min: 10, max: 34, count: 25 },
+  'ch03/sub02/power': { min: 1, max: 3, count: 6 },
+  'ch03/sub02/test': { min: 1, max: 18, count: 18 },
+  'ch04/sub01/concept': { min: 1, max: 8, count: 8 },
+  'ch04/sub01/type': { min: 9, max: 26, count: 18 },
+  'ch04/sub02/concept': { min: 1, max: 4, count: 4 },
+  'ch04/sub02/type': { min: 5, max: 27, count: 23 },
+  'ch04/sub03/concept': { min: 1, max: 4, count: 4 },
+  'ch04/sub03/type': { min: 5, max: 21, count: 17 },
+  'ch04/sub04/concept': { min: 1, max: 7, count: 7 },
+  'ch04/sub04/type': { min: 8, max: 27, count: 20 },
+  'ch04/sub04/power': { min: 1, max: 3, count: 6 },
+  'ch04/sub04/test': { min: 1, max: 25, count: 25 },
+  'ch05/sub01/concept': { min: 1, max: 8, count: 8 },
+  'ch05/sub01/type': { min: 9, max: 32, count: 24 },
+  'ch05/sub02/concept': { min: 1, max: 4, count: 4 },
+  'ch05/sub02/type': { min: 5, max: 16, count: 12 },
+  'ch05/sub02/power': { min: 1, max: 3, count: 6 },
+  'ch05/sub02/test': { min: 1, max: 18, count: 18 },
+  'ch06/sub01/concept': { min: 1, max: 10, count: 10 },
+  'ch06/sub01/type': { min: 11, max: 30, count: 20 },
+  'ch06/sub02/concept': { min: 1, max: 6, count: 6 },
+  'ch06/sub02/type': { min: 7, max: 38, count: 32 },
+  'ch06/sub02/power': { min: 1, max: 3, count: 6 },
+  'ch06/sub02/test': { min: 1, max: 20, count: 20 },
+  'ch07/sub01/concept': { min: 1, max: 9, count: 9 },
+  'ch07/sub01/type': { min: 10, max: 30, count: 21 },
+  'ch07/sub02/concept': { min: 1, max: 9, count: 9 },
+  'ch07/sub02/type': { min: 10, max: 40, count: 31 },
+  'ch07/sub02/power': { min: 1, max: 3, count: 6 },
+  'ch07/sub02/test': { min: 1, max: 18, count: 18 },
+};
+
+const blacklabelStageSlugs: Record<string, string> = {
+  '시험에 꼭 나오는 문제': 'must',
+  'A등급을 위한 문제': 'grade-a',
+  '종합 사고력 도전 문제': 'challenge',
+  '미리보는 학력평가': 'mock',
+  '대단원평가': 'review',
+};
+
+const blacklabelChapterSlugs: Record<string, string> = {
+  'I. 삼각형의 성질': 'ch1',
+  'II. 사각형의 성질': 'ch2',
+  'III. 도형의 닮음': 'ch3',
+  'IV. 피타고라스 정리': 'ch4',
+  'V. 확률': 'ch5',
+};
+
+const blacklabelRanges: Record<string, { min: number; max: number; count: number }> = {
+  'ch1/sub01/challenge': { min: 1, max: 8, count: 8 },
+  'ch1/sub01/grade-a': { min: 1, max: 24, count: 24 },
+  'ch1/sub01/mock': { min: 1, max: 3, count: 6 },
+  'ch1/sub01/must': { min: 1, max: 6, count: 6 },
+  'ch1/sub02/challenge': { min: 1, max: 8, count: 8 },
+  'ch1/sub02/grade-a': { min: 1, max: 30, count: 30 },
+  'ch1/sub02/mock': { min: 1, max: 3, count: 6 },
+  'ch1/sub02/must': { min: 1, max: 6, count: 6 },
+  'ch1/sub02/review': { min: 1, max: 12, count: 12 },
+  'ch2/sub03/challenge': { min: 1, max: 8, count: 8 },
+  'ch2/sub03/grade-a': { min: 1, max: 24, count: 24 },
+  'ch2/sub03/mock': { min: 1, max: 2, count: 4 },
+  'ch2/sub03/must': { min: 1, max: 6, count: 6 },
+  'ch2/sub04/challenge': { min: 1, max: 8, count: 8 },
+  'ch2/sub04/grade-a': { min: 1, max: 30, count: 30 },
+  'ch2/sub04/mock': { min: 1, max: 2, count: 4 },
+  'ch2/sub04/must': { min: 1, max: 12, count: 12 },
+  'ch2/sub04/review': { min: 1, max: 12, count: 12 },
+  'ch3/sub05/challenge': { min: 1, max: 8, count: 8 },
+  'ch3/sub05/grade-a': { min: 1, max: 30, count: 30 },
+  'ch3/sub05/mock': { min: 1, max: 2, count: 4 },
+  'ch3/sub05/must': { min: 1, max: 12, count: 12 },
+  'ch3/sub06/challenge': { min: 1, max: 8, count: 8 },
+  'ch3/sub06/grade-a': { min: 1, max: 30, count: 30 },
+  'ch3/sub06/mock': { min: 1, max: 3, count: 6 },
+  'ch3/sub06/must': { min: 1, max: 12, count: 12 },
+  'ch3/sub06/review': { min: 1, max: 12, count: 12 },
+  'ch4/sub07/challenge': { min: 1, max: 8, count: 8 },
+  'ch4/sub07/grade-a': { min: 1, max: 30, count: 30 },
+  'ch4/sub07/mock': { min: 1, max: 3, count: 6 },
+  'ch4/sub07/must': { min: 1, max: 12, count: 12 },
+  'ch4/sub07/review': { min: 1, max: 12, count: 12 },
+  'ch5/sub08/challenge': { min: 1, max: 8, count: 8 },
+  'ch5/sub08/grade-a': { min: 1, max: 31, count: 31 },
+  'ch5/sub08/mock': { min: 1, max: 5, count: 5 },
+  'ch5/sub08/must': { min: 1, max: 11, count: 11 },
+  'ch5/sub09/challenge': { min: 1, max: 8, count: 8 },
+  'ch5/sub09/grade-a': { min: 1, max: 24, count: 24 },
+  'ch5/sub09/mock': { min: 1, max: 1, count: 2 },
+  'ch5/sub09/must': { min: 1, max: 6, count: 6 },
+  'ch5/sub09/review': { min: 1, max: 12, count: 12 },
+};
+
 const olympusUnits = [
   '1. 함수의 극한',
   '2. 함수의 연속',
@@ -496,6 +626,20 @@ export default function Home() {
     coverTitle ||
     (textbook ? textbooks.find((t) => t.id === textbook)?.title || '' : '');
 
+  const currentConceptRange = useMemo(() => {
+    const cSlug = `ch${conceptChapter.slice(0, 2)}`;
+    const subSlug = `sub${conceptSubunit.slice(0, 2)}`;
+    const sSlug = conceptStageSlugs[conceptStage] || conceptStage;
+    return conceptRanges[`${cSlug}/${subSlug}/${sSlug}`] || null;
+  }, [conceptChapter, conceptSubunit, conceptStage]);
+
+  const currentBlacklabelRange = useMemo(() => {
+    const cSlug = blacklabelChapterSlugs[blacklabelChapter] || 'ch1';
+    const subSlug = `sub${blacklabelSubunit.trim().split(' ')[0]}`;
+    const sSlug = blacklabelStageSlugs[blacklabelStage] || 'must';
+    return blacklabelRanges[`${cSlug}/${subSlug}/${sSlug}`] || null;
+  }, [blacklabelChapter, blacklabelSubunit, blacklabelStage]);
+
   function selectTextbook(nextTb: TextbookId) {
     setTextbook(nextTb);
     const nextDept = textbooks.find((t) => t.id === nextTb)?.department;
@@ -644,6 +788,9 @@ export default function Home() {
 
   function handleAddOlympusQuick() {
     try {
+      if (!olympusQuickInput.trim()) {
+        throw new Error('추가할 문제 번호를 입력해 주세요.');
+      }
       const count = countProblemNumbers(olympusQuickInput);
       const currentCount = olympusItems.reduce(
         (total, item) => total + item.count,
@@ -652,18 +799,18 @@ export default function Home() {
       if (currentCount + count > 100) {
         throw new Error('전체 목록에서 최대 100문제까지 추가할 수 있습니다.');
       }
-      setOlympusItems((items) => [
-        ...items,
-        {
-          id: Date.now(),
-          unit: olympusUnit,
-          problemType: olympusType,
-          numbers: olympusQuickInput.trim(),
-          count,
-        },
-      ]);
+      const newItem: OlympusItem = {
+        id: Date.now(),
+        unit: olympusUnit,
+        problemType: olympusType,
+        numbers: olympusQuickInput.trim(),
+        count,
+      };
+      const nextItems = [...olympusItems, newItem];
+      setOlympusItems(nextItems);
       setOlympusQuickInput('');
-      setStatus(`${count}문제를 올림포스 목록에 추가했습니다.`);
+      setStatus(`${count}문제를 올림포스 목록에 추가했습니다. 미리보기를 갱신합니다…`);
+      void handleRefreshPreview(textbook, { olympusItems: nextItems });
     } catch (error) {
       setStatus(
         error instanceof Error ? error.message : '문제번호를 확인해 주세요.',
@@ -673,6 +820,9 @@ export default function Home() {
 
   function handleAddBlacklabelQuick() {
     try {
+      if (!blacklabelQuickInput.trim()) {
+        throw new Error('추가할 문제 번호를 입력해 주세요.');
+      }
       const count = countProblemTokens(blacklabelQuickInput);
       const currentCount = blacklabelItems.reduce(
         (total, item) => total + item.count,
@@ -681,19 +831,42 @@ export default function Home() {
       if (currentCount + count > 100) {
         throw new Error('전체 목록에서 최대 100문제까지 추가할 수 있습니다.');
       }
-      setBlacklabelItems((items) => [
-        ...items,
-        {
-          id: Date.now(),
-          chapter: blacklabelChapter,
-          subunit: blacklabelSubunit,
-          stage: blacklabelStage,
-          numbers: blacklabelQuickInput.trim(),
-          count,
-        },
-      ]);
+      if (currentBlacklabelRange) {
+        const tokens = blacklabelQuickInput.trim().split(/[\s,]+/);
+        for (const t of tokens) {
+          if (!t) continue;
+          let minVal = 0;
+          let maxVal = 0;
+          const m = t.match(/^(\d+)\s*[-~]\s*(\d+)$/);
+          if (m) {
+            minVal = Math.min(Number(m[1]), Number(m[2]));
+            maxVal = Math.max(Number(m[1]), Number(m[2]));
+          } else if (/^\d+$/.test(t)) {
+            minVal = Number(t);
+            maxVal = Number(t);
+          }
+          if (minVal > 0) {
+            if (minVal < currentBlacklabelRange.min || maxVal > currentBlacklabelRange.max) {
+              throw new Error(
+                `선택한 단계(${blacklabelStage})의 제공 문항은 ${currentBlacklabelRange.min}~${currentBlacklabelRange.max}번입니다. (${t}번 제외 필요)`,
+              );
+            }
+          }
+        }
+      }
+      const newItem: BlacklabelItem = {
+        id: Date.now(),
+        chapter: blacklabelChapter,
+        subunit: blacklabelSubunit,
+        stage: blacklabelStage,
+        numbers: blacklabelQuickInput.trim(),
+        count,
+      };
+      const nextItems = [...blacklabelItems, newItem];
+      setBlacklabelItems(nextItems);
       setBlacklabelQuickInput('');
-      setStatus(`${count}문제를 블랙라벨 목록에 추가했습니다.`);
+      setStatus(`${count}문제를 블랙라벨 목록에 추가했습니다. 미리보기를 갱신합니다…`);
+      void handleRefreshPreview(textbook, { blacklabelItems: nextItems });
     } catch (error) {
       setStatus(
         error instanceof Error ? error.message : '문제번호를 확인해 주세요.',
@@ -703,6 +876,9 @@ export default function Home() {
 
   function handleAddConceptQuick() {
     try {
+      if (!conceptQuickInput.trim()) {
+        throw new Error('추가할 문제 번호를 입력해 주세요.');
+      }
       const count = countProblemTokens(conceptQuickInput);
       const currentCount = conceptItems.reduce(
         (total, item) => total + item.count,
@@ -711,19 +887,42 @@ export default function Home() {
       if (currentCount + count > 100) {
         throw new Error('전체 목록에서 최대 100문제까지 추가할 수 있습니다.');
       }
-      setConceptItems((items) => [
-        ...items,
-        {
-          id: Date.now(),
-          chapter: conceptChapter,
-          subunit: conceptSubunit,
-          stage: conceptStage,
-          numbers: conceptQuickInput.trim(),
-          count,
-        },
-      ]);
+      if (currentConceptRange) {
+        const tokens = conceptQuickInput.trim().split(/[\s,]+/);
+        for (const t of tokens) {
+          if (!t) continue;
+          let minVal = 0;
+          let maxVal = 0;
+          const m = t.match(/^(\d+)\s*[-~]\s*(\d+)$/);
+          if (m) {
+            minVal = Math.min(Number(m[1]), Number(m[2]));
+            maxVal = Math.max(Number(m[1]), Number(m[2]));
+          } else if (/^\d+$/.test(t)) {
+            minVal = Number(t);
+            maxVal = Number(t);
+          }
+          if (minVal > 0) {
+            if (minVal < currentConceptRange.min || maxVal > currentConceptRange.max) {
+              throw new Error(
+                `선택한 단계(${conceptStage.replace(/_/g, ' ')})의 제공 문항은 ${currentConceptRange.min}~${currentConceptRange.max}번입니다. (${t}번 제외 필요)`,
+              );
+            }
+          }
+        }
+      }
+      const newItem: ConceptItem = {
+        id: Date.now(),
+        chapter: conceptChapter,
+        subunit: conceptSubunit,
+        stage: conceptStage,
+        numbers: conceptQuickInput.trim(),
+        count,
+      };
+      const nextItems = [...conceptItems, newItem];
+      setConceptItems(nextItems);
       setConceptQuickInput('');
-      setStatus(`${count}문제를 개념유형파워 목록에 추가했습니다.`);
+      setStatus(`${count}문제를 개념유형파워 목록에 추가했습니다. 미리보기를 갱신합니다…`);
+      void handleRefreshPreview(textbook, { conceptItems: nextItems });
     } catch (error) {
       setStatus(
         error instanceof Error ? error.message : '문제번호를 확인해 주세요.',
@@ -733,6 +932,12 @@ export default function Home() {
 
   async function handleRefreshPreview(
     overrideTb?: TextbookId | React.MouseEvent | unknown,
+    overrideItems?: {
+      conceptItems?: ConceptItem[];
+      blacklabelItems?: BlacklabelItem[];
+      olympusItems?: OlympusItem[];
+      numbers?: string;
+    },
   ) {
     const activeTb =
       (typeof overrideTb === 'string' ? (overrideTb as TextbookId) : null) ||
@@ -745,8 +950,8 @@ export default function Home() {
       );
       return;
     }
-    let curOlympus = olympusItems;
-    if (activeTb === 'olympus-calculus' && curOlympus.length === 0) {
+    let curOlympus = overrideItems?.olympusItems ?? olympusItems;
+    if (activeTb === 'olympus-calculus' && curOlympus.length === 0 && !overrideItems?.olympusItems) {
       curOlympus = [
         {
           id: Date.now(),
@@ -758,8 +963,8 @@ export default function Home() {
       ];
       setOlympusItems(curOlympus);
     }
-    let curBlacklabel = blacklabelItems;
-    if (activeTb === 'blacklabel-middle-2-2' && curBlacklabel.length === 0) {
+    let curBlacklabel = overrideItems?.blacklabelItems ?? blacklabelItems;
+    if (activeTb === 'blacklabel-middle-2-2' && curBlacklabel.length === 0 && !overrideItems?.blacklabelItems) {
       curBlacklabel = [
         {
           id: Date.now(),
@@ -772,8 +977,8 @@ export default function Home() {
       ];
       setBlacklabelItems(curBlacklabel);
     }
-    let curConcept = conceptItems;
-    if (activeTb === 'concept-middle-2-2' && curConcept.length === 0) {
+    let curConcept = overrideItems?.conceptItems ?? conceptItems;
+    if (activeTb === 'concept-middle-2-2' && curConcept.length === 0 && !overrideItems?.conceptItems) {
       curConcept = [
         {
           id: Date.now(),
@@ -786,7 +991,23 @@ export default function Home() {
       ];
       setConceptItems(curConcept);
     }
-    let curNumbers = numbers;
+    if (activeTb === 'concept-middle-2-2' && curConcept.length === 0) {
+      setPreviewPdfUrl(null);
+      setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
+      return;
+    }
+    if (activeTb === 'blacklabel-middle-2-2' && curBlacklabel.length === 0) {
+      setPreviewPdfUrl(null);
+      setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
+      return;
+    }
+    if (activeTb === 'olympus-calculus' && curOlympus.length === 0) {
+      setPreviewPdfUrl(null);
+      setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
+      return;
+    }
+
+    let curNumbers = overrideItems?.numbers ?? numbers;
     if (activeTb === 'ssen-middle-2-2') {
       const parsed = parsedProblemNumbers;
       if (parsed.length === 0 || parsed.some((n) => n < 21 || n > 1142)) {
@@ -1710,6 +1931,12 @@ export default function Home() {
                             placeholder="번호 입력 (예: 1-5 또는 1, 3, 7)"
                             value={olympusQuickInput}
                             onChange={(e) => setOlympusQuickInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleAddOlympusQuick();
+                              }
+                            }}
                           />
                         </div>
                         <button
@@ -1741,11 +1968,11 @@ export default function Home() {
                               <button
                                 type="button"
                                 className="text-slate-400 hover:text-red-400 font-bold ml-2 px-1 cursor-pointer"
-                                onClick={() =>
-                                  setOlympusItems((prev) =>
-                                    prev.filter((it) => it.id !== item.id),
-                                  )
-                                }
+                                onClick={() => {
+                                  const next = olympusItems.filter((it) => it.id !== item.id);
+                                  setOlympusItems(next);
+                                  void handleRefreshPreview(textbook, { olympusItems: next });
+                                }}
                               >
                                 ×
                               </button>
@@ -1837,15 +2064,32 @@ export default function Home() {
 
                       <div className="flex items-center gap-2 p-2.5 bg-slate-950/60 rounded-lg border border-white/5">
                         <div className="flex-1">
-                          <span className="block text-xs font-bold text-purple-400 mb-1">
-                            {blacklabelSubunit} · {blacklabelStage}
-                          </span>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="block text-xs font-bold text-purple-400">
+                              {blacklabelSubunit} · {blacklabelStage}
+                            </span>
+                            {currentBlacklabelRange && (
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                                💡 제공 문항: {currentBlacklabelRange.min} ~ {currentBlacklabelRange.max}번 ({currentBlacklabelRange.count}문제)
+                              </span>
+                            )}
+                          </div>
                           <input
                             type="text"
                             className="w-full px-3 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 rounded-lg text-slate-100 placeholder-slate-500 text-xs outline-none"
-                            placeholder="번호 입력 (예: 1-5 또는 1, 2, 3)"
+                            placeholder={
+                              currentBlacklabelRange
+                                ? `번호 입력 (제공: ${currentBlacklabelRange.min}~${currentBlacklabelRange.max}번, 예: ${currentBlacklabelRange.min}-${Math.min(currentBlacklabelRange.min + 2, currentBlacklabelRange.max)})`
+                                : '번호 입력 (예: 1-5 또는 1, 2, 3)'
+                            }
                             value={blacklabelQuickInput}
                             onChange={(e) => setBlacklabelQuickInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleAddBlacklabelQuick();
+                              }
+                            }}
                           />
                         </div>
                         <button
@@ -1877,11 +2121,11 @@ export default function Home() {
                               <button
                                 type="button"
                                 className="text-slate-400 hover:text-red-400 font-bold ml-2 px-1 cursor-pointer"
-                                onClick={() =>
-                                  setBlacklabelItems((prev) =>
-                                    prev.filter((it) => it.id !== item.id),
-                                  )
-                                }
+                                onClick={() => {
+                                  const next = blacklabelItems.filter((it) => it.id !== item.id);
+                                  setBlacklabelItems(next);
+                                  void handleRefreshPreview(textbook, { blacklabelItems: next });
+                                }}
                               >
                                 ×
                               </button>
@@ -1973,15 +2217,32 @@ export default function Home() {
 
                       <div className="flex items-center gap-2 p-2.5 bg-slate-950/60 rounded-lg border border-white/5">
                         <div className="flex-1">
-                          <span className="block text-xs font-bold text-emerald-400 mb-1">
-                            {conceptSubunit.replace(/_/g, ' ')} · {conceptStage.replace(/_/g, ' ')}
-                          </span>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="block text-xs font-bold text-emerald-400">
+                              {conceptSubunit.replace(/_/g, ' ')} · {conceptStage.replace(/_/g, ' ')}
+                            </span>
+                            {currentConceptRange && (
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                💡 제공 문항: {currentConceptRange.min} ~ {currentConceptRange.max}번 ({currentConceptRange.count}문제)
+                              </span>
+                            )}
+                          </div>
                           <input
                             type="text"
                             className="w-full px-3 py-2 bg-[#0F1118] border border-[#242938] focus:border-emerald-500 rounded-lg text-slate-100 placeholder-slate-500 text-xs outline-none"
-                            placeholder="번호 입력 (예: 1-5 또는 1, 2, 3)"
+                            placeholder={
+                              currentConceptRange
+                                ? `번호 입력 (제공: ${currentConceptRange.min}~${currentConceptRange.max}번, 예: ${currentConceptRange.min}-${Math.min(currentConceptRange.min + 2, currentConceptRange.max)})`
+                                : '번호 입력 (예: 1-5 또는 1, 2, 3)'
+                            }
                             value={conceptQuickInput}
                             onChange={(e) => setConceptQuickInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleAddConceptQuick();
+                              }
+                            }}
                           />
                         </div>
                         <button
@@ -2013,11 +2274,11 @@ export default function Home() {
                               <button
                                 type="button"
                                 className="text-slate-400 hover:text-red-400 font-bold ml-2 px-1 cursor-pointer"
-                                onClick={() =>
-                                  setConceptItems((prev) =>
-                                    prev.filter((it) => it.id !== item.id),
-                                  )
-                                }
+                                onClick={() => {
+                                  const next = conceptItems.filter((it) => it.id !== item.id);
+                                  setConceptItems(next);
+                                  void handleRefreshPreview(textbook, { conceptItems: next });
+                                }}
                               >
                                 ×
                               </button>
@@ -2351,6 +2612,11 @@ export default function Home() {
                         ? '최신 반영됨'
                         : '입력 대기 중'}
                   </span>
+                  {highSchoolProblemCount > 0 && (
+                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                      총 {highSchoolProblemCount}문항 ({highSchoolPageCount}페이지)
+                    </span>
+                  )}
                 </div>
 
                 {previewPdfUrl && (
