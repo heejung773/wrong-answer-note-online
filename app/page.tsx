@@ -3176,7 +3176,9 @@ export default function Home() {
                     <h3>중등부</h3>
                     <p>MIDDLE SCHOOL</p>
                   </div>
-                  <span className="choice-status">3 BOOKS</span>
+                  <span className="choice-status">
+                    {textbooks.filter((item) => item.department === 'middle').length} BOOKS
+                  </span>
                 </div>
               </button>
               <button
@@ -3195,7 +3197,9 @@ export default function Home() {
                     <h3>고등부</h3>
                     <p>HIGH SCHOOL</p>
                   </div>
-                  <span className="choice-status">4 BOOKS</span>
+                  <span className="choice-status">
+                    {textbooks.filter((item) => item.department === 'high').length} BOOKS
+                  </span>
                 </div>
               </button>
             </div>

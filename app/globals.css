@@ -172,8 +172,11 @@ select {
 .choice-status {
   border: 1px solid #6c5f51;
   border-radius: 9999px;
-  padding: 0.45rem 0.75rem;
+  padding: 0.65rem 1rem;
   color: #ffedd7;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
   white-space: nowrap;
 }
 
