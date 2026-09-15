@@ -53,6 +53,15 @@ TEXTBOOKS = {
     "concept-middle-2-2": {
         "title": "개념유형파워 중2-2",
     },
+    "ssen-middle-3-1": {
+        "title": "쎈 수학 중3-1",
+    },
+    "blacklabel-middle-3-1": {
+        "title": "블랙라벨 중3-1",
+    },
+    "concept-middle-3-1": {
+        "title": "개념유형파워 중3-1",
+    },
 }
 
 OLYMPUS_UNITS = {
@@ -307,6 +316,9 @@ def draw_test_cover(
     elif "공통수학" in title:
         badge_text = "고등 수학 영역  |  공통수학2"
         eng_sub = "COMMON MATHEMATICS II CUSTOM TEST"
+    elif "3-1" in textbook or "middle-3" in textbook or "3-1" in title:
+        badge_text = "중등 수학 영역  |  중3-1"
+        eng_sub = "MIDDLE SCHOOL MATHEMATICS TEST"
     elif "중2" in textbook or "middle" in textbook:
         badge_text = "중등 수학 영역  |  중2-2"
         eng_sub = "MIDDLE SCHOOL MATHEMATICS TEST"
@@ -613,7 +625,7 @@ def create_pdf(student: str, grade: str, images: list[tuple[int, bytes]], answer
             x, y = boxes[index]
             c.roundRect(x, y, cell_w, cell_h, 2 * mm)
             c.setFont("Helvetica-Bold", 9)
-            label_number = f"{number:04d}" if textbook == "ssen-middle-2-2" else str(number)
+            label_number = f"{number:04d}" if "ssen" in textbook else str(number)
             c.drawString(x + 3 * mm, y + cell_h - 6 * mm, f"No. {label_number}")
             reader = pdf_image_reader(data, 900, 1150)
             iw, ih = reader.getSize()
@@ -795,12 +807,8 @@ BLACKLABEL_STAGE_SLUGS = {
 }
 
 
-def load_blacklabel_image(supabase_url: str, secret_key: str, bucket: str, chapter: str, subunit: str, stage: str, number_str: str) -> bytes:
+def load_blacklabel_image(supabase_url: str, secret_key: str, bucket: str, chapter: str, subunit: str, stage: str, number_str: str, textbook: str = "blacklabel-middle-2-2") -> bytes:
     headers = {"apikey": secret_key}
-    c_slug = BLACKLABEL_CHAPTER_SLUGS.get(chapter, "ch1")
-    sub_slug = "sub" + subunit.strip().split()[0]
-    s_slug = BLACKLABEL_STAGE_SLUGS.get(stage, "must")
-
     num = int(number_str) if number_str.isdigit() else None
     candidates: list[str] = []
     if num is not None:
@@ -810,6 +818,24 @@ def load_blacklabel_image(supabase_url: str, secret_key: str, bucket: str, chapt
     candidates.append(f"{number_str}.png")
     if num is not None:
         candidates.append(f"{num}-1.png")
+
+    if textbook == "blacklabel-middle-3-1":
+        c_slug = "ch" + chapter[:2]
+        s_slug = stage.lower()
+        for filename in candidates:
+            object_path = urllib.parse.quote(f"{bucket}/blacklabel-middle-3-1/{c_slug}/{s_slug}/{filename}", safe="/")
+            try:
+                return request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
+            except urllib.error.HTTPError as err:
+                if err.code in (400, 404):
+                    continue
+                raise
+        clean_ch = chapter.replace("_", " ")
+        raise ValueError(f"블랙라벨 문제 이미지를 찾을 수 없습니다: [{clean_ch} > {stage}] {number_str}번")
+
+    c_slug = BLACKLABEL_CHAPTER_SLUGS.get(chapter, "ch1")
+    sub_slug = "sub" + subunit.strip().split()[0]
+    s_slug = BLACKLABEL_STAGE_SLUGS.get(stage, "must")
 
     for filename in candidates:
         object_path = urllib.parse.quote(f"{bucket}/blacklabel-middle-2-2/{c_slug}/{sub_slug}/{s_slug}/{filename}", safe="/")
@@ -906,6 +932,7 @@ def create_blacklabel_pdf(
     items: list[tuple[str, str, str, str, bytes]],
     answers: dict[str, str],
     cover_options: dict | None = None,
+    textbook: str = "blacklabel-middle-2-2",
 ) -> bytes:
     opts = cover_options or {}
     include_cover = opts.get("include_cover", True)
@@ -917,7 +944,7 @@ def create_blacklabel_pdf(
     if include_cover:
         opts_with_prob = dict(opts)
         opts_with_prob.setdefault("total_problems", len(items))
-        draw_cover(c, student, grade, width, height, "blacklabel-middle-2-2", opts_with_prob)
+        draw_cover(c, student, grade, width, height, textbook, opts_with_prob)
         c.showPage()
 
     side, bottom, gap = 10 * mm, 14 * mm, 5 * mm
@@ -937,7 +964,8 @@ def create_blacklabel_pdf(
             x, y = boxes[idx]
             c.roundRect(x, y, cell_w, cell_h, 2 * mm)
             c.setFont("HYSMyeongJo-Medium", 8.5)
-            c.drawString(x + 3 * mm, y + cell_h - 5.5 * mm, f"[{subunit}] {stage} {num_str}번")
+            disp_unit = subunit if subunit and subunit != "-" else chapter.replace("_", " ")
+            c.drawString(x + 3 * mm, y + cell_h - 5.5 * mm, f"[{disp_unit}] {stage} {num_str}번")
             reader = pdf_image_reader(data, 900, 1150)
             iw, ih = reader.getSize()
             available_w, available_h = cell_w - 6 * mm, cell_h - 14 * mm
@@ -947,13 +975,14 @@ def create_blacklabel_pdf(
         draw_footer(c, p + 1, width, academy_name)
         c.showPage()
 
-    answer_chunks = [items[i:i + 48] for i in range(0, len(items), 48)]
-    for chunk_idx, chunk in enumerate(answer_chunks, start=1):
-        draw_blacklabel_answer_page(
-            c, chunk, answers, total_prob_pages + chunk_idx, width, height, chunk_idx, len(answer_chunks), academy_name
-        )
-        if chunk_idx < len(answer_chunks):
-            c.showPage()
+    if answers:
+        answer_chunks = [items[i:i + 48] for i in range(0, len(items), 48)]
+        for chunk_idx, chunk in enumerate(answer_chunks, start=1):
+            draw_blacklabel_answer_page(
+                c, chunk, answers, total_prob_pages + chunk_idx, width, height, chunk_idx, len(answer_chunks), academy_name
+            )
+            if chunk_idx < len(answer_chunks):
+                c.showPage()
 
     c.save()
     return output.getvalue()
@@ -971,12 +1000,8 @@ CONCEPT_STAGE_SLUGS = {
 }
 
 
-def load_concept_image(supabase_url: str, secret_key: str, bucket: str, chapter: str, subunit: str, stage: str, number_str: str) -> bytes:
+def load_concept_image(supabase_url: str, secret_key: str, bucket: str, chapter: str, subunit: str, stage: str, number_str: str, textbook: str = "concept-middle-2-2") -> bytes:
     headers = {"apikey": secret_key}
-    c_slug = "ch" + chapter[:2]
-    sub_slug = "sub" + subunit[:2]
-    s_slug = CONCEPT_STAGE_SLUGS.get(stage, stage)
-
     num = int(number_str) if number_str.isdigit() else None
     candidates: list[str] = []
     if num is not None:
@@ -985,6 +1010,25 @@ def load_concept_image(supabase_url: str, secret_key: str, bucket: str, chapter:
     candidates.append(f"{number_str}.png")
     if num is not None:
         candidates.append(f"{num}-1.png")
+
+    if textbook == "concept-middle-3-1":
+        c_slug = "ch" + chapter[:2]
+        s_slug = "finish" if "마무리" in stage else "type"
+        for filename in candidates:
+            object_path = urllib.parse.quote(f"{bucket}/concept-middle-3-1/{c_slug}/{s_slug}/{filename}", safe="/")
+            try:
+                return request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
+            except urllib.error.HTTPError as err:
+                if err.code in (400, 404):
+                    continue
+                raise
+        clean_ch = chapter.replace("_", " ")
+        clean_stg = stage.replace("_", " ")
+        raise ValueError(f"개념유형(파워) 문제 이미지를 찾을 수 없습니다: [{clean_ch} > {clean_stg}] {number_str}번")
+
+    c_slug = "ch" + chapter[:2]
+    sub_slug = "sub" + subunit[:2]
+    s_slug = CONCEPT_STAGE_SLUGS.get(stage, stage)
 
     for filename in candidates:
         object_path = urllib.parse.quote(f"{bucket}/concept-middle-2-2/{c_slug}/{sub_slug}/{s_slug}/{filename}", safe="/")
@@ -1004,6 +1048,7 @@ def create_concept_pdf(
     grade: str,
     items: list[tuple[str, str, str, str, bytes]],
     cover_options: dict | None = None,
+    textbook: str = "concept-middle-2-2",
 ) -> bytes:
     opts = cover_options or {}
     include_cover = opts.get("include_cover", True)
@@ -1015,7 +1060,7 @@ def create_concept_pdf(
     if include_cover:
         opts_with_prob = dict(opts)
         opts_with_prob.setdefault("total_problems", len(items))
-        draw_cover(c, student, grade, width, height, "concept-middle-2-2", opts_with_prob)
+        draw_cover(c, student, grade, width, height, textbook, opts_with_prob)
         c.showPage()
 
     concept_items = [it for it in items if "개념익히기" in it[2] or "01_개념" in it[2]]
@@ -1212,7 +1257,7 @@ class handler(BaseHTTPRequestHandler):
                 def make_pdf(st: str) -> bytes:
                     return create_olympus_pdf(st, grade, olympus_items, olympus_answers, cover_options)
 
-            elif textbook == "blacklabel-middle-2-2":
+            elif textbook in ("blacklabel-middle-2-2", "blacklabel-middle-3-1"):
                 raw_items = payload.get("blacklabelItems")
                 if not isinstance(raw_items, list) or not raw_items:
                     raise ValueError("블랙라벨 문제를 목록에 추가해 주세요.")
@@ -1229,14 +1274,14 @@ class handler(BaseHTTPRequestHandler):
                     if total > 100:
                         raise ValueError("전체 목록에서 최대 100문제까지 만들 수 있습니다.")
                     for num_str in tokens:
-                        data = load_blacklabel_image(supabase_url, secret_key, bucket, chapter, subunit, stage, num_str)
+                        data = load_blacklabel_image(supabase_url, secret_key, bucket, chapter, subunit, stage, num_str, textbook=textbook)
                         blacklabel_items.append((chapter, subunit, stage, num_str, data))
-                blacklabel_answers = load_blacklabel_answers(supabase_url, secret_key, bucket)
+                blacklabel_answers = load_blacklabel_answers(supabase_url, secret_key, bucket) if textbook == "blacklabel-middle-2-2" else {}
 
                 def make_pdf(st: str) -> bytes:
-                    return create_blacklabel_pdf(st, grade, blacklabel_items, blacklabel_answers, cover_options)
+                    return create_blacklabel_pdf(st, grade, blacklabel_items, blacklabel_answers, cover_options, textbook=textbook)
 
-            elif textbook == "concept-middle-2-2":
+            elif textbook in ("concept-middle-2-2", "concept-middle-3-1"):
                 raw_items = payload.get("conceptItems")
                 if not isinstance(raw_items, list) or not raw_items:
                     raise ValueError("개념유형파워 문제를 목록에 추가해 주세요.")
@@ -1253,17 +1298,17 @@ class handler(BaseHTTPRequestHandler):
                     if total > 100:
                         raise ValueError("전체 목록에서 최대 100문제까지 만들 수 있습니다.")
                     for num_str in tokens:
-                        data = load_concept_image(supabase_url, secret_key, bucket, chapter, subunit, stage, num_str)
+                        data = load_concept_image(supabase_url, secret_key, bucket, chapter, subunit, stage, num_str, textbook=textbook)
                         concept_items.append((chapter, subunit, stage, num_str, data))
 
                 def make_pdf(st: str) -> bytes:
-                    return create_concept_pdf(st, grade, concept_items, cover_options)
+                    return create_concept_pdf(st, grade, concept_items, cover_options, textbook=textbook)
 
             else:
                 numbers = parse_numbers(str(payload.get("numbers", "")))
                 images = load_images(supabase_url, secret_key, bucket, textbook, numbers)
                 selected_answers = None
-                if textbook not in ("gojaengi-common-math-2", "ssen-middle-2-2"):
+                if textbook not in ("gojaengi-common-math-2", "ssen-middle-2-2", "ssen-middle-3-1"):
                     all_answers = load_quick_answers(supabase_url, secret_key, bucket, textbook)
                     missing_answers = [number for number in numbers if number not in all_answers]
                     if missing_answers:

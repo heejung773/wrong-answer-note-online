@@ -41,7 +41,10 @@ type TextbookId =
   | 'gojaengi-common-math-2'
   | 'ssen-middle-2-2'
   | 'blacklabel-middle-2-2'
-  | 'concept-middle-2-2';
+  | 'concept-middle-2-2'
+  | 'ssen-middle-3-1'
+  | 'blacklabel-middle-3-1'
+  | 'concept-middle-3-1';
 
 type Department = 'middle' | 'high';
 
@@ -108,6 +111,27 @@ const textbooks: TextbookItem[] = [
     id: 'concept-middle-2-2',
     title: '개념유형파워',
     subject: '중2-2',
+    available: true,
+    department: 'middle',
+  },
+  {
+    id: 'ssen-middle-3-1',
+    title: '쎈수학',
+    subject: '중3-1',
+    available: true,
+    department: 'middle',
+  },
+  {
+    id: 'blacklabel-middle-3-1',
+    title: '블랙라벨',
+    subject: '중3-1',
+    available: true,
+    department: 'middle',
+  },
+  {
+    id: 'concept-middle-3-1',
+    title: '개념유형파워',
+    subject: '중3-1',
     available: true,
     department: 'middle',
   },
@@ -425,6 +449,54 @@ const olympusUnits = [
   '4. 도함수의 활용',
 ];
 
+const blacklabel31Hierarchy: Record<string, Record<string, string[]>> = {
+  '01_제곱근과_실수': {
+    '01_제곱근과_실수': ['Step1', 'Step2', 'Step3', 'Step4'],
+  },
+  '02_근호를_포함한_식의_계산': {
+    '02_근호를_포함한_식의_계산': ['Step1', 'Step2', 'Step3', 'Step4'],
+  },
+  '03_다항식의_곱셈과_곱셈_공식': {
+    '03_다항식의_곱셈과_곱셈_공식': ['Step1', 'Step2', 'Step3', 'Step4'],
+  },
+  '04_인수분해': {
+    '04_인수분해': ['Step1', 'Step2', 'Step3', 'Step4'],
+  },
+  '05_이차방정식': {
+    '05_이차방정식': ['Step1', 'Step2', 'Step3', 'Step4'],
+  },
+  '06_근의_공식': {
+    '06_근의_공식': ['Step1', 'Step2', 'Step3', 'Step4'],
+  },
+  '07_이차함수와_그래프': {
+    '07_이차함수와_그래프': ['Step1', 'Step2', 'Step3', 'Step4'],
+  },
+  '08_이차함수_y=ax2+bx+c의_그래프': {
+    '08_이차함수_y=ax2+bx+c의_그래프': ['Step1', 'Step2', 'Step3', 'Step4'],
+  },
+};
+
+const concept31Hierarchy: Record<string, Record<string, string[]>> = {
+  '01_제곱근과_실수': {
+    '01_제곱근과_실수': ['유형별', '단원마무리'],
+  },
+  '02_근호를_포함한_식의_계산': {
+    '02_근호를_포함한_식의_계산': ['유형별', '단원마무리'],
+  },
+  '03_다항식의_곱셈': {
+    '03_다항식의_곱셈': ['유형별', '단원마무리'],
+  },
+  '04_인수분해': {
+    '04_인수분해': ['유형별', '단원마무리'],
+  },
+  '05_이차방정식': {
+    '05_이차방정식': ['유형별', '단원마무리'],
+  },
+  '06_이차함수와_그_그래프': {
+    '06_이차함수와_그_그래프': ['유형별', '단원마무리'],
+  },
+};
+
 const allTextbookInfo: Record<
   string,
   { name: string; max_num: number; desc: string }
@@ -463,6 +535,21 @@ const allTextbookInfo: Record<
     name: '개념유형파워 중2-2',
     max_num: 100,
     desc: '대단원·소단원·유형별 문항 데이터베이스 연동',
+  },
+  'ssen-middle-3-1': {
+    name: '신사고 쎈 중3-1',
+    max_num: 1398,
+    desc: '총 989문항 데이터베이스 연동',
+  },
+  'blacklabel-middle-3-1': {
+    name: '블랙라벨 중3-1',
+    max_num: 100,
+    desc: '8개 대단원 · 4개 Step 문항 데이터베이스 연동',
+  },
+  'concept-middle-3-1': {
+    name: '개념유형파워 중3-1',
+    max_num: 100,
+    desc: '6개 대단원 · 유형별/단원마무리 문항 데이터베이스 연동',
   },
 };
 
@@ -524,6 +611,16 @@ export default function Home() {
   const [numbers, setNumbers] = useState('1, 2, 3, 4');
   const [department, setDepartment] = useState<Department | null>(null);
   const [textbook, setTextbook] = useState<TextbookId | null>(null);
+
+  const currentBlacklabelHierarchy =
+    textbook === 'blacklabel-middle-3-1'
+      ? blacklabel31Hierarchy
+      : blacklabelHierarchy;
+
+  const currentConceptHierarchy =
+    textbook === 'concept-middle-3-1'
+      ? concept31Hierarchy
+      : conceptHierarchy;
   const [olympusUnit, setOlympusUnit] = useState(olympusUnits[0]);
   const [olympusType, setOlympusType] = useState('유형완성하기');
   const [olympusItems, setOlympusItems] = useState<OlympusItem[]>([
@@ -651,6 +748,11 @@ export default function Home() {
       if (nums.length === 0 || nums.some((n) => n < 21 || n > 1142)) {
         setNumbers('21, 22, 23, 24');
       }
+    } else if (nextTb === 'ssen-middle-3-1') {
+      const nums = parsedProblemNumbers;
+      if (nums.length === 0 || nums.some((n) => n < 50 || n > 1398)) {
+        setNumbers('50, 51, 52, 53');
+      }
     } else if (nextTb === 'blacklabel-middle-2-2') {
       if (blacklabelItems.length === 0) {
         setBlacklabelItems([
@@ -664,6 +766,25 @@ export default function Home() {
           },
         ]);
       }
+    } else if (nextTb === 'blacklabel-middle-3-1') {
+      const firstCh = Object.keys(blacklabel31Hierarchy)[0];
+      const firstSub = Object.keys(blacklabel31Hierarchy[firstCh] || {})[0] || '';
+      const firstStg = blacklabel31Hierarchy[firstCh]?.[firstSub]?.[0] || 'Step1';
+      setBlacklabelChapter(firstCh);
+      setBlacklabelSubunit(firstSub);
+      setBlacklabelStage(firstStg);
+      if (blacklabelItems.length === 0) {
+        setBlacklabelItems([
+          {
+            id: Date.now(),
+            chapter: firstCh,
+            subunit: firstSub,
+            stage: firstStg,
+            numbers: '1-3',
+            count: 3,
+          },
+        ]);
+      }
     } else if (nextTb === 'concept-middle-2-2') {
       if (conceptItems.length === 0) {
         setConceptItems([
@@ -672,6 +793,25 @@ export default function Home() {
             chapter: '01_삼각형의_성질',
             subunit: '01_이등변삼각형의_성질',
             stage: '01_개념익히기',
+            numbers: '1-3',
+            count: 3,
+          },
+        ]);
+      }
+    } else if (nextTb === 'concept-middle-3-1') {
+      const firstCh = Object.keys(concept31Hierarchy)[0];
+      const firstSub = Object.keys(concept31Hierarchy[firstCh] || {})[0] || '';
+      const firstStg = concept31Hierarchy[firstCh]?.[firstSub]?.[0] || '유형별';
+      setConceptChapter(firstCh);
+      setConceptSubunit(firstSub);
+      setConceptStage(firstStg);
+      if (conceptItems.length === 0) {
+        setConceptItems([
+          {
+            id: Date.now(),
+            chapter: firstCh,
+            subunit: firstSub,
+            stage: firstStg,
             numbers: '1-3',
             count: 3,
           },
@@ -722,10 +862,10 @@ export default function Home() {
     if (textbook === 'olympus-calculus') {
       return olympusItems.reduce((acc, item) => acc + item.count, 0);
     }
-    if (textbook === 'blacklabel-middle-2-2') {
+    if (textbook === 'blacklabel-middle-2-2' || textbook === 'blacklabel-middle-3-1') {
       return blacklabelItems.reduce((acc, item) => acc + item.count, 0);
     }
-    if (textbook === 'concept-middle-2-2') {
+    if (textbook === 'concept-middle-2-2' || textbook === 'concept-middle-3-1') {
       return conceptItems.reduce((acc, item) => acc + item.count, 0);
     }
     return parsedProblemNumbers.length;
@@ -964,7 +1104,7 @@ export default function Home() {
       setOlympusItems(curOlympus);
     }
     let curBlacklabel = overrideItems?.blacklabelItems ?? blacklabelItems;
-    if (activeTb === 'blacklabel-middle-2-2' && curBlacklabel.length === 0 && !overrideItems?.blacklabelItems) {
+    if ((activeTb === 'blacklabel-middle-2-2' || activeTb === 'blacklabel-middle-3-1') && curBlacklabel.length === 0 && !overrideItems?.blacklabelItems) {
       curBlacklabel = [
         {
           id: Date.now(),
@@ -978,7 +1118,7 @@ export default function Home() {
       setBlacklabelItems(curBlacklabel);
     }
     let curConcept = overrideItems?.conceptItems ?? conceptItems;
-    if (activeTb === 'concept-middle-2-2' && curConcept.length === 0 && !overrideItems?.conceptItems) {
+    if ((activeTb === 'concept-middle-2-2' || activeTb === 'concept-middle-3-1') && curConcept.length === 0 && !overrideItems?.conceptItems) {
       curConcept = [
         {
           id: Date.now(),
@@ -991,12 +1131,12 @@ export default function Home() {
       ];
       setConceptItems(curConcept);
     }
-    if (activeTb === 'concept-middle-2-2' && curConcept.length === 0) {
+    if ((activeTb === 'concept-middle-2-2' || activeTb === 'concept-middle-3-1') && curConcept.length === 0) {
       setPreviewPdfUrl(null);
       setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
       return;
     }
-    if (activeTb === 'blacklabel-middle-2-2' && curBlacklabel.length === 0) {
+    if ((activeTb === 'blacklabel-middle-2-2' || activeTb === 'blacklabel-middle-3-1') && curBlacklabel.length === 0) {
       setPreviewPdfUrl(null);
       setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
       return;
@@ -1014,9 +1154,17 @@ export default function Home() {
         curNumbers = '21, 22, 23, 24';
         setNumbers(curNumbers);
       }
+    } else if (activeTb === 'ssen-middle-3-1') {
+      const parsed = parsedProblemNumbers;
+      if (parsed.length === 0 || parsed.some((n) => n < 50 || n > 1398)) {
+        curNumbers = '50, 51, 52, 53';
+        setNumbers(curNumbers);
+      }
     } else if (
       activeTb !== 'blacklabel-middle-2-2' &&
+      activeTb !== 'blacklabel-middle-3-1' &&
       activeTb !== 'concept-middle-2-2' &&
+      activeTb !== 'concept-middle-3-1' &&
       activeTb !== 'olympus-calculus'
     ) {
       const parsed = parsedProblemNumbers;
@@ -1382,11 +1530,11 @@ export default function Home() {
       setStatus('문제번호를 입력한 뒤 목록에 추가해 주세요.');
       return;
     }
-    if (textbook === 'blacklabel-middle-2-2' && blacklabelItems.length === 0) {
+    if ((textbook === 'blacklabel-middle-2-2' || textbook === 'blacklabel-middle-3-1') && blacklabelItems.length === 0) {
       setStatus('블랙라벨 문제를 목록에 추가해 주세요.');
       return;
     }
-    if (textbook === 'concept-middle-2-2' && conceptItems.length === 0) {
+    if ((textbook === 'concept-middle-2-2' || textbook === 'concept-middle-3-1') && conceptItems.length === 0) {
       setStatus('개념유형파워 문제를 목록에 추가해 주세요.');
       return;
     }
@@ -1985,8 +2133,8 @@ export default function Home() {
                     </div>
                   )}
 
-                  {/* Blacklabel picker if textbook === 'blacklabel-middle-2-2' */}
-                  {textbook === 'blacklabel-middle-2-2' && (
+                  {/* Blacklabel picker if textbook === 'blacklabel-middle-2-2' || textbook === 'blacklabel-middle-3-1' */}
+                  {(textbook === 'blacklabel-middle-2-2' || textbook === 'blacklabel-middle-3-1') && (
                     <div className="bg-slate-900/90 border border-purple-500/30 rounded-xl p-3.5 mb-3.5 shadow-lg">
                       <div className="flex items-center justify-between flex-wrap gap-2 pb-2.5 mb-3 border-b border-white/10">
                         <span className="text-xs font-bold text-purple-400 flex items-center gap-1.5">
@@ -2009,16 +2157,16 @@ export default function Home() {
                             onChange={(e) => {
                               const newCh = e.target.value;
                               setBlacklabelChapter(newCh);
-                              const subs = Object.keys(blacklabelHierarchy[newCh] || {});
+                              const subs = Object.keys(currentBlacklabelHierarchy[newCh] || {});
                               const firstSub = subs[0] || '';
                               setBlacklabelSubunit(firstSub);
-                              const stages = blacklabelHierarchy[newCh]?.[firstSub] || [];
+                              const stages = currentBlacklabelHierarchy[newCh]?.[firstSub] || [];
                               setBlacklabelStage(stages[0] || '');
                             }}
                           >
-                            {Object.keys(blacklabelHierarchy).map((ch) => (
+                            {Object.keys(currentBlacklabelHierarchy).map((ch) => (
                               <option key={ch} value={ch}>
-                                {ch}
+                                {ch.replace(/_/g, ' ')}
                               </option>
                             ))}
                           </select>
@@ -2034,13 +2182,13 @@ export default function Home() {
                             onChange={(e) => {
                               const newSub = e.target.value;
                               setBlacklabelSubunit(newSub);
-                              const stages = blacklabelHierarchy[blacklabelChapter]?.[newSub] || [];
+                              const stages = currentBlacklabelHierarchy[blacklabelChapter]?.[newSub] || [];
                               setBlacklabelStage(stages[0] || '');
                             }}
                           >
-                            {Object.keys(blacklabelHierarchy[blacklabelChapter] || {}).map((sub) => (
+                            {Object.keys(currentBlacklabelHierarchy[blacklabelChapter] || {}).map((sub) => (
                               <option key={sub} value={sub}>
-                                {sub}
+                                {sub.replace(/_/g, ' ')}
                               </option>
                             ))}
                           </select>
@@ -2055,9 +2203,9 @@ export default function Home() {
                             value={blacklabelStage}
                             onChange={(e) => setBlacklabelStage(e.target.value)}
                           >
-                            {(blacklabelHierarchy[blacklabelChapter]?.[blacklabelSubunit] || []).map((stg) => (
+                            {(currentBlacklabelHierarchy[blacklabelChapter]?.[blacklabelSubunit] || []).map((stg) => (
                               <option key={stg} value={stg}>
-                                {stg}
+                                {stg.replace(/_/g, ' ')}
                               </option>
                             ))}
                           </select>
@@ -2138,8 +2286,8 @@ export default function Home() {
                     </div>
                   )}
 
-                  {/* Concept picker if textbook === 'concept-middle-2-2' */}
-                  {textbook === 'concept-middle-2-2' && (
+                  {/* Concept picker if textbook === 'concept-middle-2-2' || textbook === 'concept-middle-3-1' */}
+                  {(textbook === 'concept-middle-2-2' || textbook === 'concept-middle-3-1') && (
                     <div className="bg-slate-900/90 border border-emerald-500/30 rounded-xl p-3.5 mb-3.5 shadow-lg">
                       <div className="flex items-center justify-between flex-wrap gap-2 pb-2.5 mb-3 border-b border-white/10">
                         <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
@@ -2162,14 +2310,14 @@ export default function Home() {
                             onChange={(e) => {
                               const newCh = e.target.value;
                               setConceptChapter(newCh);
-                              const subs = Object.keys(conceptHierarchy[newCh] || {});
+                              const subs = Object.keys(currentConceptHierarchy[newCh] || {});
                               const firstSub = subs[0] || '';
                               setConceptSubunit(firstSub);
-                              const stages = conceptHierarchy[newCh]?.[firstSub] || [];
+                              const stages = currentConceptHierarchy[newCh]?.[firstSub] || [];
                               setConceptStage(stages[0] || '');
                             }}
                           >
-                            {Object.keys(conceptHierarchy).map((ch) => (
+                            {Object.keys(currentConceptHierarchy).map((ch) => (
                               <option key={ch} value={ch}>
                                 {ch.replace(/_/g, ' ')}
                               </option>
@@ -2187,11 +2335,11 @@ export default function Home() {
                             onChange={(e) => {
                               const newSub = e.target.value;
                               setConceptSubunit(newSub);
-                              const stages = conceptHierarchy[conceptChapter]?.[newSub] || [];
+                              const stages = currentConceptHierarchy[conceptChapter]?.[newSub] || [];
                               setConceptStage(stages[0] || '');
                             }}
                           >
-                            {Object.keys(conceptHierarchy[conceptChapter] || {}).map((sub) => (
+                            {Object.keys(currentConceptHierarchy[conceptChapter] || {}).map((sub) => (
                               <option key={sub} value={sub}>
                                 {sub.replace(/_/g, ' ')}
                               </option>
@@ -2208,7 +2356,7 @@ export default function Home() {
                             value={conceptStage}
                             onChange={(e) => setConceptStage(e.target.value)}
                           >
-                            {(conceptHierarchy[conceptChapter]?.[conceptSubunit] || []).map((stg) => (
+                            {(currentConceptHierarchy[conceptChapter]?.[conceptSubunit] || []).map((stg) => (
                               <option key={stg} value={stg}>
                                 {stg.replace(/_/g, ' ')}
                               </option>
@@ -2294,17 +2442,32 @@ export default function Home() {
                   {/* Standard problem input for Synergy, Ssen & Gojaengi */}
                   {textbook !== 'olympus-calculus' &&
                     textbook !== 'blacklabel-middle-2-2' &&
-                    textbook !== 'concept-middle-2-2' && (
+                    textbook !== 'blacklabel-middle-3-1' &&
+                    textbook !== 'concept-middle-2-2' &&
+                    textbook !== 'concept-middle-3-1' && (
                     <>
                       <div>
                         <div className="flex items-center justify-between mb-1.5">
                           <label htmlFor="hs-problem-numbers" className="text-xs font-semibold text-slate-300">
-                            {textbook === 'ssen-middle-2-2'
+                            {textbook === 'ssen-middle-3-1'
+                              ? '문제 번호 입력 (쎈 3-1: 50 ~ 1398번 문항 제공)'
+                              : textbook === 'ssen-middle-2-2'
                               ? '문제 번호 입력 (쎈 2-2: 21 ~ 1142번 문항 제공)'
                               : '문제 번호 입력 (쉼표, 범위 지원)'}
                           </label>
                           <span className="text-xs text-slate-400">
-                            {textbook === 'ssen-middle-2-2' ? (
+                            {textbook === 'ssen-middle-3-1' ? (
+                              <>
+                                예:{' '}
+                                <code className="bg-slate-800 text-emerald-300 px-1 py-0.5 rounded">
+                                  50-58
+                                </code>
+                                ,{' '}
+                                <code className="bg-slate-800 text-emerald-300 px-1 py-0.5 rounded">
+                                  50, 65, 120
+                                </code>
+                              </>
+                            ) : textbook === 'ssen-middle-2-2' ? (
                               <>
                                 예:{' '}
                                 <code className="bg-slate-800 text-emerald-300 px-1 py-0.5 rounded">
@@ -2333,7 +2496,13 @@ export default function Home() {
                           id="hs-problem-numbers"
                           className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg text-slate-100 font-mono text-sm outline-none transition-all"
                           rows={2}
-                          placeholder={textbook === 'ssen-middle-2-2' ? '21-28' : '1-8'}
+                          placeholder={
+                            textbook === 'ssen-middle-3-1'
+                              ? '50-58'
+                              : textbook === 'ssen-middle-2-2'
+                              ? '21-28'
+                              : '1-8'
+                          }
                           value={numbers}
                           onChange={(e) => setNumbers(e.target.value)}
                         />
@@ -3032,7 +3201,8 @@ export default function Home() {
                       </label>
                     </>
                   )}
-                  {textbook === 'blacklabel-middle-2-2' && (
+                  {(textbook === 'blacklabel-middle-2-2' ||
+                    textbook === 'blacklabel-middle-3-1') && (
                     <>
                       <label htmlFor="blacklabel-chapter" className="space-y-2">
                         <span className="font-medium">대단원</span>
@@ -3043,14 +3213,17 @@ export default function Home() {
                           onChange={(e) => {
                             const newCh = e.target.value;
                             setBlacklabelChapter(newCh);
-                            const subs = Object.keys(blacklabelHierarchy[newCh] || {});
+                            const subs = Object.keys(
+                              currentBlacklabelHierarchy[newCh] || {},
+                            );
                             const firstSub = subs[0] || '';
                             setBlacklabelSubunit(firstSub);
-                            const stages = blacklabelHierarchy[newCh]?.[firstSub] || [];
+                            const stages =
+                              currentBlacklabelHierarchy[newCh]?.[firstSub] || [];
                             setBlacklabelStage(stages[0] || '');
                           }}
                         >
-                          {Object.keys(blacklabelHierarchy).map((ch) => (
+                          {Object.keys(currentBlacklabelHierarchy).map((ch) => (
                             <NativeSelectOption key={ch} value={ch}>
                               {ch}
                             </NativeSelectOption>
@@ -3066,18 +3239,26 @@ export default function Home() {
                           onChange={(e) => {
                             const newSub = e.target.value;
                             setBlacklabelSubunit(newSub);
-                            const stages = blacklabelHierarchy[blacklabelChapter]?.[newSub] || [];
+                            const stages =
+                              currentBlacklabelHierarchy[blacklabelChapter]?.[
+                                newSub
+                              ] || [];
                             setBlacklabelStage(stages[0] || '');
                           }}
                         >
-                          {Object.keys(blacklabelHierarchy[blacklabelChapter] || {}).map((sub) => (
+                          {Object.keys(
+                            currentBlacklabelHierarchy[blacklabelChapter] || {},
+                          ).map((sub) => (
                             <NativeSelectOption key={sub} value={sub}>
                               {sub}
                             </NativeSelectOption>
                           ))}
                         </NativeSelect>
                       </label>
-                      <label htmlFor="blacklabel-stage" className="space-y-2 sm:col-span-2">
+                      <label
+                        htmlFor="blacklabel-stage"
+                        className="space-y-2 sm:col-span-2"
+                      >
                         <span className="font-medium">단계(난이도)</span>
                         <NativeSelect
                           id="blacklabel-stage"
@@ -3085,7 +3266,11 @@ export default function Home() {
                           value={blacklabelStage}
                           onChange={(e) => setBlacklabelStage(e.target.value)}
                         >
-                          {(blacklabelHierarchy[blacklabelChapter]?.[blacklabelSubunit] || []).map((stg) => (
+                          {(
+                            currentBlacklabelHierarchy[blacklabelChapter]?.[
+                              blacklabelSubunit
+                            ] || []
+                          ).map((stg) => (
                             <NativeSelectOption key={stg} value={stg}>
                               {stg}
                             </NativeSelectOption>
@@ -3094,7 +3279,8 @@ export default function Home() {
                       </label>
                     </>
                   )}
-                  {textbook === 'concept-middle-2-2' && (
+                  {(textbook === 'concept-middle-2-2' ||
+                    textbook === 'concept-middle-3-1') && (
                     <>
                       <label htmlFor="concept-chapter" className="space-y-2">
                         <span className="font-medium">대단원</span>
@@ -3105,14 +3291,17 @@ export default function Home() {
                           onChange={(e) => {
                             const newCh = e.target.value;
                             setConceptChapter(newCh);
-                            const subs = Object.keys(conceptHierarchy[newCh] || {});
+                            const subs = Object.keys(
+                              currentConceptHierarchy[newCh] || {},
+                            );
                             const firstSub = subs[0] || '';
                             setConceptSubunit(firstSub);
-                            const stages = conceptHierarchy[newCh]?.[firstSub] || [];
+                            const stages =
+                              currentConceptHierarchy[newCh]?.[firstSub] || [];
                             setConceptStage(stages[0] || '');
                           }}
                         >
-                          {Object.keys(conceptHierarchy).map((ch) => (
+                          {Object.keys(currentConceptHierarchy).map((ch) => (
                             <NativeSelectOption key={ch} value={ch}>
                               {ch.replace(/_/g, ' ')}
                             </NativeSelectOption>
@@ -3128,18 +3317,25 @@ export default function Home() {
                           onChange={(e) => {
                             const newSub = e.target.value;
                             setConceptSubunit(newSub);
-                            const stages = conceptHierarchy[conceptChapter]?.[newSub] || [];
+                            const stages =
+                              currentConceptHierarchy[conceptChapter]?.[newSub] ||
+                              [];
                             setConceptStage(stages[0] || '');
                           }}
                         >
-                          {Object.keys(conceptHierarchy[conceptChapter] || {}).map((sub) => (
+                          {Object.keys(
+                            currentConceptHierarchy[conceptChapter] || {},
+                          ).map((sub) => (
                             <NativeSelectOption key={sub} value={sub}>
                               {sub.replace(/_/g, ' ')}
                             </NativeSelectOption>
                           ))}
                         </NativeSelect>
                       </label>
-                      <label htmlFor="concept-stage" className="space-y-2 sm:col-span-2">
+                      <label
+                        htmlFor="concept-stage"
+                        className="space-y-2 sm:col-span-2"
+                      >
                         <span className="font-medium">단계(유형)</span>
                         <NativeSelect
                           id="concept-stage"
@@ -3147,7 +3343,11 @@ export default function Home() {
                           value={conceptStage}
                           onChange={(e) => setConceptStage(e.target.value)}
                         >
-                          {(conceptHierarchy[conceptChapter]?.[conceptSubunit] || []).map((stg) => (
+                          {(
+                            currentConceptHierarchy[conceptChapter]?.[
+                              conceptSubunit
+                            ] || []
+                          ).map((stg) => (
                             <NativeSelectOption key={stg} value={stg}>
                               {stg.replace(/_/g, ' ')}
                             </NativeSelectOption>
@@ -3164,21 +3364,27 @@ export default function Home() {
                       onChange={(e) => setNumbers(e.target.value)}
                       placeholder={
                         textbook === 'blacklabel-middle-2-2' ||
-                        textbook === 'concept-middle-2-2'
+                        textbook === 'blacklabel-middle-3-1' ||
+                        textbook === 'concept-middle-2-2' ||
+                        textbook === 'concept-middle-3-1'
                           ? '1, 2, 3 또는 1~5'
                           : '1, 5, 10 또는 1-10'
                       }
                       required={
                         textbook !== 'olympus-calculus' &&
                         textbook !== 'blacklabel-middle-2-2' &&
-                        textbook !== 'concept-middle-2-2'
+                        textbook !== 'blacklabel-middle-3-1' &&
+                        textbook !== 'concept-middle-2-2' &&
+                        textbook !== 'concept-middle-3-1'
                       }
                       disabled={!sessionToken}
                     />
                     <span className="block text-sm text-muted-foreground">
                       {textbook === 'olympus-calculus' ||
                       textbook === 'blacklabel-middle-2-2' ||
-                      textbook === 'concept-middle-2-2'
+                      textbook === 'blacklabel-middle-3-1' ||
+                      textbook === 'concept-middle-2-2' ||
+                      textbook === 'concept-middle-3-1'
                         ? '선택한 단원과 단계 안에서 표시된 번호를 입력 후 [목록에 추가]를 누르세요.'
                         : '쉼표·띄어쓰기·연속 범위를 사용할 수 있습니다. 한 번에 최대 100문제입니다.'}
                     </span>
@@ -3258,7 +3464,8 @@ export default function Home() {
                       </div>
                     </div>
                   )}
-                  {textbook === 'blacklabel-middle-2-2' && (
+                  {(textbook === 'blacklabel-middle-2-2' ||
+                    textbook === 'blacklabel-middle-3-1') && (
                     <div className="space-y-3 sm:col-span-2">
                       <Button
                         type="button"
@@ -3332,7 +3539,8 @@ export default function Home() {
                       </div>
                     </div>
                   )}
-                  {textbook === 'concept-middle-2-2' && (
+                  {(textbook === 'concept-middle-2-2' ||
+                    textbook === 'concept-middle-3-1') && (
                     <div className="space-y-3 sm:col-span-2">
                       <Button
                         type="button"

@@ -26,6 +26,9 @@ def main() -> None:
             "ssen-middle-2-2",
             "blacklabel-middle-2-2",
             "concept-middle-2-2",
+            "ssen-middle-3-1",
+            "blacklabel-middle-3-1",
+            "concept-middle-3-1",
         ),
     )
     parser.add_argument("--manifest", type=Path, help="사용할 매니페스트 파일 경로")
