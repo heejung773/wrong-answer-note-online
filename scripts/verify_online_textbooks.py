@@ -52,7 +52,7 @@ def main() -> None:
         assert_pdf("olympus-calculus", generate.create_olympus_pdf("테스트", "2학년", olympus_items, olympus_answers), 3)
 
         gojaengi_numbers = [1, 724]
-        gojaengi_images = [(number, read(GOJAENGI / "문제이미지모음" / f"{number:04d}.png")) for number in gojaengi_numbers]
+        gojaengi_images = [(number, read(GOJAENGI / "문제모음" / f"{number:04d}.png")) for number in gojaengi_numbers]
         assert_pdf("gojaengi-common-math-2", generate.create_pdf("테스트", "2학년", gojaengi_images, None, "gojaengi-common-math-2"), 2)
 
         ssen_numbers = [21, 100]

@@ -336,8 +336,6 @@ const allTextbookInfo: Record<
   },
 };
 
-const highSchoolTextbookInfo = allTextbookInfo;
-
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? '';
 const loginDomain =
@@ -398,15 +396,41 @@ export default function Home() {
   const [textbook, setTextbook] = useState<TextbookId | null>(null);
   const [olympusUnit, setOlympusUnit] = useState(olympusUnits[0]);
   const [olympusType, setOlympusType] = useState('유형완성하기');
-  const [olympusItems, setOlympusItems] = useState<OlympusItem[]>([]);
+  const [olympusItems, setOlympusItems] = useState<OlympusItem[]>([
+    {
+      id: 1,
+      unit: olympusUnits[0],
+      problemType: '유형완성하기',
+      numbers: '1-4',
+      count: 4,
+    },
+  ]);
   const [blacklabelChapter, setBlacklabelChapter] = useState('I. 삼각형의 성질');
   const [blacklabelSubunit, setBlacklabelSubunit] = useState('01 삼각형의 성질');
   const [blacklabelStage, setBlacklabelStage] = useState('시험에 꼭 나오는 문제');
-  const [blacklabelItems, setBlacklabelItems] = useState<BlacklabelItem[]>([]);
+  const [blacklabelItems, setBlacklabelItems] = useState<BlacklabelItem[]>([
+    {
+      id: 1,
+      chapter: 'I. 삼각형의 성질',
+      subunit: '01 삼각형의 성질',
+      stage: '시험에 꼭 나오는 문제',
+      numbers: '1-3',
+      count: 3,
+    },
+  ]);
   const [conceptChapter, setConceptChapter] = useState('01_삼각형의_성질');
   const [conceptSubunit, setConceptSubunit] = useState('01_이등변삼각형의_성질');
   const [conceptStage, setConceptStage] = useState('01_개념익히기');
-  const [conceptItems, setConceptItems] = useState<ConceptItem[]>([]);
+  const [conceptItems, setConceptItems] = useState<ConceptItem[]>([
+    {
+      id: 1,
+      chapter: '01_삼각형의_성질',
+      subunit: '01_이등변삼각형의_성질',
+      stage: '01_개념익히기',
+      numbers: '1-3',
+      count: 3,
+    },
+  ]);
   const [status, setStatus] = useState(
     configured ? '로그인이 필요합니다.' : 'Supabase 연결 설정 전입니다.',
   );
@@ -434,43 +458,6 @@ export default function Home() {
     return `${d.getFullYear()}. ${String(d.getMonth() + 1).padStart(2, '0')}. ${String(d.getDate()).padStart(2, '0')}`;
   });
 
-  function handleCharacterUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      setStatus('이미지 파일(PNG, JPG, WebP 등)만 업로드할 수 있습니다.');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64 = event.target?.result as string;
-      setCustomCharacter(base64);
-      setStatus('표지 마스코트/로고 이미지가 등록되었습니다. [미리보기 갱신]을 눌러 확인하세요.');
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function handleResetCharacter() {
-    setCustomCharacter(null);
-    setStatus('기본 마스코트 캐릭터로 복원되었습니다.');
-  }
-
-  const currentCoverTitle =
-    coverTitle ||
-    (textbook ? textbooks.find((t) => t.id === textbook)?.title || '' : '');
-
-  const parsedBatchStudentNames = useMemo(() => {
-    return Array.from(
-      new Set(
-        studentNamesText
-          .replace(/,/g, '\n')
-          .split('\n')
-          .map((n) => n.trim())
-          .filter(Boolean),
-      ),
-    );
-  }, [studentNamesText]);
-
   const parsedProblemNumbers = useMemo(() => {
     const result: number[] = [];
     for (const token of numbers.trim().split(/[\s,]+/)) {
@@ -492,6 +479,100 @@ export default function Home() {
     }
     return result;
   }, [numbers]);
+
+  const parsedBatchStudentNames = useMemo(() => {
+    return Array.from(
+      new Set(
+        studentNamesText
+          .replace(/,/g, '\n')
+          .split('\n')
+          .map((n) => n.trim())
+          .filter(Boolean),
+      ),
+    );
+  }, [studentNamesText]);
+
+  const currentCoverTitle =
+    coverTitle ||
+    (textbook ? textbooks.find((t) => t.id === textbook)?.title || '' : '');
+
+  function selectTextbook(nextTb: TextbookId) {
+    setTextbook(nextTb);
+    const nextDept = textbooks.find((t) => t.id === nextTb)?.department;
+    if (nextDept) setDepartment(nextDept);
+    setPreviewPdfUrl(null);
+
+    if (nextTb === 'ssen-middle-2-2') {
+      const nums = parsedProblemNumbers;
+      if (nums.length === 0 || nums.some((n) => n < 21 || n > 1142)) {
+        setNumbers('21, 22, 23, 24');
+      }
+    } else if (nextTb === 'blacklabel-middle-2-2') {
+      if (blacklabelItems.length === 0) {
+        setBlacklabelItems([
+          {
+            id: Date.now(),
+            chapter: 'I. 삼각형의 성질',
+            subunit: '01 삼각형의 성질',
+            stage: '시험에 꼭 나오는 문제',
+            numbers: '1-3',
+            count: 3,
+          },
+        ]);
+      }
+    } else if (nextTb === 'concept-middle-2-2') {
+      if (conceptItems.length === 0) {
+        setConceptItems([
+          {
+            id: Date.now(),
+            chapter: '01_삼각형의_성질',
+            subunit: '01_이등변삼각형의_성질',
+            stage: '01_개념익히기',
+            numbers: '1-3',
+            count: 3,
+          },
+        ]);
+      }
+    } else if (nextTb === 'olympus-calculus') {
+      if (olympusItems.length === 0) {
+        setOlympusItems([
+          {
+            id: Date.now(),
+            unit: '1. 함수의 극한',
+            problemType: '유형완성하기',
+            numbers: '1-4',
+            count: 4,
+          },
+        ]);
+      }
+    } else {
+      const nums = parsedProblemNumbers;
+      if (nums.length === 0 || nums.some((n) => n < 1)) {
+        setNumbers('1, 2, 3, 4');
+      }
+    }
+  }
+
+  function handleCharacterUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setStatus('이미지 파일(PNG, JPG, WebP 등)만 업로드할 수 있습니다.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      setCustomCharacter(base64);
+      setStatus('표지 마스코트/로고 이미지가 등록되었습니다. [미리보기 갱신]을 눌러 확인하세요.');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleResetCharacter() {
+    setCustomCharacter(null);
+    setStatus('기본 마스코트 캐릭터로 복원되었습니다.');
+  }
 
   const highSchoolProblemCount = useMemo(() => {
     if (textbook === 'olympus-calculus') {
@@ -650,27 +731,80 @@ export default function Home() {
     }
   }
 
-  async function handleRefreshPreview() {
-    if (!sessionToken || !textbook) return;
-    const selectedTextbook = textbooks.find((item) => item.id === textbook);
+  async function handleRefreshPreview(
+    overrideTb?: TextbookId | React.MouseEvent | unknown,
+  ) {
+    const activeTb =
+      (typeof overrideTb === 'string' ? (overrideTb as TextbookId) : null) ||
+      textbook;
+    if (!sessionToken || !activeTb) return;
+    const selectedTextbook = textbooks.find((item) => item.id === activeTb);
     if (!selectedTextbook?.available) {
       setStatus(
         `${selectedTextbook?.title ?? '선택한 교재'}는 아직 준비 중입니다.`,
       );
       return;
     }
-    if (textbook === 'olympus-calculus' && olympusItems.length === 0) {
-      setStatus('올림포스 문항을 목록에 추가한 뒤 미리보기를 갱신하세요.');
-      return;
+    let curOlympus = olympusItems;
+    if (activeTb === 'olympus-calculus' && curOlympus.length === 0) {
+      curOlympus = [
+        {
+          id: Date.now(),
+          unit: olympusUnit,
+          problemType: olympusType,
+          numbers: '1-4',
+          count: 4,
+        },
+      ];
+      setOlympusItems(curOlympus);
     }
-    if (textbook === 'blacklabel-middle-2-2' && blacklabelItems.length === 0) {
-      setStatus('블랙라벨 문항을 목록에 추가한 뒤 미리보기를 갱신하세요.');
-      return;
+    let curBlacklabel = blacklabelItems;
+    if (activeTb === 'blacklabel-middle-2-2' && curBlacklabel.length === 0) {
+      curBlacklabel = [
+        {
+          id: Date.now(),
+          chapter: blacklabelChapter,
+          subunit: blacklabelSubunit,
+          stage: blacklabelStage,
+          numbers: '1-3',
+          count: 3,
+        },
+      ];
+      setBlacklabelItems(curBlacklabel);
     }
-    if (textbook === 'concept-middle-2-2' && conceptItems.length === 0) {
-      setStatus('개념유형파워 문항을 목록에 추가한 뒤 미리보기를 갱신하세요.');
-      return;
+    let curConcept = conceptItems;
+    if (activeTb === 'concept-middle-2-2' && curConcept.length === 0) {
+      curConcept = [
+        {
+          id: Date.now(),
+          chapter: conceptChapter,
+          subunit: conceptSubunit,
+          stage: conceptStage,
+          numbers: '1-3',
+          count: 3,
+        },
+      ];
+      setConceptItems(curConcept);
     }
+    let curNumbers = numbers;
+    if (activeTb === 'ssen-middle-2-2') {
+      const parsed = parsedProblemNumbers;
+      if (parsed.length === 0 || parsed.some((n) => n < 21 || n > 1142)) {
+        curNumbers = '21, 22, 23, 24';
+        setNumbers(curNumbers);
+      }
+    } else if (
+      activeTb !== 'blacklabel-middle-2-2' &&
+      activeTb !== 'concept-middle-2-2' &&
+      activeTb !== 'olympus-calculus'
+    ) {
+      const parsed = parsedProblemNumbers;
+      if (parsed.length === 0 || parsed.some((n) => n < 1)) {
+        curNumbers = '1, 2, 3, 4';
+        setNumbers(curNumbers);
+      }
+    }
+
     const activePreviewStudent =
       studentMode === 'batch'
         ? parsedBatchStudentNames[0] || '학생'
@@ -685,21 +819,21 @@ export default function Home() {
           Authorization: `Bearer ${sessionToken}`,
         },
         body: JSON.stringify({
-          textbook,
+          textbook: activeTb,
           student: activePreviewStudent,
           studentNames: studentMode === 'batch' ? parsedBatchStudentNames : [student],
           isBatch: false,
           preview: true,
           grade,
-          numbers,
+          numbers: curNumbers,
           olympusUnit,
           olympusType,
-          olympusItems: olympusItems.map(({ unit, problemType, numbers }) => ({
+          olympusItems: curOlympus.map(({ unit, problemType, numbers }) => ({
             unit,
             problemType,
             numbers,
           })),
-          blacklabelItems: blacklabelItems.map(
+          blacklabelItems: curBlacklabel.map(
             ({ chapter, subunit, stage, numbers }) => ({
               chapter,
               subunit,
@@ -707,7 +841,7 @@ export default function Home() {
               numbers,
             }),
           ),
-          conceptItems: conceptItems.map(
+          conceptItems: curConcept.map(
             ({ chapter, subunit, stage, numbers }) => ({
               chapter,
               subunit,
@@ -754,6 +888,13 @@ export default function Home() {
       setPreviewLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (sessionToken && textbook) {
+      void handleRefreshPreview(textbook);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [textbook, sessionToken]);
 
   async function handleDownloadPdf() {
     if (!sessionToken || !textbook) return;
@@ -1332,8 +1473,7 @@ export default function Home() {
                       onClick={() => {
                         setDepartment('high');
                         if (textbooks.find((t) => t.id === textbook)?.department !== 'high') {
-                          setTextbook('synergy-calculus');
-                          setPreviewPdfUrl(null);
+                          selectTextbook('synergy-calculus');
                         }
                       }}
                       className={`flex-1 py-1.5 px-3 text-xs font-bold rounded-md transition-all cursor-pointer ${
@@ -1349,8 +1489,7 @@ export default function Home() {
                       onClick={() => {
                         setDepartment('middle');
                         if (textbooks.find((t) => t.id === textbook)?.department !== 'middle') {
-                          setTextbook('ssen-middle-2-2');
-                          setPreviewPdfUrl(null);
+                          selectTextbook('ssen-middle-2-2');
                         }
                       }}
                       className={`flex-1 py-1.5 px-3 text-xs font-bold rounded-md transition-all cursor-pointer ${
@@ -1368,11 +1507,7 @@ export default function Home() {
                       className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-lg text-slate-100 text-sm outline-none transition-all cursor-pointer"
                       value={textbook}
                       onChange={(e) => {
-                        const nextTb = e.target.value as TextbookId;
-                        setTextbook(nextTb);
-                        const nextDept = textbooks.find((t) => t.id === nextTb)?.department;
-                        if (nextDept) setDepartment(nextDept);
-                        setPreviewPdfUrl(null);
+                        selectTextbook(e.target.value as TextbookId);
                       }}
                     >
                       {textbooks
@@ -1911,24 +2046,41 @@ export default function Home() {
                       <div>
                         <div className="flex items-center justify-between mb-1.5">
                           <label htmlFor="hs-problem-numbers" className="text-xs font-semibold text-slate-300">
-                            문제 번호 입력 (쉼표, 범위 지원)
+                            {textbook === 'ssen-middle-2-2'
+                              ? '문제 번호 입력 (쎈 2-2: 21 ~ 1142번 문항 제공)'
+                              : '문제 번호 입력 (쉼표, 범위 지원)'}
                           </label>
                           <span className="text-xs text-slate-400">
-                            예:{' '}
-                            <code className="bg-slate-800 text-blue-300 px-1 py-0.5 rounded">
-                              1-8
-                            </code>
-                            ,{' '}
-                            <code className="bg-slate-800 text-blue-300 px-1 py-0.5 rounded">
-                              1, 3, 5-10
-                            </code>
+                            {textbook === 'ssen-middle-2-2' ? (
+                              <>
+                                예:{' '}
+                                <code className="bg-slate-800 text-emerald-300 px-1 py-0.5 rounded">
+                                  21-28
+                                </code>
+                                ,{' '}
+                                <code className="bg-slate-800 text-emerald-300 px-1 py-0.5 rounded">
+                                  21, 25, 30
+                                </code>
+                              </>
+                            ) : (
+                              <>
+                                예:{' '}
+                                <code className="bg-slate-800 text-blue-300 px-1 py-0.5 rounded">
+                                  1-8
+                                </code>
+                                ,{' '}
+                                <code className="bg-slate-800 text-blue-300 px-1 py-0.5 rounded">
+                                  1, 3, 5-10
+                                </code>
+                              </>
+                            )}
                           </span>
                         </div>
                         <textarea
                           id="hs-problem-numbers"
                           className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg text-slate-100 font-mono text-sm outline-none transition-all"
                           rows={2}
-                          placeholder="1-8"
+                          placeholder={textbook === 'ssen-middle-2-2' ? '21-28' : '1-8'}
                           value={numbers}
                           onChange={(e) => setNumbers(e.target.value)}
                         />
@@ -2144,7 +2296,7 @@ export default function Home() {
                 <button
                   type="button"
                   className="flex-1 min-w-[130px] flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-[#1B1E2B] hover:bg-[#242938] border border-[#242938] hover:border-slate-600 text-slate-200 hover:text-white transition-all cursor-pointer disabled:opacity-50"
-                  onClick={handleRefreshPreview}
+                  onClick={() => void handleRefreshPreview()}
                   disabled={previewLoading || busy}
                 >
                   <RefreshCw
@@ -2302,6 +2454,16 @@ export default function Home() {
                         <span className="text-slate-300">{testDate}</span>
                       </div>
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={() => void handleRefreshPreview()}
+                      disabled={previewLoading || busy}
+                      className="mt-4 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-500/30 transition-all cursor-pointer flex items-center gap-2"
+                    >
+                      <RefreshCw className={`size-4 ${previewLoading ? 'animate-spin' : ''}`} />
+                      지금 실시간 미리보기 생성
+                    </button>
                   </div>
                 )}
               </div>
@@ -2508,7 +2670,7 @@ export default function Home() {
                         );
                         return;
                       }
-                      setTextbook(item.id);
+                      selectTextbook(item.id);
                       setStatus('학생 정보와 문제번호를 입력하세요.');
                     }}
                     className="textbook-row group"
