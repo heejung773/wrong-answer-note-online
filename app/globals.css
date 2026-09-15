@@ -430,6 +430,10 @@ select {
 .generator-canvas .generator-actions button {
   font-size: 0.875rem !important;
 }
+.generator-canvas select,
+.generator-canvas option {
+  font-size: 0.7rem !important;
+}
 .generator-canvas button,
 .generator-canvas label,
 .generator-canvas select,
