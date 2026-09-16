@@ -446,9 +446,10 @@ select {
 .login-intro { color: #ffedd7; padding-left: clamp(0rem, 3vw, 3rem); }
 .login-kicker { display: flex; align-items: center; gap: .65rem; color: #dc8054; font-size: .68rem; font-weight: 800; letter-spacing: .18em; }
 .login-kicker span { width: 2.2rem; height: 1px; background: #dc8054; }
-.login-intro h2 { margin: 1.7rem 0 1.25rem; font-size: clamp(2.7rem, 5.2vw, 5.1rem); font-weight: 500; letter-spacing: -.065em; line-height: 1.04; }
-.login-intro h2 em { color: #e66b42; font-style: normal; }
-.login-intro p { color: #ad9581; font-size: 1rem; line-height: 1.9; }
+.login-intro h2 { margin: 1.7rem 0 1.25rem; font-size: clamp(2.7rem, 5.2vw, 5.1rem); font-weight: 600; letter-spacing: -.065em; line-height: 1.04; }
+.login-intro-soft { display: block; color: #ffdca7; white-space: nowrap; }
+.login-intro h2 em { display: block; color: #ee6944; font-style: normal; }
+.login-intro p { color: #d9c1a8; font-size: 1.2rem; font-weight: 700; line-height: 1.8; }
 .login-intro-rule { width: 100%; max-width: 18rem; margin-top: 3.7rem; border-top: 1px dashed #514033; }
 .login-intro-caption { display: block; margin-top: .85rem; color: #786556; font-size: .62rem; letter-spacing: .16em; }
 .login-card { border: 1px solid #e8d9cc !important; border-radius: 1.5rem !important; background: rgba(255, 250, 246, .97) !important; box-shadow: 0 24px 70px rgba(0, 0, 0, .28) !important; }
@@ -470,7 +471,7 @@ select {
 @media (max-width: 760px) {
   .login-stage { grid-template-columns: 1fr; gap: 2rem; min-height: auto; padding: 2rem .25rem 3rem; }
   .login-intro { padding: 0 .5rem; }
-  .login-intro h2 { margin-top: 1rem; font-size: clamp(2.5rem, 12vw, 4rem); }
+  .login-intro h2 { margin-top: 1rem; font-size: clamp(2rem, 9vw, 4rem); }
   .login-intro p, .login-intro-rule, .login-intro-caption { display: none; }
   .login-card { width: 100%; }
 }

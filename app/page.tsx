@@ -3054,7 +3054,7 @@ export default function Home() {
           <section className="login-stage">
             <div className="login-intro">
               <div className="login-kicker"><span /> DASAN MIRAE ACADEMY</div>
-              <h2>오늘의 학습을<br /><em>정리하는 시간</em></h2>
+              <h2><span className="login-intro-soft">오늘의 학습을</span> <em>정리하는 시간</em></h2>
               <p>필요한 문제만 골라 담고,<br />나만의 오답노트를 만들어 보세요.</p>
               <div className="login-intro-rule" />
               <span className="login-intro-caption">SMART REVIEW · SIMPLE PRACTICE</span>
