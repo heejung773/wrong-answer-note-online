@@ -1305,11 +1305,12 @@ export default function Home() {
     }
   }, [textbook, sessionToken]);
 
-  async function handleDownloadPdf() {
+  async function handleDownloadPdf(mode: 'download' | 'print' = 'download') {
     if (!sessionToken || !textbook) return;
     const selectedTextbook = textbooks.find((item) => item.id === textbook);
     if (!selectedTextbook?.available) return;
     const isBatch = studentMode === 'batch' && parsedBatchStudentNames.length > 1;
+    const isBatchPrint = mode === 'print' && isBatch;
     const primaryStudent =
       studentMode === 'batch'
         ? parsedBatchStudentNames[0] || '학생'
@@ -1332,6 +1333,7 @@ export default function Home() {
           student: primaryStudent,
           studentNames: studentMode === 'batch' ? parsedBatchStudentNames : [student],
           isBatch,
+          printBatch: isBatchPrint,
           preview: false,
           grade,
           numbers,
@@ -1398,6 +1400,14 @@ export default function Home() {
         return;
       }
       const blob = await response.blob();
+      if (isBatchPrint) {
+        const printUrl = URL.createObjectURL(blob);
+        const printWin = window.open(printUrl, '_blank');
+        printWin?.focus();
+        printWin?.print();
+        setStatus('학생별 표지가 포함된 통합 인쇄 PDF를 열었습니다.');
+        return;
+      }
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -1419,6 +1429,10 @@ export default function Home() {
   }
 
   async function handlePrintPdf() {
+    if (studentMode === 'batch' && parsedBatchStudentNames.length > 1) {
+      await handleDownloadPdf('print');
+      return;
+    }
     if (previewPdfUrl) {
       const printWin = window.open(previewPdfUrl, '_blank');
       printWin?.focus();
@@ -2777,7 +2791,7 @@ export default function Home() {
                 <button
                   type="button"
                   className="flex-[2] min-w-[210px] flex items-center justify-center gap-2 py-3 px-5 rounded-xl text-sm font-extrabold text-[#160d09] bg-[#63c5ae] hover:bg-[#8bd8c4] border border-[#9be0ce] shadow-lg shadow-[#63c5ae]/20 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer disabled:opacity-50"
-                  onClick={handleDownloadPdf}
+                  onClick={() => void handleDownloadPdf()}
                   disabled={busy || previewLoading}
                 >
                   <FileDown className="size-4" />

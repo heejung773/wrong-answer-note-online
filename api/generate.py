@@ -14,7 +14,7 @@ import uuid
 import zipfile
 
 from PIL import Image
-from pypdf import PdfReader
+from pypdf import PdfReader, PdfWriter
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
@@ -1322,6 +1322,23 @@ class handler(BaseHTTPRequestHandler):
             title_label = cover_title or TEXTBOOKS.get(textbook, {}).get("title", "오답노트")
 
             if is_batch:
+                # 인쇄는 ZIP 대신 학생별 PDF를 하나의 인쇄용 PDF로 합친다.
+                if payload.get("printBatch"):
+                    writer = PdfWriter()
+                    for st_name in unique_students:
+                        for page in PdfReader(BytesIO(make_pdf(st_name))).pages:
+                            writer.add_page(page)
+                    print_buffer = BytesIO()
+                    writer.write(print_buffer)
+                    print_bytes = print_buffer.getvalue()
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/pdf")
+                    self.send_header("Content-Disposition", 'inline; filename="wrong-answer-notes-print.pdf"')
+                    self.send_header("Content-Length", str(len(print_bytes)))
+                    self.end_headers()
+                    self.wfile.write(print_bytes)
+                    return
+
                 zip_buffer = BytesIO()
                 with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
                     for idx, st_name in enumerate(unique_students):
