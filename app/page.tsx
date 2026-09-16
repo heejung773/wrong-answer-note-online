@@ -3000,7 +3000,7 @@ export default function Home() {
         <header
           className={`mb-6 flex items-center justify-between px-5 py-4 ${
             sessionToken && !textbook
-              ? 'border-b border-dashed border-[#40372e] bg-transparent text-[#ffedd7]'
+              ? 'selection-header border-b border-dashed border-[#40372e] bg-transparent text-[#ffedd7]'
               : 'login-header rounded-2xl border bg-white/90 shadow-sm'
           }`}
         >

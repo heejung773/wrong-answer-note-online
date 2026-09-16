@@ -477,6 +477,11 @@ select {
 .login-header-title-accent { position: relative; display: inline-block; color: #2a1912; text-shadow: 0 1px 0 #fff; }
 .login-header-title-accent::after { position: absolute; right: 0; bottom: -.18rem; left: 0; height: .22rem; border-radius: 999px; background: linear-gradient(90deg, #e66b42, #e6a15f); content: ''; opacity: .85; }
 .login-header-caption { display: block; margin-top: .22rem; color: #a5816c; font-size: .55rem; font-weight: 800; letter-spacing: .13em; }
+.selection-header .login-header-academy { font-family: inherit; color: #e66b42 !important; }
+.selection-header .login-header-title { font-family: inherit; color: #ffedd7 !important; font-size: 1.35rem !important; font-weight: 800 !important; letter-spacing: -.08em !important; }
+.selection-header .login-header-title-accent { color: #ffedd7; text-shadow: 0 1px 0 #0006; }
+.selection-header .login-header-title-accent::after { background: linear-gradient(90deg, #e66b42, #45c6aa); opacity: .9; }
+.selection-header img { border: 2px solid #e66b42; box-shadow: 0 0 0 3px #e66b4226; }
 
 @media (max-width: 760px) {
   .login-stage { grid-template-columns: 1fr; gap: 2rem; min-height: auto; padding: 2rem .25rem 3rem; }
