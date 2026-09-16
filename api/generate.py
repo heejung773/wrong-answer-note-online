@@ -1351,7 +1351,10 @@ class handler(BaseHTTPRequestHandler):
             auth = self.headers.get("Authorization", "")
             if not auth.startswith("Bearer "):
                 return self.send_json(401, "로그인이 필요합니다.")
-            verify_user(supabase_url, publishable_key, auth[7:])
+            user = verify_user(supabase_url, publishable_key, auth[7:])
+            user_id = str(user.get("id", ""))
+            if not user_id:
+                raise ValueError("로그인 사용자 정보를 확인할 수 없습니다.")
             length = int(self.headers.get("Content-Length", "0"))
             payload = json.loads(self.rfile.read(length))
             student = str(payload.get("student", "")).strip()
@@ -1537,6 +1540,10 @@ class handler(BaseHTTPRequestHandler):
                     self.send_header("Content-Length", str(len(print_bytes)))
                     self.end_headers()
                     self.wfile.write(print_bytes)
+                    log_usage_event(
+                        supabase_url, secret_key, user_id, "print_started", textbook,
+                        len(numbers), len(unique_students), {"mode": "batch"},
+                    )
                     return
 
                 zip_buffer = BytesIO()
@@ -1551,6 +1558,10 @@ class handler(BaseHTTPRequestHandler):
                 if len(zip_bytes) > 4_300_000:
                     download_url = upload_temporary_file(
                         supabase_url, secret_key, bucket, zip_bytes, "application/zip", "zip"
+                    )
+                    log_usage_event(
+                        supabase_url, secret_key, user_id, "pdf_generated", textbook,
+                        len(numbers), len(unique_students), {"format": "zip"},
                     )
                     return self.send_json_data(
                         200,
@@ -1571,11 +1582,20 @@ class handler(BaseHTTPRequestHandler):
                 self.send_header("Content-Length", str(len(zip_bytes)))
                 self.end_headers()
                 self.wfile.write(zip_bytes)
+                log_usage_event(
+                    supabase_url, secret_key, user_id, "pdf_generated", textbook,
+                    len(numbers), len(unique_students), {"format": "zip"},
+                )
                 return
 
             pdf = make_pdf(unique_students[0])
             if len(pdf) > 4_300_000:
                 download_url = upload_temporary_pdf(supabase_url, secret_key, bucket, pdf)
+                log_usage_event(
+                    supabase_url, secret_key, user_id,
+                    "print_started" if payload.get("printBatch") else "pdf_generated",
+                    textbook, len(numbers), 1, {"format": "pdf", "temporary": True},
+                )
                 return self.send_json_data(
                     200,
                     {
@@ -1589,6 +1609,11 @@ class handler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(pdf)))
             self.end_headers()
             self.wfile.write(pdf)
+            log_usage_event(
+                supabase_url, secret_key, user_id,
+                "print_started" if payload.get("printBatch") else "pdf_generated",
+                textbook, len(numbers), 1, {"format": "pdf"},
+            )
         except KeyError:
             self.send_json(503, "서버 연결 설정이 아직 완료되지 않았습니다.")
         except urllib.error.HTTPError as error:

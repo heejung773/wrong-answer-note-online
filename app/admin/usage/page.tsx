@@ -1,0 +1,161 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
+
+type EventRow = {
+  id: string;
+  user_id: string;
+  event_type: string;
+  textbook: string | null;
+  problem_count: number | null;
+  student_count: number | null;
+  success: boolean;
+  created_at: string;
+};
+
+const labels: Record<string, string> = {
+  pdf_generated: 'PDF 생성',
+  print_started: '바로 인쇄',
+  pdf_downloaded: '다운로드',
+  preview_generated: '미리보기',
+  generation_failed: '생성 실패',
+};
+
+export default function AdminUsagePage() {
+  const [events, setEvents] = useState<EventRow[]>([]);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const supabase = useMemo(() => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+    return url && key ? createClient(url, key) : null;
+  }, []);
+
+  useEffect(() => {
+    void (async () => {
+      if (!supabase) {
+        setError('Supabase 설정이 없습니다.');
+        setLoading(false);
+        return;
+      }
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) {
+        setError('로그인이 필요합니다.');
+        setLoading(false);
+        return;
+      }
+      const response = await fetch('/api/admin/usage', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = (await response.json()) as {
+        events?: EventRow[];
+        error?: string;
+      };
+      if (!response.ok) setError(result.error ?? '조회에 실패했습니다.');
+      else setEvents(result.events ?? []);
+      setLoading(false);
+    })();
+  }, [supabase]);
+
+  const summary = useMemo(() => {
+    const byUser = new Map<
+      string,
+      { generated: number; printed: number; last: string }
+    >();
+    for (const event of events) {
+      const current = byUser.get(event.user_id) ?? {
+        generated: 0,
+        printed: 0,
+        last: event.created_at,
+      };
+      if (event.event_type === 'pdf_generated') current.generated += 1;
+      if (event.event_type === 'print_started') current.printed += 1;
+      if (event.created_at > current.last) current.last = event.created_at;
+      byUser.set(event.user_id, current);
+    }
+    return [...byUser.entries()];
+  }, [events]);
+
+  return (
+    <main className="min-h-screen bg-[#0b0c10] px-5 py-10 text-[#f6efe5] sm:px-10">
+      <div className="mx-auto max-w-6xl">
+        <p className="text-xs uppercase tracking-[0.25em] text-[#d69a63]">
+          Admin
+        </p>
+        <h1 className="mt-2 text-3xl font-semibold">사용량 관리</h1>
+        <p className="mt-2 text-sm text-[#b9b0a6]">
+          PDF 생성과 바로 인쇄 실행 기록입니다.
+        </p>
+        {loading && <p className="mt-8 text-sm text-[#b9b0a6]">불러오는 중…</p>}
+        {error && (
+          <p className="mt-8 rounded-lg border border-red-400/30 bg-red-400/10 p-4 text-sm text-red-200">
+            {error}
+          </p>
+        )}
+        {!loading && !error && (
+          <>
+            <section className="mt-8 grid gap-4 sm:grid-cols-3">
+              <div className="rounded-xl border border-white/10 bg-white/5 p-5">
+                <div className="text-sm text-[#b9b0a6]">사용자 수</div>
+                <div className="mt-2 text-3xl">{summary.length}</div>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-white/5 p-5">
+                <div className="text-sm text-[#b9b0a6]">PDF 생성</div>
+                <div className="mt-2 text-3xl">
+                  {
+                    events.filter((e) => e.event_type === 'pdf_generated')
+                      .length
+                  }
+                </div>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-white/5 p-5">
+                <div className="text-sm text-[#b9b0a6]">바로 인쇄</div>
+                <div className="mt-2 text-3xl">
+                  {
+                    events.filter((e) => e.event_type === 'print_started')
+                      .length
+                  }
+                </div>
+              </div>
+            </section>
+            <div className="mt-8 overflow-x-auto rounded-xl border border-white/10 bg-white/5">
+              <table className="w-full min-w-[760px] text-left text-sm">
+                <thead className="border-b border-white/10 text-[#b9b0a6]">
+                  <tr>
+                    <th className="p-4">사용자 ID</th>
+                    <th className="p-4">실행</th>
+                    <th className="p-4">교재</th>
+                    <th className="p-4">문제 수</th>
+                    <th className="p-4">실행 시간</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {events.map((event) => (
+                    <tr key={event.id} className="border-b border-white/5">
+                      <td className="p-4 font-mono text-xs">{event.user_id}</td>
+                      <td className="p-4">
+                        {labels[event.event_type] ?? event.event_type}
+                      </td>
+                      <td className="p-4">{event.textbook ?? '-'}</td>
+                      <td className="p-4">{event.problem_count ?? '-'}</td>
+                      <td className="p-4 text-[#b9b0a6]">
+                        {new Date(event.created_at).toLocaleString('ko-KR')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {!events.length && (
+                <p className="p-8 text-center text-sm text-[#b9b0a6]">
+                  아직 기록이 없습니다.
+                </p>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </main>
+  );
+}
