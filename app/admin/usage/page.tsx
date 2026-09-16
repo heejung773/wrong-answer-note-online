@@ -28,6 +28,9 @@ export default function AdminUsagePage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [detailPage, setDetailPage] = useState(1);
   const supabase = useMemo(() => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -61,6 +64,13 @@ export default function AdminUsagePage() {
     })();
   }, [supabase]);
 
+  const filteredEvents = useMemo(() => {
+    return events.filter((event) => {
+      const date = event.created_at.slice(0, 10);
+      return (!fromDate || date >= fromDate) && (!toDate || date <= toDate);
+    });
+  }, [events, fromDate, toDate]);
+
   const summary = useMemo(() => {
     const byUser = new Map<
       string,
@@ -72,7 +82,7 @@ export default function AdminUsagePage() {
         last: string;
       }
     >();
-    for (const event of events) {
+    for (const event of filteredEvents) {
       const current = byUser.get(event.user_id) ?? {
         email: event.user_email,
         total: 0,
@@ -88,11 +98,17 @@ export default function AdminUsagePage() {
       byUser.set(event.user_id, current);
     }
     return [...byUser.entries()];
-  }, [events]);
+  }, [filteredEvents]);
 
   const visibleEvents = selectedUserId
-    ? events.filter((event) => event.user_id === selectedUserId)
-    : events;
+    ? filteredEvents.filter((event) => event.user_id === selectedUserId)
+    : filteredEvents;
+  const pageSize = 20;
+  const pageCount = Math.max(1, Math.ceil(visibleEvents.length / pageSize));
+  const pagedEvents = visibleEvents.slice(
+    (detailPage - 1) * pageSize,
+    detailPage * pageSize,
+  );
   const selectedEmail = summary.find(
     ([userId]) => userId === selectedUserId,
   )?.[1].email;
@@ -115,6 +131,46 @@ export default function AdminUsagePage() {
         )}
         {!loading && !error && (
           <>
+            <section className="mt-8 flex flex-wrap items-end gap-3 rounded-xl border border-white/10 bg-white/5 p-4">
+              <label className="text-sm text-[#b9b0a6]">
+                시작일
+                <input
+                  className="mt-1 block rounded-md border border-white/15 bg-black/20 px-3 py-2 text-[#f6efe5]"
+                  type="date"
+                  value={fromDate}
+                  onChange={(event) => {
+                    setFromDate(event.target.value);
+                    setDetailPage(1);
+                  }}
+                />
+              </label>
+              <label className="text-sm text-[#b9b0a6]">
+                종료일
+                <input
+                  className="mt-1 block rounded-md border border-white/15 bg-black/20 px-3 py-2 text-[#f6efe5]"
+                  type="date"
+                  value={toDate}
+                  onChange={(event) => {
+                    setToDate(event.target.value);
+                    setDetailPage(1);
+                  }}
+                />
+              </label>
+              <button
+                className="rounded-md border border-white/15 px-3 py-2 text-sm text-[#f0b77d] hover:bg-white/10"
+                onClick={() => {
+                  setFromDate('');
+                  setToDate('');
+                  setDetailPage(1);
+                }}
+                type="button"
+              >
+                전체 기간
+              </button>
+              <span className="pb-2 text-sm text-[#b9b0a6]">
+                {filteredEvents.length}건 조회
+              </span>
+            </section>
             <section className="mt-8 grid gap-4 sm:grid-cols-3">
               <div className="rounded-xl border border-white/10 bg-white/5 p-5">
                 <div className="text-sm text-[#b9b0a6]">사용자 수</div>
@@ -124,8 +180,9 @@ export default function AdminUsagePage() {
                 <div className="text-sm text-[#b9b0a6]">PDF 생성</div>
                 <div className="mt-2 text-3xl">
                   {
-                    events.filter((e) => e.event_type === 'pdf_generated')
-                      .length
+                    filteredEvents.filter(
+                      (e) => e.event_type === 'pdf_generated',
+                    ).length
                   }
                 </div>
               </div>
@@ -133,8 +190,9 @@ export default function AdminUsagePage() {
                 <div className="text-sm text-[#b9b0a6]">바로 인쇄</div>
                 <div className="mt-2 text-3xl">
                   {
-                    events.filter((e) => e.event_type === 'print_started')
-                      .length
+                    filteredEvents.filter(
+                      (e) => e.event_type === 'print_started',
+                    ).length
                   }
                 </div>
               </div>
@@ -159,7 +217,10 @@ export default function AdminUsagePage() {
                       <td className="p-4">
                         <button
                           className="text-left text-[#f0b77d] underline-offset-4 hover:underline"
-                          onClick={() => setSelectedUserId(userId)}
+                          onClick={() => {
+                            setSelectedUserId(userId);
+                            setDetailPage(1);
+                          }}
                           type="button"
                         >
                           {item.email}
@@ -191,7 +252,10 @@ export default function AdminUsagePage() {
                 {selectedUserId && (
                   <button
                     className="text-sm text-[#f0b77d] hover:underline"
-                    onClick={() => setSelectedUserId(null)}
+                    onClick={() => {
+                      setSelectedUserId(null);
+                      setDetailPage(1);
+                    }}
                     type="button"
                   >
                     전체 내역 보기
@@ -209,7 +273,7 @@ export default function AdminUsagePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {visibleEvents.map((event) => (
+                  {pagedEvents.map((event) => (
                     <tr key={event.id} className="border-b border-white/5">
                       <td className="p-4">{event.user_email}</td>
                       <td className="p-4">
@@ -228,6 +292,29 @@ export default function AdminUsagePage() {
                 <p className="p-8 text-center text-sm text-[#b9b0a6]">
                   아직 기록이 없습니다.
                 </p>
+              )}
+              {pageCount > 1 && (
+                <div className="flex items-center justify-center gap-4 p-4 text-sm">
+                  <button
+                    className="rounded-md border border-white/15 px-3 py-2 disabled:opacity-40"
+                    disabled={detailPage === 1}
+                    onClick={() => setDetailPage((page) => page - 1)}
+                    type="button"
+                  >
+                    이전
+                  </button>
+                  <span>
+                    {detailPage} / {pageCount} 페이지
+                  </span>
+                  <button
+                    className="rounded-md border border-white/15 px-3 py-2 disabled:opacity-40"
+                    disabled={detailPage === pageCount}
+                    onClick={() => setDetailPage((page) => page + 1)}
+                    type="button"
+                  >
+                    다음
+                  </button>
+                </div>
               )}
             </div>
           </>
