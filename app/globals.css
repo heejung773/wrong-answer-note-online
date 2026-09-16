@@ -479,8 +479,8 @@ select {
 .login-header-caption { display: block; margin-top: .22rem; color: #a5816c; font-size: .55rem; font-weight: 800; letter-spacing: .13em; }
 .selection-header .login-header-academy { font-family: inherit; color: #e66b42 !important; }
 .selection-header .login-header-title { font-family: inherit; color: #ffedd7 !important; font-size: 1.35rem !important; font-weight: 800 !important; letter-spacing: -.08em !important; }
-.selection-header .login-header-title-accent { color: #ffedd7; text-shadow: 0 1px 0 #0006; }
-.selection-header .login-header-title-accent::after { background: linear-gradient(90deg, #e66b42, #45c6aa); opacity: .9; }
+.selection-header .login-header-title-accent { color: #ffedd7 !important; text-shadow: none !important; -webkit-text-stroke: 0 !important; }
+.selection-header .login-header-title-accent::after { right: 0; bottom: -.14rem; left: 0; height: .14rem; background: #e66b42; opacity: 1; }
 .selection-header img { border: 2px solid #e66b42; box-shadow: 0 0 0 3px #e66b4226; }
 
 @media (max-width: 760px) {
