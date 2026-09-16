@@ -19,6 +19,7 @@ import {
   School,
   Trash2,
   Upload,
+  Zap,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -3063,6 +3064,37 @@ export default function Home() {
               <div className="login-kicker"><span /> DASAN MIRAE ACADEMY</div>
               <h2><span className="login-intro-soft">오늘의 학습을</span> <em>정리하는 시간</em></h2>
               <p>필요한 문제만 골라 담고,<br />나만의 오답노트를 만들어 보세요.</p>
+
+              <div className="login-features">
+                <div className="login-feature-item">
+                  <div className="login-feature-icon">
+                    <Zap />
+                  </div>
+                  <div className="login-feature-text">
+                    <strong>초고속 맞춤 제작</strong>
+                    <span>번호만 입력하면 3초 만에 레이아웃 완성</span>
+                  </div>
+                </div>
+                <div className="login-feature-item">
+                  <div className="login-feature-icon">
+                    <BookOpen />
+                  </div>
+                  <div className="login-feature-text">
+                    <strong>중·고등 7종 교재 완비</strong>
+                    <span>시너지·올림포스·쎈·블랙라벨 탑재</span>
+                  </div>
+                </div>
+                <div className="login-feature-item">
+                  <div className="login-feature-icon">
+                    <FileDown />
+                  </div>
+                  <div className="login-feature-text">
+                    <strong>출력 전용 고화질 PDF</strong>
+                    <span>빠른정답 표 자동 포함 및 원클릭 인쇄</span>
+                  </div>
+                </div>
+              </div>
+
               <div className="login-intro-rule" />
               <span className="login-intro-caption">SMART REVIEW · SIMPLE PRACTICE</span>
             </div>
