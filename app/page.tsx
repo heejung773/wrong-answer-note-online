@@ -20,7 +20,6 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -2996,13 +2995,13 @@ export default function Home() {
   return (
     <main
       className={`min-h-screen px-4 py-5 sm:px-7 sm:py-7 ${
-        sessionToken && !textbook ? 'selection-canvas' : ''
+        !textbook ? 'selection-canvas' : ''
       }`}
     >
       <div className="mx-auto max-w-6xl">
         <header
           className={`mb-6 flex items-center justify-between px-5 py-4 ${
-            sessionToken && !textbook
+            !textbook
               ? 'selection-header border-b border-dashed border-[#40372e] bg-transparent text-[#ffedd7]'
               : 'login-header rounded-2xl border bg-white/90 shadow-sm'
           }`}
@@ -3018,7 +3017,7 @@ export default function Home() {
             />
             <div>
               <p
-                className={`login-header-academy ${sessionToken && !textbook ? 'text-[#dc5000]' : sessionToken ? 'text-[#681c32]' : 'text-primary'}`}
+                className={`login-header-academy ${!textbook ? 'text-[#dc5000]' : 'text-primary'}`}
               >
                 다산미래학원
               </p>
@@ -3043,9 +3042,9 @@ export default function Home() {
               <LogOut /> 로그아웃
             </Button>
           ) : (
-            <Badge variant={configured ? 'secondary' : 'outline'}>
+            <span className="rounded-full border border-[#40372e] bg-[#2a1912] px-3 py-1 text-xs font-semibold text-[#f5bd7b]">
               {configured ? '시험 운영' : '연결 준비'}
-            </Badge>
+            </span>
           )}
         </header>
 

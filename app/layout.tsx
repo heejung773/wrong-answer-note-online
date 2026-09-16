@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: '강석수학 오답노트',
-  description: '허가된 사용자를 위한 교재별 오답노트 생성 시험판',
+  title: '다산미래학원 온라인 오답노트',
+  description: '다산미래학원 맞춤형 온라인 오답노트 생성 시스템',
 };
 
 export default function RootLayout({
