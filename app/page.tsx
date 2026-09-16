@@ -451,6 +451,29 @@ const olympusUnits = [
   '4. 도함수의 활용',
 ];
 
+const olympusRanges: Record<string, Record<string, { min: number; max: number; count: number }>> = {
+  '1. 함수의 극한': {
+    유형완성하기: { min: 1, max: 56, count: 56 },
+    서술형완성하기: { min: 1, max: 6, count: 6 },
+    고난도도전: { min: 1, max: 3, count: 3 },
+  },
+  '2. 함수의 연속': {
+    유형완성하기: { min: 1, max: 46, count: 46 },
+    서술형완성하기: { min: 1, max: 6, count: 6 },
+    고난도도전: { min: 1, max: 6, count: 6 },
+  },
+  '3. 미분계수와 도함수': {
+    유형완성하기: { min: 1, max: 72, count: 72 },
+    서술형완성하기: { min: 1, max: 6, count: 6 },
+    고난도도전: { min: 1, max: 4, count: 4 },
+  },
+  '4. 도함수의 활용': {
+    유형완성하기: { min: 1, max: 129, count: 129 },
+    서술형완성하기: { min: 1, max: 6, count: 6 },
+    고난도도전: { min: 1, max: 8, count: 8 },
+  },
+};
+
 const blacklabel31Hierarchy: Record<string, Record<string, string[]>> = {
   '01_제곱근과_실수': {
     '01_제곱근과_실수': ['Step1', 'Step2', 'Step3', 'Step4'],
@@ -2026,6 +2049,11 @@ export default function Home() {
                               </button>
                             ))}
                           </div>
+                          {olympusRanges[olympusUnit]?.[olympusType] && (
+                            <p className="mt-1.5 text-[11px] text-emerald-300">
+                              제공 문항: {olympusRanges[olympusUnit][olympusType].min}~{olympusRanges[olympusUnit][olympusType].max}번 ({olympusRanges[olympusUnit][olympusType].count}문제)
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -2037,7 +2065,7 @@ export default function Home() {
                           <input
                             type="text"
                             className="w-full px-3 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 placeholder-slate-500 text-xs outline-none"
-                            placeholder="번호 입력 (예: 1-5 또는 1, 3, 7)"
+                            placeholder={`번호 입력 (예: 1-5 또는 1, 3, 7) · ${olympusRanges[olympusUnit]?.[olympusType]?.min}~${olympusRanges[olympusUnit]?.[olympusType]?.max}번`}
                             value={olympusQuickInput}
                             onChange={(e) => setOlympusQuickInput(e.target.value)}
                             onKeyDown={(e) => {
@@ -3023,21 +3051,29 @@ export default function Home() {
             </CardContent>
           </Card>
         ) : !sessionToken ? (
-          <section className="mx-auto max-w-md">
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <div className="mb-2 grid size-11 place-items-center rounded-xl bg-blue-50 text-primary">
+          <section className="login-stage">
+            <div className="login-intro">
+              <div className="login-kicker"><span /> DASAN MIRAE ACADEMY</div>
+              <h2>오늘의 학습을<br /><em>정리하는 시간</em></h2>
+              <p>필요한 문제만 골라 담고,<br />나만의 오답노트를 만들어 보세요.</p>
+              <div className="login-intro-rule" />
+              <span className="login-intro-caption">SMART REVIEW · SIMPLE PRACTICE</span>
+            </div>
+            <Card className="login-card">
+              <CardHeader className="login-card-header">
+                <div className="login-lock">
                   <LockKeyhole />
                 </div>
-                <CardTitle className="text-xl">사용자 로그인</CardTitle>
+                <div className="login-card-eyebrow">MEMBER ACCESS</div>
+                <CardTitle className="text-2xl">반가워요</CardTitle>
                 <CardDescription>
-                  관리자에게 받은 아이디와 비밀번호를 입력하세요.
+                  관리자에게 받은 계정으로 로그인해 주세요.
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="login-card-content">
                 <form className="space-y-4" onSubmit={login}>
                   <label htmlFor="login-id" className="block space-y-2">
-                    <span className="font-medium">아이디</span>
+                    <span className="font-medium">아이디 <small>USERNAME</small></span>
                     <Input
                       id="login-id"
                       value={loginId}
@@ -3047,7 +3083,7 @@ export default function Home() {
                     />
                   </label>
                   <label htmlFor="login-password" className="block space-y-2">
-                    <span className="font-medium">비밀번호</span>
+                    <span className="font-medium">비밀번호 <small>PASSWORD</small></span>
                     <Input
                       id="login-password"
                       type="password"
@@ -3066,7 +3102,7 @@ export default function Home() {
                   </Button>
                   <p
                     aria-live="polite"
-                    className="rounded-xl bg-slate-50 p-3 text-sm leading-6 text-slate-700"
+                    className="login-status rounded-xl p-3 text-sm leading-6"
                   >
                     {status}
                   </p>

@@ -430,6 +430,50 @@ select {
 .generator-canvas .generator-actions button {
   font-size: 0.875rem !important;
 }
+
+/* Login: a warmer editorial welcome screen, while keeping the form compact. */
+.login-stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 430px);
+  align-items: center;
+  gap: clamp(3rem, 9vw, 9rem);
+  max-width: 1040px;
+  min-height: min(680px, calc(100vh - 150px));
+  margin: 0 auto;
+  padding: 3rem 2rem 5rem;
+}
+.login-intro { color: #ffedd7; padding-left: clamp(0rem, 3vw, 3rem); }
+.login-kicker { display: flex; align-items: center; gap: .65rem; color: #dc8054; font-size: .68rem; font-weight: 800; letter-spacing: .18em; }
+.login-kicker span { width: 2.2rem; height: 1px; background: #dc8054; }
+.login-intro h2 { margin: 1.7rem 0 1.25rem; font-size: clamp(2.7rem, 5.2vw, 5.1rem); font-weight: 500; letter-spacing: -.065em; line-height: 1.04; }
+.login-intro h2 em { color: #e66b42; font-style: normal; }
+.login-intro p { color: #ad9581; font-size: 1rem; line-height: 1.9; }
+.login-intro-rule { width: 100%; max-width: 18rem; margin-top: 3.7rem; border-top: 1px dashed #514033; }
+.login-intro-caption { display: block; margin-top: .85rem; color: #786556; font-size: .62rem; letter-spacing: .16em; }
+.login-card { border: 1px solid #e8d9cc !important; border-radius: 1.5rem !important; background: rgba(255, 250, 246, .97) !important; box-shadow: 0 24px 70px rgba(0, 0, 0, .28) !important; }
+.login-card-header { padding: 2rem 2rem 1.15rem !important; }
+.login-lock { display: grid; place-items: center; width: 2.9rem; height: 2.9rem; margin-bottom: 1.3rem; border-radius: 1rem; background: #2a1912; color: #e58a5f; }
+.login-lock svg { width: 1.15rem; }
+.login-card-eyebrow { margin-bottom: .4rem; color: #b16d4b; font-size: .62rem; font-weight: 800; letter-spacing: .16em; }
+.login-card-header h2 { color: #251710; letter-spacing: -.04em; }
+.login-card-header p { color: #806f64; }
+.login-card-content { padding: .4rem 2rem 2rem !important; }
+.login-card label > span { color: #3c2b23; font-size: .8rem; }
+.login-card label small { margin-left: .3rem; color: #a18e82; font-size: .58rem; letter-spacing: .08em; }
+.login-card input { height: 3.1rem; border-color: #dfd0c5; border-radius: .85rem; background: #fff; color: #251710; box-shadow: none; }
+.login-card input:focus { border-color: #c7653c; box-shadow: 0 0 0 3px #c7653c1f; }
+.login-card button[type='submit'] { height: 3.15rem; margin-top: .3rem; border-radius: .85rem; background: #2a1912; color: #ffedd7; font-weight: 700; box-shadow: 0 8px 18px #2a191233; }
+.login-card button[type='submit']:hover { background: #4a281a; }
+.login-status { background: #f5eee9; color: #66534a; }
+
+@media (max-width: 760px) {
+  .login-stage { grid-template-columns: 1fr; gap: 2rem; min-height: auto; padding: 2rem .25rem 3rem; }
+  .login-intro { padding: 0 .5rem; }
+  .login-intro h2 { margin-top: 1rem; font-size: clamp(2.5rem, 12vw, 4rem); }
+  .login-intro p, .login-intro-rule, .login-intro-caption { display: none; }
+  .login-card { width: 100%; }
+}
 .generator-canvas select,
 .generator-canvas option {
   font-size: 0.7rem !important;
