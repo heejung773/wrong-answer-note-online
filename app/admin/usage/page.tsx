@@ -6,6 +6,7 @@ import { createClient } from '@supabase/supabase-js';
 type EventRow = {
   id: string;
   user_id: string;
+  user_email: string;
   event_type: string;
   textbook: string | null;
   problem_count: number | null;
@@ -124,7 +125,7 @@ export default function AdminUsagePage() {
               <table className="w-full min-w-[760px] text-left text-sm">
                 <thead className="border-b border-white/10 text-[#b9b0a6]">
                   <tr>
-                    <th className="p-4">사용자 ID</th>
+                    <th className="p-4">사용자 이메일</th>
                     <th className="p-4">실행</th>
                     <th className="p-4">교재</th>
                     <th className="p-4">문제 수</th>
@@ -134,7 +135,7 @@ export default function AdminUsagePage() {
                 <tbody>
                   {events.map((event) => (
                     <tr key={event.id} className="border-b border-white/5">
-                      <td className="p-4 font-mono text-xs">{event.user_id}</td>
+                      <td className="p-4">{event.user_email}</td>
                       <td className="p-4">
                         {labels[event.event_type] ?? event.event_type}
                       </td>

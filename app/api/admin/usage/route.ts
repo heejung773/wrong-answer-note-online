@@ -13,6 +13,8 @@ type UsageEvent = {
   created_at: string;
 };
 
+type AuthUser = { id: string; email?: string };
+
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
 }
@@ -56,5 +58,23 @@ export async function GET(request: NextRequest) {
   if (!eventsResponse.ok)
     return jsonError('사용량 기록을 불러오지 못했습니다.', 502);
   const events = (await eventsResponse.json()) as UsageEvent[];
-  return Response.json({ events });
+  const usersResponse = await fetch(
+    `${url}/auth/v1/admin/users?per_page=1000`,
+    {
+      headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` },
+      cache: 'no-store',
+    },
+  );
+  const users = usersResponse.ok
+    ? (((await usersResponse.json()) as { users?: AuthUser[] }).users ?? [])
+    : [];
+  const emailById = new Map(
+    users.map((authUser) => [authUser.id, authUser.email ?? '이메일 없음']),
+  );
+  return Response.json({
+    events: events.map((event) => ({
+      ...event,
+      user_email: emailById.get(event.user_id) ?? '이메일 없음',
+    })),
+  });
 }
