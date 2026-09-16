@@ -472,8 +472,8 @@ select {
 .login-header > div:first-child { position: relative; z-index: 1; }
 .login-header img { border: 3px solid #fff; box-shadow: 0 0 0 1px #d9c7bb, 0 5px 14px #2a191226; }
 .login-header > div:first-child > div { display: flex; align-items: baseline; flex-wrap: wrap; column-gap: .55rem; row-gap: .1rem; }
-.login-header-academy { margin: 0 !important; color: #d55f3d !important; font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; font-size: 1rem !important; font-weight: 800 !important; letter-spacing: -.06em; }
-.login-header-title { color: #2a1912; font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; font-size: 1.35rem !important; font-weight: 800 !important; letter-spacing: -.08em !important; }
+.login-header-academy { margin: 0 !important; color: #d55f3d !important; font-family: inherit; font-size: 1rem !important; font-weight: 800 !important; letter-spacing: -.06em; }
+.login-header-title { color: #2a1912; font-family: inherit; font-size: 1.35rem !important; font-weight: 800 !important; letter-spacing: -.08em !important; }
 .login-header-title-accent { position: relative; display: inline-block; color: #2a1912; text-shadow: 0 1px 0 #fff; }
 .login-header-title-accent::after { position: absolute; right: 0; bottom: -.18rem; left: 0; height: .22rem; border-radius: 999px; background: linear-gradient(90deg, #e66b42, #e6a15f); content: ''; opacity: .85; }
 .login-header-caption { display: block; margin-top: .22rem; color: #a5816c; font-size: .55rem; font-weight: 800; letter-spacing: .13em; }
