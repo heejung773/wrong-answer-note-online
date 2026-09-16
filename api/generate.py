@@ -12,6 +12,7 @@ import urllib.parse
 import urllib.request
 import uuid
 import zipfile
+from typing import Any
 
 from PIL import Image
 from pypdf import PdfReader, PdfWriter
@@ -29,6 +30,10 @@ TEXTBOOKS = {
         "answer_pages": (1, 7),
         "minimum_answers": 1568,
         "answer_source": "출처: [2022개정] 마플 시너지 미적분1 빠른정답",
+    },
+    "synergy-algebra": {
+        "title": "시너지 대수",
+        "answer_source": "출처: [2022개정] 마플 시너지 대수 빠른정답",
     },
     "synergy-common-math-2": {
         "title": "시너지 공통수학2",
@@ -117,8 +122,13 @@ def parse_problem_tokens(raw: str) -> list[str]:
     return result
 
 
-def request_bytes(url: str, headers: dict[str, str]) -> bytes:
-    request = urllib.request.Request(url, headers=headers)
+def request_bytes(
+    url: str,
+    headers: dict[str, str],
+    data: bytes | None = None,
+    method: str | None = None,
+) -> bytes:
+    request = urllib.request.Request(url, data=data, headers=headers, method=method)
     with urllib.request.urlopen(request, timeout=20) as response:
         return response.read()
 
@@ -191,8 +201,47 @@ def pdf_image_reader(data: bytes, max_width: int, max_height: int) -> ImageReade
     return ImageReader(compact)
 
 
-def verify_user(supabase_url: str, publishable_key: str, token: str) -> None:
-    request_bytes(f"{supabase_url}/auth/v1/user", {"apikey": publishable_key, "Authorization": f"Bearer {token}"})
+def verify_user(supabase_url: str, publishable_key: str, token: str) -> dict:
+    raw = request_bytes(
+        f"{supabase_url}/auth/v1/user",
+        {"apikey": publishable_key, "Authorization": f"Bearer {token}"},
+    )
+    return json.loads(raw.decode("utf-8"))
+
+
+def log_usage_event(
+    supabase_url: str,
+    secret_key: str,
+    user_id: str,
+    event_type: str,
+    textbook: str,
+    problem_count: int,
+    student_count: int,
+    metadata: dict | None = None,
+) -> None:
+    payload = json.dumps(
+        {
+            "user_id": user_id,
+            "event_type": event_type,
+            "textbook": textbook,
+            "problem_count": problem_count,
+            "student_count": student_count,
+            "success": event_type != "generation_failed",
+            "metadata": metadata or {},
+        },
+        ensure_ascii=False,
+    ).encode("utf-8")
+    request_bytes(
+        f"{supabase_url}/rest/v1/usage_events",
+        {
+            "apikey": secret_key,
+            "Authorization": f"Bearer {secret_key}",
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal",
+        },
+        payload,
+        method="POST",
+    )
 
 
 def load_images(supabase_url: str, secret_key: str, bucket: str, textbook: str, numbers: list[int]) -> list[tuple[int, bytes]]:
@@ -200,6 +249,16 @@ def load_images(supabase_url: str, secret_key: str, bucket: str, textbook: str, 
     # Modern sb_secret_ keys are API keys, not JWTs. Send them only as apikey.
     headers = {"apikey": secret_key}
     for number in numbers:
+        if textbook == "synergy-algebra":
+            local_cand = Path(r"D:\시너지_대수\문제모음") / f"{number:04d}.png"
+            if local_cand.is_file():
+                try:
+                    data = local_cand.read_bytes()
+                    Image.open(BytesIO(data)).verify()
+                    images.append((number, data))
+                    continue
+                except Exception:
+                    pass
         object_path = urllib.parse.quote(f"{bucket}/{textbook}/{number:04d}.png", safe="/")
         url = f"{supabase_url}/storage/v1/object/authenticated/{object_path}"
         try:
@@ -252,6 +311,126 @@ def load_quick_answers(supabase_url: str, secret_key: str, bucket: str, textbook
     if len(answers) < config["minimum_answers"]:
         raise ValueError("빠른정답 PDF에서 정답을 완전히 읽지 못했습니다.")
     return answers
+
+
+def crop_synergy_algebra_answer(img_bytes: bytes) -> bytes:
+    """Crops the right-side answer symbol from a synergy-algebra quick answer image, removing near-white background."""
+    with Image.open(BytesIO(img_bytes)).convert("RGBA") as img:
+        w, h = img.size
+        start_x = int(w * 0.30)
+        min_x, min_y, max_x, max_y = w, h, 0, 0
+        found = False
+        for x in range(start_x, w):
+            for y in range(h):
+                r, g, b, _ = img.getpixel((x, y))
+                if r < 160 and g < 160 and b < 160:
+                    found = True
+                    if x < min_x: min_x = x
+                    if x > max_x: max_x = x
+                    if y < min_y: min_y = y
+                    if y > max_y: max_y = y
+        if found:
+            cropped = img.crop((max(0, min_x - 3), max(0, min_y - 3), min(w, max_x + 4), min(h, max_y + 4)))
+        else:
+            cropped = img.crop((int(w * 0.35), 0, w, h))
+
+        cw, ch = cropped.size
+        out = Image.new("RGBA", (cw, ch))
+        for x in range(cw):
+            for y in range(ch):
+                r, g, b, a = cropped.getpixel((x, y))
+                if r > 225 and g > 225 and b > 225:
+                    out.putpixel((x, y), (255, 255, 255, 0))
+                else:
+                    out.putpixel((x, y), (r, g, b, a))
+
+        buf = BytesIO()
+        out.save(buf, format="PNG")
+        return buf.getvalue()
+
+
+def load_synergy_algebra_answers(supabase_url: str, secret_key: str, bucket: str, numbers: list[int]) -> dict[int, bytes]:
+    """Loads and returns cropped answer image bytes for synergy-algebra."""
+    answers: dict[int, bytes] = {}
+    headers = {"apikey": secret_key}
+    for number in numbers:
+        img_bytes = None
+        local_cand = Path(r"D:\시너지_대수\빠른정답모음") / f"{number:04d}.png"
+        if local_cand.is_file():
+            try:
+                img_bytes = local_cand.read_bytes()
+            except Exception:
+                pass
+        if not img_bytes:
+            object_path = urllib.parse.quote(f"{bucket}/synergy-algebra/answers/{number:04d}.png", safe="/")
+            url = f"{supabase_url}/storage/v1/object/authenticated/{object_path}"
+            try:
+                img_bytes = request_bytes(url, headers)
+            except Exception as e:
+                print(f"[-] Supabase answer fetch error (synergy-algebra/{number:04d}):", e)
+        if img_bytes:
+            try:
+                answers[number] = crop_synergy_algebra_answer(img_bytes)
+            except Exception as e:
+                print(f"[-] Error cropping answer for {number}:", e)
+                answers[number] = img_bytes
+    return answers
+
+
+def append_ssen_selected_answers(pdf_data: bytes, numbers: list[int]) -> bytes:
+    """Append only the selected Ssen answers using the verified local answer index."""
+    index_path = Path(__file__).resolve().parent / "ssen_answer_index.json"
+    cache_dir = Path(__file__).resolve().parent / "ssen_answer_cache"
+    if not index_path.exists() or not cache_dir.exists():
+        return pdf_data
+    try:
+        index = {int(k): v for k, v in json.loads(index_path.read_text(encoding="utf-8")).items()}
+    except Exception:
+        return pdf_data
+    writer = PdfWriter()
+    for page in PdfReader(BytesIO(pdf_data)).pages:
+        writer.add_page(page)
+    packet = BytesIO()
+    c = canvas.Canvas(packet, pagesize=A4)
+    left, top = 16 * mm, A4[1] - 18 * mm
+    c.setFillColorRGB(0.12, 0.27, 0.48)
+    pdfmetrics.registerFont(UnicodeCIDFont("HYGothic-Medium"))
+    c.setFont("HYGothic-Medium", 22)
+    c.drawString(left, top, "빠른 정답")
+    c.setFont("HYGothic-Medium", 9)
+    c.setFillColorRGB(0.35, 0.35, 0.35)
+    c.drawRightString(A4[0] - left, top + mm, f"오답 {len(numbers)}문제")
+    c.setStrokeColorRGB(0.12, 0.27, 0.48)
+    c.line(left, top - 4 * mm, A4[0] - left, top - 4 * mm)
+    cols, rows = (2 if len(numbers) <= 24 else 3), math.ceil(len(numbers) / (2 if len(numbers) <= 24 else 3))
+    cell_w = (A4[0] - 2 * left - 5 * mm * (cols - 1)) / cols
+    cell_h = min(11 * mm, (top - 32 * mm) / max(rows, 1))
+    for i, number in enumerate(numbers):
+        col, row = i // rows, i % rows
+        x, y = left + col * (cell_w + 5 * mm), top - 14 * mm - (row + 1) * cell_h
+        c.setFillColorRGB(0.96, 0.97, 0.99 if row % 2 == 0 else 1)
+        c.rect(x, y, cell_w, cell_h, stroke=0, fill=1)
+        c.setFillColorRGB(0.12, 0.12, 0.12)
+        c.setFont("HYGothic-Medium", 10)
+        c.drawString(x + 3 * mm, y + 3.5 * mm, f"No. {number:04d}")
+        item = index.get(number)
+        if item:
+            image = Image.open(cache_dir / f"page_{int(item['page'])}.png")
+            x0, y0 = float(item['x']), float(item['y'])
+            same_row = [v for n, v in index.items() if n != number and int(v['page']) == int(item['page']) and abs(float(v['y']) - y0) < max(12, float(item['h']) * .75) and float(v['x']) > x0]
+            x1 = min(image.width - 5, max(x0 + 70, min((float(v['x']) for v in same_row), default=x0 + 120) - 5))
+            snippet = image.crop((max(0, x0 + 35), max(0, y0 - 4), x1, min(image.height, y0 + float(item['h']) + 5)))
+            iw, ih = snippet.size
+            scale = min((cell_w - 24 * mm) / iw, (cell_h - 2 * mm) / ih)
+            c.drawImage(ImageReader(snippet), x + cell_w - iw * scale - 2.5 * mm, y + (cell_h - ih * scale) / 2, iw * scale, ih * scale, mask="auto")
+    c.setFillColorRGB(0.45, 0.45, 0.45)
+    c.setFont("HYGothic-Medium", 7.5)
+    c.drawString(left, 13.5 * mm, "출처: 쎈 수학 중2하 빠른정답")
+    c.showPage(); c.save(); packet.seek(0)
+    for page in PdfReader(packet).pages:
+        writer.add_page(page)
+    output = BytesIO(); writer.write(output)
+    return output.getvalue()
 
 
 def draw_test_cover(
@@ -310,7 +489,10 @@ def draw_test_cover(
         c.rect(cx + dx * 4 - 1.5, cy + dy * 4 - 1.5, 3, 3, stroke=0, fill=1)
 
     # Top Subject Badge
-    if "미적분" in title or "calculus" in textbook:
+    if "대수" in title or "algebra" in textbook:
+        badge_text = "고등 수학 영역  |  대수"
+        eng_sub = "SYNERGY ALGEBRA CUSTOM TEST" if "시너지" in title else "ALGEBRA CUSTOM TEST"
+    elif "미적분" in title or "calculus" in textbook:
         badge_text = "고등 수학 영역  |  미적분"
         eng_sub = "SYNERGY CALCULUS CUSTOM TEST" if "시너지" in title else "CALCULUS CUSTOM TEST"
     elif "공통수학" in title:
@@ -563,7 +745,7 @@ def draw_footer(c: canvas.Canvas, page_number: int, page_width: float, academy_n
     c.drawRightString(right, 5.2 * mm, str(page_number))
 
 
-def draw_answer_page(c: canvas.Canvas, numbers: list[int], answers: dict[int, str], page_number: int, page_width: float, page_height: float, textbook: str, academy_name: str = "다산미래학원") -> None:
+def draw_answer_page(c: canvas.Canvas, numbers: list[int], answers: dict[int, Any], page_number: int, page_width: float, page_height: float, textbook: str, academy_name: str = "다산미래학원") -> None:
     left = 16 * mm
     right = page_width - 16 * mm
     top = page_height - 18 * mm
@@ -594,11 +776,24 @@ def draw_answer_page(c: canvas.Canvas, numbers: list[int], answers: dict[int, st
         c.setFillColorRGB(0.18, 0.18, 0.18)
         c.setFont("HYSMyeongJo-Medium", 12)
         c.drawString(x + 3 * mm, y + (row_height - 12) / 2 + 1, f"{number:04d}")
-        c.drawRightString(x + column_width - 3 * mm, y + (row_height - 12) / 2 + 1, answers[number])
+
+        ans_val = answers.get(number)
+        if isinstance(ans_val, str):
+            c.drawRightString(x + column_width - 3 * mm, y + (row_height - 12) / 2 + 1, ans_val)
+        elif ans_val:
+            reader = ImageReader(BytesIO(ans_val))
+            iw, ih = reader.getSize()
+            max_w = column_width - 24 * mm
+            max_h = row_height - 2 * mm
+            scale = min(max_w / iw, max_h / ih)
+            dw, dh = iw * scale, ih * scale
+            img_x = x + column_width - dw - 3 * mm
+            img_y = y + (row_height - dh) / 2
+            c.drawImage(reader, img_x, img_y, dw, dh, mask="auto")
 
     c.setFillColorRGB(0.45, 0.45, 0.45)
     c.setFont("HYSMyeongJo-Medium", 7.5)
-    c.drawString(left, 13.5 * mm, TEXTBOOKS[textbook]["answer_source"])
+    c.drawString(left, 13.5 * mm, TEXTBOOKS.get(textbook, {}).get("answer_source", ""))
     draw_footer(c, page_number, page_width, academy_name)
 
 
@@ -1308,7 +1503,9 @@ class handler(BaseHTTPRequestHandler):
                 numbers = parse_numbers(str(payload.get("numbers", "")))
                 images = load_images(supabase_url, secret_key, bucket, textbook, numbers)
                 selected_answers = None
-                if textbook not in ("gojaengi-common-math-2", "ssen-middle-2-2", "ssen-middle-3-1"):
+                if textbook == "synergy-algebra":
+                    selected_answers = load_synergy_algebra_answers(supabase_url, secret_key, bucket, numbers)
+                elif textbook not in ("gojaengi-common-math-2", "ssen-middle-2-2", "ssen-middle-3-1"):
                     all_answers = load_quick_answers(supabase_url, secret_key, bucket, textbook)
                     missing_answers = [number for number in numbers if number not in all_answers]
                     if missing_answers:
@@ -1317,7 +1514,10 @@ class handler(BaseHTTPRequestHandler):
                     selected_answers = {number: all_answers[number] for number in numbers}
 
                 def make_pdf(st: str) -> bytes:
-                    return create_pdf(st, grade, images, selected_answers, textbook, cover_options)
+                    result = create_pdf(st, grade, images, selected_answers, textbook, cover_options)
+                    if textbook == "ssen-middle-2-2":
+                        result = append_ssen_selected_answers(result, numbers)
+                    return result
 
             title_label = cover_title or TEXTBOOKS.get(textbook, {}).get("title", "오답노트")
 

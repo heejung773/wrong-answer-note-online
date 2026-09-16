@@ -1,6 +1,6 @@
 # 프로젝트 상태: 온라인 오답노트 시험판
 
-- 마지막 정리일: 2026-09-15
+- 마지막 정리일: 2026-09-16
 - 프로젝트 위치: `D:\오답노트_온라인_테스트`
 - Git 브랜치: `main`
 - 목적: 로컬에서 검수 완료된 교재를 로그인 기반 온라인 오답노트 서비스로 제공한다.
@@ -10,8 +10,9 @@
 - Next.js 웹 화면, Supabase 로그인, Python ReportLab PDF 생성 API와 Vercel 배포 설정이 있다.
 - 로그인 후 중등부·고등부 선택 화면이 있다.
 - 중등부 화면: 고등부와 동일한 에디토리얼 스타일의 교재 목록 화면으로 구성되었으며, **쎈수학(중2-2)**, **블랙라벨(중2-2)**, **개념유형파워(유형편 중2-2)** 3종 모두 온라인 사용 가능 상태(`available: true`)로 연동 완료되었다.
-- 고등부 화면: 다음 4개 교재가 사용 가능 상태로 등록되어 있다.
+- 고등부 화면: 다음 5개 교재가 사용 가능 상태로 등록되어 있다.
   - 시너지 미적분
+  - 시너지 대수 (1,968제, 2026-09-16 연동 완료)
   - 시너지 공통수학2
   - 올림포스 미적분
   - 고쟁이 공통수학2
@@ -210,6 +211,27 @@
   - `npx tsc --noEmit`: 0 errors.
   - `npm run build`: Next.js 16.3.4 (Turbopack) 프로덕션 빌드 성공.
   - GitHub `main` 푸시 완료.
+
+## 2026-09-16 고등부 시너지 대수(1,968제) 온라인 오답노트 연동 완료
+
+- **고등부 신규 교재 등록 ([app/page.tsx](file:///d:/오답노트_온라인_테스트/app/page.tsx))**:
+  - `TextbookId`에 `'synergy-algebra'` 추가.
+  - 고등부 목록에 `시너지 대수` 등록 (`id: 'synergy-algebra'`, `title: '시너지 대수'`, `subject: '대수'`, `available: true`).
+  - `allTextbookInfo`에 1,968제 메타데이터 연동 (`max_num: 1968`, `desc: '총 1968문항 데이터베이스 연동'`).
+  - 4단계 가이드 레일, 2열 워크스페이스, 실시간 미리보기, 개별/반 전체 일괄 생성, 인쇄 기능과 즉시 연계.
+- **백엔드 PDF 생성 및 빠른정답 엔진 연동 ([api/generate.py](file:///d:/오답노트_온라인_테스트/api/generate.py))**:
+  - `TEXTBOOKS`에 `"synergy-algebra"` 등록 (제목: `시너지 대수`, 출처: `[2022개정] 마플 시너지 대수 빠른정답`).
+  - 표지 생성(`draw_test_cover`): `대수` 또는 `algebra` 선택 시 상단 과목 뱃지 `고등 수학 영역 | 대수` 및 영문 서브타이틀 `SYNERGY ALGEBRA CUSTOM TEST` 자동 매핑.
+  - 문제 이미지 로딩(`load_images`): 로컬 `D:\시너지_대수\문제모음` 존재 시 초고속 우선 로드, 클라우드 환경에서는 Supabase Storage(`synergy-algebra/{number:04d}.png`) 인증 다운로드 지원.
+  - 빠른정답 로딩 및 자동 크롭(`load_synergy_algebra_answers`, `crop_synergy_algebra_answer`):
+    - 순수 Pillow 기반으로 문항 번호 우측의 실제 정답 기호/텍스트 영역을 정밀하게 크롭하고, 배경 흰색을 투명화하여 표 배경색과 완벽히 일치하도록 렌더링.
+    - `draw_answer_page`: 텍스트 정답 외에 이미지 정답(`ImageReader`)을 우측에 최적 비율로 배치 인쇄.
+- **검증 완료**:
+  - `scripts/verify_online_textbooks.py`: 시너지 공통수학2, 시너지 대수, 올림포스 미적분, 고쟁이 공통수학2, 쎈수학, 블랙라벨, 개념유형파워 총 7종 교재 샘플 PDF 생성 100% 정상 통과 (`synergy-algebra`: 3페이지 590,862바이트 정상 검증).
+  - `npx oxlint app`: `Found 0 warnings and 0 errors.` 통과.
+  - `npx tsc --noEmit`: 0 errors 통과.
+  - `npm run build`: Next.js 16.3.4 (Turbopack) 프로덕션 빌드 100% 성공.
+  - `git diff --check`: 통과.
 
 ## 현재 작업 트리 주의사항
 

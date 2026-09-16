@@ -38,6 +38,7 @@ import { Textarea } from '@/components/ui/textarea';
 
 type TextbookId =
   | 'synergy-calculus'
+  | 'synergy-algebra'
   | 'synergy-common-math-2'
   | 'olympus-calculus'
   | 'gojaengi-common-math-2'
@@ -71,6 +72,13 @@ const textbooks: TextbookItem[] = [
     id: 'synergy-calculus',
     title: '시너지 미적분',
     subject: '미적분Ⅰ',
+    available: true,
+    department: 'high',
+  },
+  {
+    id: 'synergy-algebra',
+    title: '시너지 대수',
+    subject: '대수',
     available: true,
     department: 'high',
   },
@@ -531,6 +539,11 @@ const allTextbookInfo: Record<
     max_num: 1200,
     desc: '총 1200문항 데이터베이스 연동',
   },
+  'synergy-algebra': {
+    name: '마플시너지 대수',
+    max_num: 1968,
+    desc: '총 1968문항 데이터베이스 연동',
+  },
   'synergy-common-math-2': {
     name: '마플시너지 공통수학2',
     max_num: 991,
@@ -637,15 +650,6 @@ export default function Home() {
   const [department, setDepartment] = useState<Department | null>(null);
   const [textbook, setTextbook] = useState<TextbookId | null>(null);
 
-  const currentBlacklabelHierarchy =
-    textbook === 'blacklabel-middle-3-1'
-      ? blacklabel31Hierarchy
-      : blacklabelHierarchy;
-
-  const currentConceptHierarchy =
-    textbook === 'concept-middle-3-1'
-      ? concept31Hierarchy
-      : conceptHierarchy;
   const [olympusUnit, setOlympusUnit] = useState(olympusUnits[0]);
   const [olympusType, setOlympusType] = useState('유형완성하기');
   const [olympusItems, setOlympusItems] = useState<OlympusItem[]>([
@@ -745,7 +749,6 @@ export default function Home() {
   const [previewViewMode, setPreviewViewMode] = useState<'Fit' | 'FitH'>('Fit');
   const [previewExpanded, setPreviewExpanded] = useState(false);
   const [optionsCollapsed, setOptionsCollapsed] = useState(true);
-  const [activeStep, setActiveStep] = useState<number>(3);
   const [olympusQuickInput, setOlympusQuickInput] = useState('1-4');
   const [blacklabelQuickInput, setBlacklabelQuickInput] = useState('1-3');
   const [conceptQuickInput, setConceptQuickInput] = useState('1-3');
@@ -813,7 +816,7 @@ export default function Home() {
     const subSlug = `sub${blacklabelSubunit.trim().split(' ')[0]}`;
     const sSlug = blacklabelStageSlugs[blacklabelStage] || 'must';
     return blacklabelRanges[`${cSlug}/${subSlug}/${sSlug}`] || null;
-  }, [blacklabelChapter, blacklabelSubunit, blacklabelStage]);
+  }, [blacklabelChapter, blacklabelSubunit, blacklabelStage, textbook]);
 
   function selectTextbook(nextTb: TextbookId) {
     setTextbook(nextTb);

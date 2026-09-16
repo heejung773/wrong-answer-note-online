@@ -12,6 +12,7 @@ from api import generate
 
 
 COMMON = Path(r"D:\시너지_공통수학2")
+ALGEBRA = Path(r"D:\시너지_대수")
 OLYMPUS = Path(r"D:\올림푸스_미적분")
 GOJAENGI = Path(r"D:\공수2_고쟁이")
 SSEN = Path(r"D:\중등부교재작업\중2학년2학기\쎈수학")
@@ -42,6 +43,11 @@ def main() -> None:
         common_numbers = [1, 990]
         common_images = [(number, read(COMMON / "문제모음" / f"{number:04d}.png")) for number in common_numbers]
         assert_pdf("synergy-common-math-2", generate.create_pdf("테스트", "2학년", common_images, {n: common_answers[n] for n in common_numbers}, "synergy-common-math-2"), 3)
+
+        algebra_numbers = [1, 100, 1968]
+        algebra_images = [(number, read(ALGEBRA / "문제모음" / f"{number:04d}.png")) for number in algebra_numbers]
+        algebra_answers = generate.load_synergy_algebra_answers("https://local", "secret", "bucket", algebra_numbers)
+        assert_pdf("synergy-algebra", generate.create_pdf("테스트", "2학년", algebra_images, algebra_answers, "synergy-algebra"), 3)
 
         olympus_answer = read(OLYMPUS / "EBS 올림포스 유형편 미적분Ⅰ (22개정) - 해설.pdf")
         generate.request_bytes = lambda url, headers: olympus_answer
