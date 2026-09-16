@@ -63,14 +63,24 @@ export default function AdminUsagePage() {
   const summary = useMemo(() => {
     const byUser = new Map<
       string,
-      { generated: number; printed: number; last: string }
+      {
+        email: string;
+        total: number;
+        generated: number;
+        printed: number;
+        last: string;
+      }
     >();
     for (const event of events) {
       const current = byUser.get(event.user_id) ?? {
+        email: event.user_email,
+        total: 0,
         generated: 0,
         printed: 0,
         last: event.created_at,
       };
+      current.email = event.user_email;
+      current.total += 1;
       if (event.event_type === 'pdf_generated') current.generated += 1;
       if (event.event_type === 'print_started') current.printed += 1;
       if (event.created_at > current.last) current.last = event.created_at;
@@ -121,6 +131,40 @@ export default function AdminUsagePage() {
                 </div>
               </div>
             </section>
+            <div className="mt-8 overflow-x-auto rounded-xl border border-white/10 bg-white/5">
+              <h2 className="border-b border-white/10 p-4 text-lg font-medium">
+                사용자별 총 실행 횟수
+              </h2>
+              <table className="w-full min-w-[680px] text-left text-sm">
+                <thead className="border-b border-white/10 text-[#b9b0a6]">
+                  <tr>
+                    <th className="p-4">사용자 이메일</th>
+                    <th className="p-4">총 실행</th>
+                    <th className="p-4">PDF 생성</th>
+                    <th className="p-4">바로 인쇄</th>
+                    <th className="p-4">마지막 실행</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {summary.map(([userId, item]) => (
+                    <tr key={userId} className="border-b border-white/5">
+                      <td className="p-4">{item.email}</td>
+                      <td className="p-4 font-semibold">{item.total}회</td>
+                      <td className="p-4">{item.generated}회</td>
+                      <td className="p-4">{item.printed}회</td>
+                      <td className="p-4 text-[#b9b0a6]">
+                        {new Date(item.last).toLocaleString('ko-KR')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {!summary.length && (
+                <p className="p-8 text-center text-sm text-[#b9b0a6]">
+                  아직 기록이 없습니다.
+                </p>
+              )}
+            </div>
             <div className="mt-8 overflow-x-auto rounded-xl border border-white/10 bg-white/5">
               <table className="w-full min-w-[760px] text-left text-sm">
                 <thead className="border-b border-white/10 text-[#b9b0a6]">
