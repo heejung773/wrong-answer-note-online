@@ -446,9 +446,9 @@ select {
 .login-intro { color: #ffedd7; padding-left: clamp(0rem, 3vw, 3rem); }
 .login-kicker { display: flex; align-items: center; gap: .65rem; color: #dc8054; font-size: .68rem; font-weight: 800; letter-spacing: .18em; }
 .login-kicker span { width: 2.2rem; height: 1px; background: #dc8054; }
-.login-intro h2 { margin: 1.7rem 0 1.25rem; font-size: clamp(2.5rem, 4.5vw, 4.35rem); font-weight: 600; letter-spacing: -.07em; line-height: 1.04; }
+.login-intro h2 { margin: 1.7rem 0 1.25rem; font-size: clamp(2.5rem, 4.5vw, 4.35rem); font-weight: 600; letter-spacing: -.07em; line-height: 1.16; }
 .login-intro-soft { display: block; color: #f5bd7b; white-space: nowrap; }
-.login-intro h2 em { display: block; color: #ee6944; font-style: normal; }
+.login-intro h2 em { display: block; color: #ee6944; font-style: normal; white-space: nowrap; }
 .login-intro p { color: #d9c1a8; font-size: 1.2rem; font-weight: 700; line-height: 1.8; }
 .login-intro-rule { width: 100%; max-width: 18rem; margin-top: 3.7rem; border-top: 1px dashed #514033; }
 .login-intro-caption { display: block; margin-top: .85rem; color: #786556; font-size: .62rem; letter-spacing: .16em; }
@@ -467,6 +467,12 @@ select {
 .login-card button[type='submit'] { height: 3.15rem; margin-top: .3rem; border-radius: .85rem; background: #2a1912; color: #ffedd7; font-weight: 700; box-shadow: 0 8px 18px #2a191233; }
 .login-card button[type='submit']:hover { background: #4a281a; }
 .login-status { background: #f5eee9; color: #66534a; }
+.login-header { position: relative; overflow: hidden; border-color: #eadfd7 !important; background: rgba(255, 252, 249, .94) !important; }
+.login-header::after { position: absolute; right: 1.25rem; bottom: 0; left: 1.25rem; height: 2px; background: linear-gradient(90deg, #2a1912 0 22%, #e66b42 22% 58%, #45c6aa 58% 100%); content: ''; opacity: .8; }
+.login-header > div:first-child { position: relative; z-index: 1; }
+.login-header img { border: 3px solid #fff; box-shadow: 0 0 0 1px #d9c7bb, 0 5px 14px #2a191226; }
+.login-header h1 { color: #2a1912; }
+.login-header-caption { display: block; margin-top: .22rem; color: #a5816c; font-size: .55rem; font-weight: 800; letter-spacing: .13em; }
 
 @media (max-width: 760px) {
   .login-stage { grid-template-columns: 1fr; gap: 2rem; min-height: auto; padding: 2rem .25rem 3rem; }

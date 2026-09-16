@@ -3001,7 +3001,7 @@ export default function Home() {
           className={`mb-6 flex items-center justify-between px-5 py-4 ${
             sessionToken && !textbook
               ? 'border-b border-dashed border-[#40372e] bg-transparent text-[#ffedd7]'
-              : 'rounded-2xl border bg-white/90 shadow-sm'
+              : 'login-header rounded-2xl border bg-white/90 shadow-sm'
           }`}
         >
           <div className="flex items-center gap-3">
@@ -3022,6 +3022,9 @@ export default function Home() {
               <h1 className="text-xl font-bold tracking-tight">
                 {sessionToken ? '온라인 오답노트 만들기' : '온라인 오답노트'}
               </h1>
+              {!sessionToken && (
+                <span className="login-header-caption">PERSONALIZED REVIEW SYSTEM</span>
+              )}
             </div>
           </div>
           {sessionToken ? (
