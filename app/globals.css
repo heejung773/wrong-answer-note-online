@@ -471,7 +471,9 @@ select {
 .login-header::after { position: absolute; right: 1.25rem; bottom: 0; left: 1.25rem; height: 2px; background: linear-gradient(90deg, #2a1912 0 22%, #e66b42 22% 58%, #45c6aa 58% 100%); content: ''; opacity: .8; }
 .login-header > div:first-child { position: relative; z-index: 1; }
 .login-header img { border: 3px solid #fff; box-shadow: 0 0 0 1px #d9c7bb, 0 5px 14px #2a191226; }
-.login-header h1 { color: #2a1912; }
+.login-header > div:first-child > div { display: flex; align-items: baseline; flex-wrap: wrap; column-gap: .55rem; row-gap: .1rem; }
+.login-header-academy { margin: 0 !important; color: #d55f3d !important; font-family: Georgia, 'Noto Serif KR', serif; font-size: 1.02rem !important; font-weight: 800 !important; letter-spacing: -.04em; }
+.login-header-title { color: #2a1912; font-family: Georgia, 'Noto Serif KR', serif; font-size: 1.45rem !important; font-weight: 800 !important; letter-spacing: -.065em !important; }
 .login-header-caption { display: block; margin-top: .22rem; color: #a5816c; font-size: .55rem; font-weight: 800; letter-spacing: .13em; }
 
 @media (max-width: 760px) {
@@ -480,6 +482,8 @@ select {
   .login-intro h2 { margin-top: 1rem; font-size: clamp(2rem, 9vw, 4rem); }
   .login-intro p, .login-intro-rule, .login-intro-caption { display: none; }
   .login-card { width: 100%; }
+  .login-header-academy { font-size: .9rem !important; }
+  .login-header-title { font-size: 1.2rem !important; }
 }
 .generator-canvas select,
 .generator-canvas option {

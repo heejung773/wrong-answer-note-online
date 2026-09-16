@@ -3015,11 +3015,11 @@ export default function Home() {
             />
             <div>
               <p
-                className={`text-sm font-semibold ${sessionToken && !textbook ? 'text-[#dc5000]' : sessionToken ? 'text-[#681c32]' : 'text-primary'}`}
+                className={`login-header-academy ${sessionToken && !textbook ? 'text-[#dc5000]' : sessionToken ? 'text-[#681c32]' : 'text-primary'}`}
               >
                 다산미래학원
               </p>
-              <h1 className="text-xl font-bold tracking-tight">
+              <h1 className="login-header-title text-xl font-bold tracking-tight">
                 {sessionToken ? '온라인 오답노트 만들기' : '온라인 오답노트'}
               </h1>
               {!sessionToken && (
