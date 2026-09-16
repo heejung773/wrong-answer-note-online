@@ -27,6 +27,7 @@ export default function AdminUsagePage() {
   const [events, setEvents] = useState<EventRow[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const supabase = useMemo(() => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -89,6 +90,13 @@ export default function AdminUsagePage() {
     return [...byUser.entries()];
   }, [events]);
 
+  const visibleEvents = selectedUserId
+    ? events.filter((event) => event.user_id === selectedUserId)
+    : events;
+  const selectedEmail = summary.find(
+    ([userId]) => userId === selectedUserId,
+  )?.[1].email;
+
   return (
     <main className="min-h-screen bg-[#0b0c10] px-5 py-10 text-[#f6efe5] sm:px-10">
       <div className="mx-auto max-w-6xl">
@@ -148,7 +156,15 @@ export default function AdminUsagePage() {
                 <tbody>
                   {summary.map(([userId, item]) => (
                     <tr key={userId} className="border-b border-white/5">
-                      <td className="p-4">{item.email}</td>
+                      <td className="p-4">
+                        <button
+                          className="text-left text-[#f0b77d] underline-offset-4 hover:underline"
+                          onClick={() => setSelectedUserId(userId)}
+                          type="button"
+                        >
+                          {item.email}
+                        </button>
+                      </td>
                       <td className="p-4 font-semibold">{item.total}회</td>
                       <td className="p-4">{item.generated}회</td>
                       <td className="p-4">{item.printed}회</td>
@@ -166,6 +182,22 @@ export default function AdminUsagePage() {
               )}
             </div>
             <div className="mt-8 overflow-x-auto rounded-xl border border-white/10 bg-white/5">
+              <div className="flex items-center justify-between border-b border-white/10 p-4">
+                <h2 className="text-lg font-medium">
+                  {selectedEmail
+                    ? `${selectedEmail} 상세 실행 내역`
+                    : '전체 상세 실행 내역'}
+                </h2>
+                {selectedUserId && (
+                  <button
+                    className="text-sm text-[#f0b77d] hover:underline"
+                    onClick={() => setSelectedUserId(null)}
+                    type="button"
+                  >
+                    전체 내역 보기
+                  </button>
+                )}
+              </div>
               <table className="w-full min-w-[760px] text-left text-sm">
                 <thead className="border-b border-white/10 text-[#b9b0a6]">
                   <tr>
@@ -177,7 +209,7 @@ export default function AdminUsagePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {events.map((event) => (
+                  {visibleEvents.map((event) => (
                     <tr key={event.id} className="border-b border-white/5">
                       <td className="p-4">{event.user_email}</td>
                       <td className="p-4">
@@ -192,7 +224,7 @@ export default function AdminUsagePage() {
                   ))}
                 </tbody>
               </table>
-              {!events.length && (
+              {!visibleEvents.length && (
                 <p className="p-8 text-center text-sm text-[#b9b0a6]">
                   아직 기록이 없습니다.
                 </p>
