@@ -3020,7 +3020,9 @@ export default function Home() {
                 다산미래학원
               </p>
               <h1 className="login-header-title text-xl font-bold tracking-tight">
-                {sessionToken ? '온라인 오답노트 만들기' : '온라인 오답노트'}
+                <span className="login-header-title-accent">
+                  {sessionToken ? '온라인 오답노트 만들기' : '온라인 오답노트'}
+                </span>
               </h1>
               {!sessionToken && (
                 <span className="login-header-caption">PERSONALIZED REVIEW SYSTEM</span>
