@@ -627,7 +627,7 @@ export default function Home() {
   const [sessionToken, setSessionToken] = useState('');
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
-  const [student, setStudent] = useState('홍길동');
+  const [student, setStudent] = useState('');
   const [grade, setGrade] = useState('1학년');
   const [studentMode, setStudentMode] = useState<'single' | 'batch'>('single');
   const [studentNamesText, setStudentNamesText] = useState(
@@ -788,7 +788,7 @@ export default function Home() {
     return Array.from(
       new Set(
         studentNamesText
-          .split('\n')
+          .split(/[\n,]+/)
           .map((n) => n.trim())
           .filter(Boolean),
       ),
