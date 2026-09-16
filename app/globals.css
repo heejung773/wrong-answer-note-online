@@ -446,7 +446,7 @@ select {
 .login-intro { color: #ffedd7; padding-left: clamp(0rem, 3vw, 3rem); }
 .login-kicker { display: flex; align-items: center; gap: .65rem; color: #dc8054; font-size: .68rem; font-weight: 800; letter-spacing: .18em; }
 .login-kicker span { width: 2.2rem; height: 1px; background: #dc8054; }
-.login-intro h2 { margin: 1.7rem 0 1.25rem; font-size: clamp(2.5rem, 4.5vw, 4.35rem); font-weight: 600; letter-spacing: -.07em; line-height: 1.16; }
+.login-intro h2 { margin: 1.7rem 0 1.25rem; font-size: clamp(2.25rem, 3.8vw, 3.65rem); font-weight: 600; letter-spacing: -.07em; line-height: 1.2; }
 .login-intro-soft { display: block; color: #f5bd7b; white-space: nowrap; }
 .login-intro h2 em { display: block; color: #ee6944; font-style: normal; white-space: nowrap; }
 .login-intro p { color: #d9c1a8; font-size: 1.2rem; font-weight: 700; line-height: 1.8; }
