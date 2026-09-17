@@ -65,8 +65,16 @@ export default function AdminUsagePage() {
         events?: EventRow[];
         error?: string;
       };
-      if (!response.ok) setError(result.error ?? '조회에 실패했습니다.');
-      else setEvents(result.events ?? []);
+      if (!response.ok) {
+        if (response.status === 403) {
+          setLoginRequired(true);
+          setError(
+            '현재 계정은 관리자가 아닙니다. 관리자 계정으로 로그인해 주세요.',
+          );
+        } else {
+          setError(result.error ?? '조회에 실패했습니다.');
+        }
+      } else setEvents(result.events ?? []);
       setLoading(false);
     })();
   }, [supabase]);
