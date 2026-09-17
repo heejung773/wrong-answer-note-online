@@ -1394,6 +1394,14 @@ export default function Home() {
     }
   }, [textbook, sessionToken]);
 
+  useEffect(() => {
+    if (!sessionToken || !textbook) return;
+    const timer = window.setTimeout(() => {
+      void handleRefreshPreviewRef.current(textbook);
+    }, 500);
+    return () => window.clearTimeout(timer);
+  }, [grade, sessionToken, student, textbook]);
+
   async function handleDownloadPdf(mode: 'download' | 'print' = 'download') {
     if (!sessionToken || !textbook) return;
     const selectedTextbook = textbooks.find((item) => item.id === textbook);
