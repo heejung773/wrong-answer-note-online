@@ -1559,10 +1559,11 @@ class handler(BaseHTTPRequestHandler):
                     download_url = upload_temporary_file(
                         supabase_url, secret_key, bucket, zip_bytes, "application/zip", "zip"
                     )
-                    log_usage_event(
-                        supabase_url, secret_key, user_id, "pdf_generated", textbook,
-                        len(numbers), len(unique_students), {"format": "zip"},
-                    )
+                    if not is_preview:
+                        log_usage_event(
+                            supabase_url, secret_key, user_id, "pdf_generated", textbook,
+                            len(numbers), len(unique_students), {"format": "zip"},
+                        )
                     return self.send_json_data(
                         200,
                         {
@@ -1582,20 +1583,22 @@ class handler(BaseHTTPRequestHandler):
                 self.send_header("Content-Length", str(len(zip_bytes)))
                 self.end_headers()
                 self.wfile.write(zip_bytes)
-                log_usage_event(
-                    supabase_url, secret_key, user_id, "pdf_generated", textbook,
-                    len(numbers), len(unique_students), {"format": "zip"},
-                )
+                if not is_preview:
+                    log_usage_event(
+                        supabase_url, secret_key, user_id, "pdf_generated", textbook,
+                        len(numbers), len(unique_students), {"format": "zip"},
+                    )
                 return
 
             pdf = make_pdf(unique_students[0])
             if len(pdf) > 4_300_000:
                 download_url = upload_temporary_pdf(supabase_url, secret_key, bucket, pdf)
-                log_usage_event(
-                    supabase_url, secret_key, user_id,
-                    "print_started" if payload.get("printBatch") else "pdf_generated",
-                    textbook, len(numbers), 1, {"format": "pdf", "temporary": True},
-                )
+                if not is_preview:
+                    log_usage_event(
+                        supabase_url, secret_key, user_id,
+                        "print_started" if payload.get("printBatch") else "pdf_generated",
+                        textbook, len(numbers), 1, {"format": "pdf", "temporary": True},
+                    )
                 return self.send_json_data(
                     200,
                     {
@@ -1609,11 +1612,12 @@ class handler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(pdf)))
             self.end_headers()
             self.wfile.write(pdf)
-            log_usage_event(
-                supabase_url, secret_key, user_id,
-                "print_started" if payload.get("printBatch") else "pdf_generated",
-                textbook, len(numbers), 1, {"format": "pdf"},
-            )
+            if not is_preview:
+                log_usage_event(
+                    supabase_url, secret_key, user_id,
+                    "print_started" if payload.get("printBatch") else "pdf_generated",
+                    textbook, len(numbers), 1, {"format": "pdf"},
+                )
         except KeyError:
             self.send_json(503, "서버 연결 설정이 아직 완료되지 않았습니다.")
         except urllib.error.HTTPError as error:
