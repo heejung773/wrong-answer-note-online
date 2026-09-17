@@ -910,10 +910,18 @@ def create_olympus_pdf(student: str, grade: str, items: list[tuple[str, str, int
         draw_cover(c, student, grade, width, height, "olympus-calculus", opts_with_prob)
         c.showPage()
     side, bottom, gap = 10 * mm, 14 * mm, 5 * mm
-    normal_items = [item for item in items if item[1] != "고난도도전"]
-    wide_items = [item for item in items if item[1] == "고난도도전"]
-    groups = [normal_items[i:i + 4] for i in range(0, len(normal_items), 4)]
-    groups.extend(wide_items[i:i + 4] for i in range(0, len(wide_items), 4))
+    groups = []
+    current_group = []
+    current_wide = None
+    for item in items:
+        item_wide = item[1] == "고난도도전"
+        if current_group and (item_wide != current_wide or len(current_group) >= 4):
+            groups.append(current_group)
+            current_group = []
+        current_group.append(item)
+        current_wide = item_wide
+    if current_group:
+        groups.append(current_group)
     normal_w = (width - side * 2 - gap) / 2
     for page_index, group in enumerate(groups, start=1):
         wide = group[0][1] == "고난도도전"
@@ -941,7 +949,7 @@ def create_olympus_pdf(student: str, grade: str, items: list[tuple[str, str, int
         c.showPage()
     selected = [
         (unit, problem_type, number, answers.get((int(unit.split(".", 1)[0]), problem_type, number)))
-        for unit, problem_type, number, _ in normal_items + wide_items
+        for unit, problem_type, number, _ in items
     ]
     missing = [f"{unit} / {problem_type} / {number}번" for unit, problem_type, number, answer in selected if not answer]
     if missing:
