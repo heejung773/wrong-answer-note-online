@@ -935,7 +935,8 @@ def create_olympus_pdf(student: str, grade: str, items: list[tuple[str, str, int
             iw, ih = reader.getSize()
             scale = min((box_w - 6 * mm) / iw, (box_h - 14 * mm) / ih)
             dw, dh = iw * scale, ih * scale
-            c.drawImage(reader, x + (box_w - dw) / 2, y + box_h - 10 * mm - dh, dw, dh, preserveAspectRatio=True)
+            top_padding = 8 * mm if wide else 10 * mm
+            c.drawImage(reader, x + (box_w - dw) / 2, y + box_h - top_padding - dh, dw, dh, preserveAspectRatio=True)
         draw_footer(c, page_index, width, academy_name)
         c.showPage()
     selected = [
