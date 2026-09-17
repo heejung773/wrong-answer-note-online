@@ -910,10 +910,12 @@ def create_olympus_pdf(student: str, grade: str, items: list[tuple[str, str, int
         draw_cover(c, student, grade, width, height, "olympus-calculus", opts_with_prob)
         c.showPage()
     side, bottom, gap = 10 * mm, 14 * mm, 5 * mm
+    # 사용자가 단원을 임의 순서로 추가해도 PDF는 교재 단원 순서로 정렬한다.
+    ordered_items = sorted(items, key=lambda item: int(item[0].split(".", 1)[0]))
     groups = []
     current_group = []
     current_wide = None
-    for item in items:
+    for item in ordered_items:
         item_wide = item[1] == "고난도도전"
         if current_group and (item_wide != current_wide or len(current_group) >= 4):
             groups.append(current_group)
@@ -949,7 +951,7 @@ def create_olympus_pdf(student: str, grade: str, items: list[tuple[str, str, int
         c.showPage()
     selected = [
         (unit, problem_type, number, answers.get((int(unit.split(".", 1)[0]), problem_type, number)))
-        for unit, problem_type, number, _ in items
+        for unit, problem_type, number, _ in ordered_items
     ]
     missing = [f"{unit} / {problem_type} / {number}번" for unit, problem_type, number, answer in selected if not answer]
     if missing:
