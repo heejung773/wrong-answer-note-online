@@ -830,6 +830,13 @@ export default function Home() {
     coverTitle ||
     (textbook ? textbooks.find((t) => t.id === textbook)?.title || '' : '');
 
+  const isMiddleDepartment =
+    (textbook ? textbooks.find((t) => t.id === textbook)?.department : null) ===
+      'middle' || department === 'middle';
+  const defaultLogoSrc = isMiddleDepartment
+    ? '/middle-logo.png'
+    : '/character.png';
+
   const currentConceptRange = useMemo(() => {
     if (textbook === 'concept-middle-3-1') return null;
     const cSlug = `ch${conceptChapter.slice(0, 2)}`;
@@ -923,7 +930,11 @@ export default function Home() {
 
   function handleResetCharacter() {
     setCustomCharacter(null);
-    setStatus('기본 마스코트 캐릭터로 복원되었습니다.');
+    setStatus(
+      isMiddleDepartment
+        ? '중등부 기본 로고로 복원되었습니다.'
+        : '고등부 기본 마스코트 캐릭터로 복원되었습니다.',
+    );
   }
 
   const highSchoolProblemCount = useMemo(() => {
@@ -1383,6 +1394,7 @@ export default function Home() {
           testDate,
           includeCharacter,
           customCharacter,
+          department: isMiddleDepartment ? 'middle' : 'high',
         }),
       });
       if (!response.ok) {
@@ -1508,6 +1520,7 @@ export default function Home() {
           testDate,
           includeCharacter,
           customCharacter,
+          department: isMiddleDepartment ? 'middle' : 'high',
         }),
       });
       if (!response.ok) {
@@ -1796,6 +1809,7 @@ export default function Home() {
           testDate,
           includeCharacter,
           customCharacter,
+          department: isMiddleDepartment ? 'middle' : 'high',
         }),
       });
       if (!response.ok) {
@@ -3048,7 +3062,7 @@ export default function Home() {
                           <div className="relative size-16 shrink-0 rounded-full border-2 border-slate-600/50 bg-slate-900/40 overflow-hidden flex items-center justify-center shadow-inner">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
-                              src={customCharacter || '/character.png'}
+                              src={customCharacter || defaultLogoSrc}
                               alt="표지 로고"
                               className="w-full h-full object-contain p-1"
                             />
@@ -3061,12 +3075,15 @@ export default function Home() {
                               <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-400">
                                 {customCharacter
                                   ? '커스텀 로고 적용 중'
-                                  : '기본 마스코트 적용 중'}
+                                  : isMiddleDepartment
+                                    ? '중등부 기본 로고 적용 중'
+                                    : '고등부 기본 마스코트 적용 중'}
                               </span>
                             </div>
                             <p className="text-[11px] text-slate-400 mt-0.5">
-                              표지 상단 원형 엠블럼 중앙에 깔끔하고 선명하게
-                              인쇄됩니다.
+                              {isMiddleDepartment
+                                ? '중등부 기본 로고(다산미래학원)가 표지 상단 원형 엠블럼 중앙에 인쇄됩니다.'
+                                : '고등부 기본 마스코트가 표지 상단 원형 엠블럼 중앙에 인쇄됩니다.'}
                             </p>
                             <div className="flex items-center gap-2 mt-2">
                               <label

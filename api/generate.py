@@ -446,6 +446,7 @@ def draw_test_cover(
     include_character: bool = True,
     custom_character_bytes: bytes | None = None,
     textbook: str = "synergy-calculus",
+    department: str | None = None,
 ) -> None:
     page_width, page_height = A4
     pdfmetrics.registerFont(UnicodeCIDFont("HYGothic-Medium"))
@@ -561,12 +562,25 @@ def draw_test_cover(
         char_bytes = custom_character_bytes
         if not char_bytes:
             base_dir = os.path.dirname(os.path.abspath(__file__))
-            candidates = [
-                os.path.join(base_dir, "character.png"),
-                os.path.join(base_dir, "dasan-mirae-logo.png"),
-                os.path.join(base_dir, "..", "public", "character.png"),
-                os.path.join(base_dir, "..", "public", "dasan-mirae-logo.png"),
-            ]
+            is_middle = (department == "middle") or ("middle" in str(textbook).lower())
+            if is_middle:
+                candidates = [
+                    os.path.join(base_dir, "middle-logo.png"),
+                    os.path.join(base_dir, "..", "public", "middle-logo.png"),
+                    os.path.join(base_dir, "dasan-mirae-logo.png"),
+                    os.path.join(base_dir, "..", "public", "dasan-mirae-logo.png"),
+                    os.path.join(base_dir, "character.png"),
+                    os.path.join(base_dir, "..", "public", "character.png"),
+                ]
+            else:
+                candidates = [
+                    os.path.join(base_dir, "character.png"),
+                    os.path.join(base_dir, "..", "public", "character.png"),
+                    os.path.join(base_dir, "middle-logo.png"),
+                    os.path.join(base_dir, "..", "public", "middle-logo.png"),
+                    os.path.join(base_dir, "dasan-mirae-logo.png"),
+                    os.path.join(base_dir, "..", "public", "dasan-mirae-logo.png"),
+                ]
             for cand in candidates:
                 if os.path.exists(cand):
                     try:
@@ -581,7 +595,7 @@ def draw_test_cover(
                 pil_img = Image.open(BytesIO(char_bytes))
                 iw, ih = pil_img.size
                 aspect = ih / iw if iw > 0 else 1.0
-                max_w, max_h = 88.0, 112.0
+                max_w, max_h = 98.0, 112.0
                 tw = max_w
                 th = tw * aspect
                 if th > max_h:
@@ -732,6 +746,7 @@ def draw_cover(
         include_character=opts.get("include_character", True),
         custom_character_bytes=opts.get("custom_character_bytes"),
         textbook=textbook,
+        department=opts.get("department"),
     )
 
 
@@ -1413,6 +1428,7 @@ class handler(BaseHTTPRequestHandler):
                 "subtitle": cover_subtitle,
                 "date_str": test_date,
                 "custom_character_bytes": custom_character_bytes,
+                "department": payload.get("department"),
             }
 
             # Student(s) parsing (support single student or batch list)
