@@ -333,7 +333,10 @@ const conceptStageSlugs: Record<string, string> = {
   '04_실전테스트': 'test',
 };
 
-const conceptRanges: Record<string, { min: number; max: number; count: number }> = {
+const conceptRanges: Record<
+  string,
+  { min: number; max: number; count: number }
+> = {
   'ch01/sub01/concept': { min: 1, max: 7, count: 7 },
   'ch01/sub01/type': { min: 8, max: 26, count: 19 },
   'ch01/sub02/concept': { min: 1, max: 8, count: 8 },
@@ -397,7 +400,7 @@ const blacklabelStageSlugs: Record<string, string> = {
   'A등급을 위한 문제': 'grade-a',
   '종합 사고력 도전 문제': 'challenge',
   '미리보는 학력평가': 'mock',
-  '대단원평가': 'review',
+  대단원평가: 'review',
 };
 
 const blacklabelChapterSlugs: Record<string, string> = {
@@ -408,7 +411,10 @@ const blacklabelChapterSlugs: Record<string, string> = {
   'V. 확률': 'ch5',
 };
 
-const blacklabelRanges: Record<string, { min: number; max: number; count: number }> = {
+const blacklabelRanges: Record<
+  string,
+  { min: number; max: number; count: number }
+> = {
   'ch1/sub01/challenge': { min: 1, max: 8, count: 8 },
   'ch1/sub01/grade-a': { min: 1, max: 24, count: 24 },
   'ch1/sub01/mock': { min: 1, max: 3, count: 6 },
@@ -459,7 +465,10 @@ const olympusUnits = [
   '4. 도함수의 활용',
 ];
 
-const olympusRanges: Record<string, Record<string, { min: number; max: number; count: number }>> = {
+const olympusRanges: Record<
+  string,
+  Record<string, { min: number; max: number; count: number }>
+> = {
   '1. 함수의 극한': {
     유형완성하기: { min: 1, max: 56, count: 56 },
     서술형완성하기: { min: 1, max: 6, count: 6 },
@@ -661,9 +670,13 @@ export default function Home() {
       count: 4,
     },
   ]);
-  const [blacklabelChapter, setBlacklabelChapter] = useState('I. 삼각형의 성질');
-  const [blacklabelSubunit, setBlacklabelSubunit] = useState('01 삼각형의 성질');
-  const [blacklabelStage, setBlacklabelStage] = useState('시험에 꼭 나오는 문제');
+  const [blacklabelChapter, setBlacklabelChapter] =
+    useState('I. 삼각형의 성질');
+  const [blacklabelSubunit, setBlacklabelSubunit] =
+    useState('01 삼각형의 성질');
+  const [blacklabelStage, setBlacklabelStage] = useState(
+    '시험에 꼭 나오는 문제',
+  );
 
   const [blacklabel22Items, setBlacklabel22Items] = useState<BlacklabelItem[]>([
     {
@@ -701,7 +714,9 @@ export default function Home() {
   };
 
   const [conceptChapter, setConceptChapter] = useState('01_삼각형의_성질');
-  const [conceptSubunit, setConceptSubunit] = useState('01_이등변삼각형의_성질');
+  const [conceptSubunit, setConceptSubunit] = useState(
+    '01_이등변삼각형의_성질',
+  );
   const [conceptStage, setConceptStage] = useState('01_개념익히기');
 
   const [concept22Items, setConcept22Items] = useState<ConceptItem[]>([
@@ -726,9 +741,7 @@ export default function Home() {
   ]);
 
   const conceptItems =
-    textbook === 'concept-middle-3-1'
-      ? concept31Items
-      : concept22Items;
+    textbook === 'concept-middle-3-1' ? concept31Items : concept22Items;
   const setConceptItems = (
     items: ConceptItem[] | ((prev: ConceptItem[]) => ConceptItem[]),
   ) => {
@@ -840,7 +853,8 @@ export default function Home() {
       setBlacklabelStage('시험에 꼭 나오는 문제');
     } else if (nextTb === 'blacklabel-middle-3-1') {
       const firstCh = Object.keys(blacklabel31Hierarchy)[0];
-      const firstStg = blacklabel31Hierarchy[firstCh]?.[firstCh]?.[0] || 'Step1';
+      const firstStg =
+        blacklabel31Hierarchy[firstCh]?.[firstCh]?.[0] || 'Step1';
       setBlacklabelChapter(firstCh);
       setBlacklabelSubunit(firstCh);
       setBlacklabelStage(firstStg);
@@ -885,7 +899,9 @@ export default function Home() {
     reader.onload = (event) => {
       const base64 = event.target?.result as string;
       setCustomCharacter(base64);
-      setStatus('표지 마스코트/로고 이미지가 등록되었습니다. [미리보기 갱신]을 눌러 확인하세요.');
+      setStatus(
+        '표지 마스코트/로고 이미지가 등록되었습니다. [미리보기 갱신]을 눌러 확인하세요.',
+      );
     };
     reader.readAsDataURL(file);
   }
@@ -899,14 +915,26 @@ export default function Home() {
     if (textbook === 'olympus-calculus') {
       return olympusItems.reduce((acc, item) => acc + item.count, 0);
     }
-    if (textbook === 'blacklabel-middle-2-2' || textbook === 'blacklabel-middle-3-1') {
+    if (
+      textbook === 'blacklabel-middle-2-2' ||
+      textbook === 'blacklabel-middle-3-1'
+    ) {
       return blacklabelItems.reduce((acc, item) => acc + item.count, 0);
     }
-    if (textbook === 'concept-middle-2-2' || textbook === 'concept-middle-3-1') {
+    if (
+      textbook === 'concept-middle-2-2' ||
+      textbook === 'concept-middle-3-1'
+    ) {
       return conceptItems.reduce((acc, item) => acc + item.count, 0);
     }
     return parsedProblemNumbers.length;
-  }, [textbook, olympusItems, blacklabelItems, conceptItems, parsedProblemNumbers]);
+  }, [
+    textbook,
+    olympusItems,
+    blacklabelItems,
+    conceptItems,
+    parsedProblemNumbers,
+  ]);
 
   const highSchoolPageCount = useMemo(() => {
     return Math.ceil(highSchoolProblemCount / 4) + (includeCover ? 1 : 0);
@@ -986,7 +1014,9 @@ export default function Home() {
       const nextItems = [...olympusItems, newItem];
       setOlympusItems(nextItems);
       setOlympusQuickInput('');
-      setStatus(`${count}문제를 올림포스 목록에 추가했습니다. 미리보기를 갱신합니다…`);
+      setStatus(
+        `${count}문제를 올림포스 목록에 추가했습니다. 미리보기를 갱신합니다…`,
+      );
       void handleRefreshPreview(textbook, { olympusItems: nextItems });
     } catch (error) {
       setStatus(
@@ -1023,7 +1053,10 @@ export default function Home() {
             maxVal = Number(t);
           }
           if (minVal > 0) {
-            if (minVal < currentBlacklabelRange.min || maxVal > currentBlacklabelRange.max) {
+            if (
+              minVal < currentBlacklabelRange.min ||
+              maxVal > currentBlacklabelRange.max
+            ) {
               throw new Error(
                 `선택한 단계(${blacklabelStage})의 제공 문항은 ${currentBlacklabelRange.min}~${currentBlacklabelRange.max}번입니다. (${t}번 제외 필요)`,
               );
@@ -1042,7 +1075,9 @@ export default function Home() {
       const nextItems = [...blacklabelItems, newItem];
       setBlacklabelItems(nextItems);
       setBlacklabelQuickInput('');
-      setStatus(`${count}문제를 블랙라벨 목록에 추가했습니다. 미리보기를 갱신합니다…`);
+      setStatus(
+        `${count}문제를 블랙라벨 목록에 추가했습니다. 미리보기를 갱신합니다…`,
+      );
       void handleRefreshPreview(textbook, { blacklabelItems: nextItems });
     } catch (error) {
       setStatus(
@@ -1079,7 +1114,10 @@ export default function Home() {
             maxVal = Number(t);
           }
           if (minVal > 0) {
-            if (minVal < currentConceptRange.min || maxVal > currentConceptRange.max) {
+            if (
+              minVal < currentConceptRange.min ||
+              maxVal > currentConceptRange.max
+            ) {
               throw new Error(
                 `선택한 단계(${conceptStage.replace(/_/g, ' ')})의 제공 문항은 ${currentConceptRange.min}~${currentConceptRange.max}번입니다. (${t}번 제외 필요)`,
               );
@@ -1098,7 +1136,9 @@ export default function Home() {
       const nextItems = [...conceptItems, newItem];
       setConceptItems(nextItems);
       setConceptQuickInput('');
-      setStatus(`${count}문제를 개념유형파워 목록에 추가했습니다. 미리보기를 갱신합니다…`);
+      setStatus(
+        `${count}문제를 개념유형파워 목록에 추가했습니다. 미리보기를 갱신합니다…`,
+      );
       void handleRefreshPreview(textbook, { conceptItems: nextItems });
     } catch (error) {
       setStatus(
@@ -1128,7 +1168,11 @@ export default function Home() {
       return;
     }
     let curOlympus = overrideItems?.olympusItems ?? olympusItems;
-    if (activeTb === 'olympus-calculus' && curOlympus.length === 0 && !overrideItems?.olympusItems) {
+    if (
+      activeTb === 'olympus-calculus' &&
+      curOlympus.length === 0 &&
+      !overrideItems?.olympusItems
+    ) {
       curOlympus = [
         {
           id: Date.now(),
@@ -1142,7 +1186,9 @@ export default function Home() {
     }
     let curBlacklabel = overrideItems?.blacklabelItems ?? blacklabelItems;
     if (activeTb === 'blacklabel-middle-3-1') {
-      curBlacklabel = curBlacklabel.filter((it) => it.chapter in blacklabel31Hierarchy);
+      curBlacklabel = curBlacklabel.filter(
+        (it) => it.chapter in blacklabel31Hierarchy,
+      );
       if (curBlacklabel.length === 0) {
         curBlacklabel = [
           {
@@ -1157,7 +1203,9 @@ export default function Home() {
         setBlacklabel31Items(curBlacklabel);
       }
     } else if (activeTb === 'blacklabel-middle-2-2') {
-      curBlacklabel = curBlacklabel.filter((it) => it.chapter in blacklabelHierarchy);
+      curBlacklabel = curBlacklabel.filter(
+        (it) => it.chapter in blacklabelHierarchy,
+      );
       if (curBlacklabel.length === 0) {
         curBlacklabel = [
           {
@@ -1254,7 +1302,8 @@ export default function Home() {
         body: JSON.stringify({
           textbook: activeTb,
           student: activePreviewStudent,
-          studentNames: studentMode === 'batch' ? parsedBatchStudentNames : [student],
+          studentNames:
+            studentMode === 'batch' ? parsedBatchStudentNames : [student],
           isBatch: false,
           preview: true,
           grade,
@@ -1315,7 +1364,9 @@ export default function Home() {
       setStatus('미리보기가 최신 상태로 갱신되었습니다.');
     } catch (error) {
       setStatus(
-        error instanceof Error ? error.message : '미리보기 생성에 실패했습니다.',
+        error instanceof Error
+          ? error.message
+          : '미리보기 생성에 실패했습니다.',
       );
     } finally {
       setPreviewLoading(false);
@@ -1335,7 +1386,8 @@ export default function Home() {
     if (!sessionToken || !textbook) return;
     const selectedTextbook = textbooks.find((item) => item.id === textbook);
     if (!selectedTextbook?.available) return;
-    const isBatch = studentMode === 'batch' && parsedBatchStudentNames.length > 1;
+    const isBatch =
+      studentMode === 'batch' && parsedBatchStudentNames.length > 1;
     const isBatchPrint = mode === 'print' && isBatch;
     const primaryStudent =
       studentMode === 'batch'
@@ -1357,7 +1409,8 @@ export default function Home() {
         body: JSON.stringify({
           textbook,
           student: primaryStudent,
-          studentNames: studentMode === 'batch' ? parsedBatchStudentNames : [student],
+          studentNames:
+            studentMode === 'batch' ? parsedBatchStudentNames : [student],
           isBatch,
           printBatch: isBatchPrint,
           preview: false,
@@ -1463,6 +1516,19 @@ export default function Home() {
       const printWin = window.open(previewPdfUrl, '_blank');
       printWin?.focus();
       printWin?.print();
+      void fetch('/api/usage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionToken}`,
+        },
+        body: JSON.stringify({
+          event_type: 'print_started',
+          textbook,
+          problem_count: numbers.length,
+          student_count: 1,
+        }),
+      });
     } else {
       await handleRefreshPreview();
     }
@@ -1608,11 +1674,19 @@ export default function Home() {
       setStatus('문제번호를 입력한 뒤 목록에 추가해 주세요.');
       return;
     }
-    if ((textbook === 'blacklabel-middle-2-2' || textbook === 'blacklabel-middle-3-1') && blacklabelItems.length === 0) {
+    if (
+      (textbook === 'blacklabel-middle-2-2' ||
+        textbook === 'blacklabel-middle-3-1') &&
+      blacklabelItems.length === 0
+    ) {
       setStatus('블랙라벨 문제를 목록에 추가해 주세요.');
       return;
     }
-    if ((textbook === 'concept-middle-2-2' || textbook === 'concept-middle-3-1') && conceptItems.length === 0) {
+    if (
+      (textbook === 'concept-middle-2-2' ||
+        textbook === 'concept-middle-3-1') &&
+      conceptItems.length === 0
+    ) {
       setStatus('개념유형파워 문제를 목록에 추가해 주세요.');
       return;
     }
@@ -1812,7 +1886,9 @@ export default function Home() {
                     <span className="size-5.5 rounded-full flex items-center justify-center text-xs font-extrabold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
                       1
                     </span>
-                    <h3 className="text-sm font-bold text-slate-100">교재 선택 (Textbook)</h3>
+                    <h3 className="text-sm font-bold text-slate-100">
+                      교재 선택 (Textbook)
+                    </h3>
                   </div>
                   <button
                     type="button"
@@ -1828,22 +1904,30 @@ export default function Home() {
                   <div className="flex items-center justify-between px-3.5 py-2.5 bg-[#0F1118] rounded-lg border border-[#242938]">
                     <div className="flex items-center gap-2">
                       <span className="inline-flex items-center rounded-lg border border-[#e0aa4f] bg-[#5a3b1b] px-3 py-2 text-xs font-extrabold text-[#f7d58a] shadow-sm">
-                        현재 위치: {department === 'middle' ? '중등부' : '고등부'}
+                        현재 위치:{' '}
+                        {department === 'middle' ? '중등부' : '고등부'}
                       </span>
                     </div>
                     <button
                       type="button"
                       onClick={() => {
-                        setDepartment(department === 'middle' ? 'high' : 'middle');
+                        setDepartment(
+                          department === 'middle' ? 'high' : 'middle',
+                        );
                         setTextbook(null);
                         setPreviewPdfUrl(null);
                       }}
                       className="inline-flex items-center rounded-lg border border-[#63c5ae] bg-[#26483f] px-3 py-2 text-xs font-extrabold text-[#f7eadf] shadow-sm transition-all hover:bg-[#356b5b] hover:text-white cursor-pointer"
                     >
                       {department === 'middle' ? (
-                        <><GraduationCap className="size-4" /> 고등부 교재 바로가기</>
+                        <>
+                          <GraduationCap className="size-4" /> 고등부 교재
+                          바로가기
+                        </>
                       ) : (
-                        <><School className="size-4" /> 중등부 교재 바로가기</>
+                        <>
+                          <School className="size-4" /> 중등부 교재 바로가기
+                        </>
                       )}
                     </button>
                   </div>
@@ -1857,10 +1941,14 @@ export default function Home() {
                       }}
                     >
                       {textbooks
-                        .filter((tb) => (department ? tb.department === department : true))
+                        .filter((tb) =>
+                          department ? tb.department === department : true,
+                        )
                         .map((tb) => (
                           <option key={tb.id} value={tb.id}>
-                            {tb.title} ({allTextbookInfo[tb.id]?.name || tb.title} - {tb.subject})
+                            {tb.title} (
+                            {allTextbookInfo[tb.id]?.name || tb.title} -{' '}
+                            {tb.subject})
                           </option>
                         ))}
                     </select>
@@ -1878,7 +1966,9 @@ export default function Home() {
                     <span className="size-5.5 rounded-full flex items-center justify-center text-xs font-extrabold bg-purple-500/20 text-purple-400 border border-purple-500/30">
                       2
                     </span>
-                    <h3 className="text-sm font-bold text-slate-100">학생 정보 입력</h3>
+                    <h3 className="text-sm font-bold text-slate-100">
+                      학생 정보 입력
+                    </h3>
                   </div>
                   <div className="flex items-center bg-[#0F1118] p-0.5 rounded-lg border border-[#242938]">
                     <button
@@ -1909,7 +1999,10 @@ export default function Home() {
                   {studentMode === 'single' ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label htmlFor="hs-student-name" className="block text-xs font-semibold text-slate-400 mb-1.5">
+                        <label
+                          htmlFor="hs-student-name"
+                          className="block text-xs font-semibold text-slate-400 mb-1.5"
+                        >
                           학생 성명
                         </label>
                         <input
@@ -1921,11 +2014,15 @@ export default function Home() {
                           onChange={(e) => setStudent(e.target.value)}
                         />
                         <small className="block mt-1 text-[11px] text-slate-500">
-                          ※ 쉼표로 여러 명(예: 김민준, 이서진)을 적거나 우측 [다중 일괄] 탭을 선택하세요.
+                          ※ 쉼표로 여러 명(예: 김민준, 이서진)을 적거나 우측
+                          [다중 일괄] 탭을 선택하세요.
                         </small>
                       </div>
                       <div>
-                        <label htmlFor="hs-student-grade" className="block text-xs font-semibold text-slate-400 mb-1.5">
+                        <label
+                          htmlFor="hs-student-grade"
+                          className="block text-xs font-semibold text-slate-400 mb-1.5"
+                        >
                           학년 구분
                         </label>
                         <select
@@ -1943,8 +2040,14 @@ export default function Home() {
                   ) : (
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <label htmlFor="hs-batch-names" className="block text-xs font-semibold text-slate-300">
-                          학생 성명 목록 <span className="text-slate-500 font-normal">(줄바꿈 또는 쉼표 구분)</span>
+                        <label
+                          htmlFor="hs-batch-names"
+                          className="block text-xs font-semibold text-slate-300"
+                        >
+                          학생 성명 목록{' '}
+                          <span className="text-slate-500 font-normal">
+                            (줄바꿈 또는 쉼표 구분)
+                          </span>
                         </label>
                         <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300">
                           총 {parsedBatchStudentNames.length}명 입력됨
@@ -1960,7 +2063,10 @@ export default function Home() {
                       />
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
                         <div>
-                          <label htmlFor="hs-batch-grade" className="block text-xs font-semibold text-slate-400 mb-1">
+                          <label
+                            htmlFor="hs-batch-grade"
+                            className="block text-xs font-semibold text-slate-400 mb-1"
+                          >
                             공통 학년 구분
                           </label>
                           <select
@@ -1975,7 +2081,9 @@ export default function Home() {
                           </select>
                         </div>
                         <p className="text-[11px] text-purple-300/80 leading-relaxed bg-purple-950/20 border border-purple-800/30 p-2.5 rounded-lg">
-                          💡 <strong>일괄 생성 안내:</strong> 각 학생 이름이 표지에 개별 인쇄된 시험지가 한 번에 생성되어 <strong>ZIP 압축파일</strong>로 자동 다운로드됩니다.
+                          💡 <strong>일괄 생성 안내:</strong> 각 학생 이름이
+                          표지에 개별 인쇄된 시험지가 한 번에 생성되어{' '}
+                          <strong>ZIP 압축파일</strong>로 자동 다운로드됩니다.
                         </p>
                       </div>
                     </div>
@@ -1998,7 +2106,11 @@ export default function Home() {
                     </h3>
                   </div>
                   <div className="text-xs text-slate-300 bg-blue-500/15 border border-blue-500/30 px-3 py-1 rounded-full font-medium">
-                    총 <strong className="text-blue-400 font-bold">{highSchoolProblemCount}</strong>문항 ({highSchoolPageCount}장)
+                    총{' '}
+                    <strong className="text-blue-400 font-bold">
+                      {highSchoolProblemCount}
+                    </strong>
+                    문항 ({highSchoolPageCount}장)
                   </div>
                 </div>
                 <div className="p-4">
@@ -2016,7 +2128,10 @@ export default function Home() {
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                         <div>
-                          <label htmlFor="olympus-unit-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                          <label
+                            htmlFor="olympus-unit-select"
+                            className="block text-xs font-semibold text-slate-400 mb-1"
+                          >
                             대단원 선택
                           </label>
                           <select
@@ -2037,7 +2152,11 @@ export default function Home() {
                             소단원 구분
                           </span>
                           <div className="flex gap-1.5 flex-wrap">
-                            {['유형완성하기', '서술형완성하기', '고난도도전'].map((t) => (
+                            {[
+                              '유형완성하기',
+                              '서술형완성하기',
+                              '고난도도전',
+                            ].map((t) => (
                               <button
                                 key={t}
                                 type="button"
@@ -2054,7 +2173,11 @@ export default function Home() {
                           </div>
                           {olympusRanges[olympusUnit]?.[olympusType] && (
                             <p className="mt-1.5 text-[11px] text-emerald-300">
-                              제공 문항: {olympusRanges[olympusUnit][olympusType].min}~{olympusRanges[olympusUnit][olympusType].max}번 ({olympusRanges[olympusUnit][olympusType].count}문제)
+                              제공 문항:{' '}
+                              {olympusRanges[olympusUnit][olympusType].min}~
+                              {olympusRanges[olympusUnit][olympusType].max}번 (
+                              {olympusRanges[olympusUnit][olympusType].count}
+                              문제)
                             </p>
                           )}
                         </div>
@@ -2070,7 +2193,9 @@ export default function Home() {
                             className="w-full px-3 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 placeholder-slate-500 text-xs outline-none"
                             placeholder={`번호 입력 (예: 1-5 또는 1, 3, 7) · ${olympusRanges[olympusUnit]?.[olympusType]?.min}~${olympusRanges[olympusUnit]?.[olympusType]?.max}번`}
                             value={olympusQuickInput}
-                            onChange={(e) => setOlympusQuickInput(e.target.value)}
+                            onChange={(e) =>
+                              setOlympusQuickInput(e.target.value)
+                            }
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
                                 e.preventDefault();
@@ -2109,9 +2234,13 @@ export default function Home() {
                                 type="button"
                                 className="text-slate-400 hover:text-red-400 font-bold ml-2 px-1 cursor-pointer"
                                 onClick={() => {
-                                  const next = olympusItems.filter((it) => it.id !== item.id);
+                                  const next = olympusItems.filter(
+                                    (it) => it.id !== item.id,
+                                  );
                                   setOlympusItems(next);
-                                  void handleRefreshPreview(textbook, { olympusItems: next });
+                                  void handleRefreshPreview(textbook, {
+                                    olympusItems: next,
+                                  });
                                 }}
                               >
                                 ×
@@ -2124,7 +2253,8 @@ export default function Home() {
                   )}
 
                   {/* Blacklabel picker if textbook === 'blacklabel-middle-2-2' || textbook === 'blacklabel-middle-3-1' */}
-                  {(textbook === 'blacklabel-middle-2-2' || textbook === 'blacklabel-middle-3-1') && (
+                  {(textbook === 'blacklabel-middle-2-2' ||
+                    textbook === 'blacklabel-middle-3-1') && (
                     <div className="bg-slate-900/90 border border-purple-500/30 rounded-xl p-3.5 mb-3.5 shadow-lg">
                       <div className="flex items-center justify-between flex-wrap gap-2 pb-2.5 mb-3 border-b border-white/10">
                         <span className="text-xs font-bold text-purple-400 flex items-center gap-1.5">
@@ -2140,7 +2270,10 @@ export default function Home() {
                       {textbook === 'blacklabel-middle-3-1' ? (
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
                           <div className="sm:col-span-2">
-                            <label htmlFor="bl-chapter-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                            <label
+                              htmlFor="bl-chapter-select"
+                              className="block text-xs font-semibold text-slate-400 mb-1"
+                            >
                               단원
                             </label>
                             <select
@@ -2151,7 +2284,9 @@ export default function Home() {
                                 const newCh = e.target.value;
                                 setBlacklabelChapter(newCh);
                                 setBlacklabelSubunit(newCh);
-                                const stages = blacklabel31Hierarchy[newCh]?.[newCh] || ['Step1', 'Step2', 'Step3', 'Step4'];
+                                const stages = blacklabel31Hierarchy[newCh]?.[
+                                  newCh
+                                ] || ['Step1', 'Step2', 'Step3', 'Step4'];
                                 setBlacklabelStage(stages[0] || 'Step1');
                               }}
                             >
@@ -2163,27 +2298,37 @@ export default function Home() {
                             </select>
                           </div>
                           <div>
-                            <label htmlFor="bl-stage-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                            <label
+                              htmlFor="bl-stage-select"
+                              className="block text-xs font-semibold text-slate-400 mb-1"
+                            >
                               단계(난이도)
                             </label>
                             <select
                               id="bl-stage-select"
                               className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
                               value={blacklabelStage}
-                              onChange={(e) => setBlacklabelStage(e.target.value)}
+                              onChange={(e) =>
+                                setBlacklabelStage(e.target.value)
+                              }
                             >
-                              {['Step1', 'Step2', 'Step3', 'Step4'].map((stg) => (
-                                <option key={stg} value={stg}>
-                                  {stg}
-                                </option>
-                              ))}
+                              {['Step1', 'Step2', 'Step3', 'Step4'].map(
+                                (stg) => (
+                                  <option key={stg} value={stg}>
+                                    {stg}
+                                  </option>
+                                ),
+                              )}
                             </select>
                           </div>
                         </div>
                       ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
                           <div>
-                            <label htmlFor="bl-chapter-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                            <label
+                              htmlFor="bl-chapter-select"
+                              className="block text-xs font-semibold text-slate-400 mb-1"
+                            >
                               대단원
                             </label>
                             <select
@@ -2193,10 +2338,13 @@ export default function Home() {
                               onChange={(e) => {
                                 const newCh = e.target.value;
                                 setBlacklabelChapter(newCh);
-                                const subs = Object.keys(blacklabelHierarchy[newCh] || {});
+                                const subs = Object.keys(
+                                  blacklabelHierarchy[newCh] || {},
+                                );
                                 const firstSub = subs[0] || '';
                                 setBlacklabelSubunit(firstSub);
-                                const stages = blacklabelHierarchy[newCh]?.[firstSub] || [];
+                                const stages =
+                                  blacklabelHierarchy[newCh]?.[firstSub] || [];
                                 setBlacklabelStage(stages[0] || '');
                               }}
                             >
@@ -2208,7 +2356,10 @@ export default function Home() {
                             </select>
                           </div>
                           <div>
-                            <label htmlFor="bl-subunit-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                            <label
+                              htmlFor="bl-subunit-select"
+                              className="block text-xs font-semibold text-slate-400 mb-1"
+                            >
                               소단원
                             </label>
                             <select
@@ -2218,11 +2369,16 @@ export default function Home() {
                               onChange={(e) => {
                                 const newSub = e.target.value;
                                 setBlacklabelSubunit(newSub);
-                                const stages = blacklabelHierarchy[blacklabelChapter]?.[newSub] || [];
+                                const stages =
+                                  blacklabelHierarchy[blacklabelChapter]?.[
+                                    newSub
+                                  ] || [];
                                 setBlacklabelStage(stages[0] || '');
                               }}
                             >
-                              {Object.keys(blacklabelHierarchy[blacklabelChapter] || {}).map((sub) => (
+                              {Object.keys(
+                                blacklabelHierarchy[blacklabelChapter] || {},
+                              ).map((sub) => (
                                 <option key={sub} value={sub}>
                                   {sub}
                                 </option>
@@ -2230,16 +2386,25 @@ export default function Home() {
                             </select>
                           </div>
                           <div>
-                            <label htmlFor="bl-stage-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                            <label
+                              htmlFor="bl-stage-select"
+                              className="block text-xs font-semibold text-slate-400 mb-1"
+                            >
                               단계(난이도)
                             </label>
                             <select
                               id="bl-stage-select"
                               className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
                               value={blacklabelStage}
-                              onChange={(e) => setBlacklabelStage(e.target.value)}
+                              onChange={(e) =>
+                                setBlacklabelStage(e.target.value)
+                              }
                             >
-                              {(blacklabelHierarchy[blacklabelChapter]?.[blacklabelSubunit] || []).map((stg) => (
+                              {(
+                                blacklabelHierarchy[blacklabelChapter]?.[
+                                  blacklabelSubunit
+                                ] || []
+                              ).map((stg) => (
                                 <option key={stg} value={stg}>
                                   {stg}
                                 </option>
@@ -2259,7 +2424,9 @@ export default function Home() {
                             </span>
                             {currentBlacklabelRange && (
                               <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                                💡 제공 문항: {currentBlacklabelRange.min} ~ {currentBlacklabelRange.max}번 ({currentBlacklabelRange.count}문제)
+                                💡 제공 문항: {currentBlacklabelRange.min} ~{' '}
+                                {currentBlacklabelRange.max}번 (
+                                {currentBlacklabelRange.count}문제)
                               </span>
                             )}
                           </div>
@@ -2272,7 +2439,9 @@ export default function Home() {
                                 : '번호 입력 (예: 1-5 또는 1, 2, 3)'
                             }
                             value={blacklabelQuickInput}
-                            onChange={(e) => setBlacklabelQuickInput(e.target.value)}
+                            onChange={(e) =>
+                              setBlacklabelQuickInput(e.target.value)
+                            }
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
                                 e.preventDefault();
@@ -2299,9 +2468,11 @@ export default function Home() {
                             >
                               <span className="text-slate-200">
                                 <span className="text-purple-400 font-semibold">
-                                  [{textbook === 'blacklabel-middle-3-1'
+                                  [
+                                  {textbook === 'blacklabel-middle-3-1'
                                     ? item.chapter.replace(/_/g, ' ')
-                                    : item.subunit}]
+                                    : item.subunit}
+                                  ]
                                 </span>{' '}
                                 {item.stage} :{' '}
                                 <span className="font-mono text-emerald-400 font-bold">
@@ -2313,9 +2484,13 @@ export default function Home() {
                                 type="button"
                                 className="text-slate-400 hover:text-red-400 font-bold ml-2 px-1 cursor-pointer"
                                 onClick={() => {
-                                  const next = blacklabelItems.filter((it) => it.id !== item.id);
+                                  const next = blacklabelItems.filter(
+                                    (it) => it.id !== item.id,
+                                  );
                                   setBlacklabelItems(next);
-                                  void handleRefreshPreview(textbook, { blacklabelItems: next });
+                                  void handleRefreshPreview(textbook, {
+                                    blacklabelItems: next,
+                                  });
                                 }}
                               >
                                 ×
@@ -2328,7 +2503,8 @@ export default function Home() {
                   )}
 
                   {/* Concept picker if textbook === 'concept-middle-2-2' || textbook === 'concept-middle-3-1' */}
-                  {(textbook === 'concept-middle-2-2' || textbook === 'concept-middle-3-1') && (
+                  {(textbook === 'concept-middle-2-2' ||
+                    textbook === 'concept-middle-3-1') && (
                     <div className="bg-slate-900/90 border border-emerald-500/30 rounded-xl p-3.5 mb-3.5 shadow-lg">
                       <div className="flex items-center justify-between flex-wrap gap-2 pb-2.5 mb-3 border-b border-white/10">
                         <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
@@ -2344,7 +2520,10 @@ export default function Home() {
                       {textbook === 'concept-middle-3-1' ? (
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
                           <div className="sm:col-span-2">
-                            <label htmlFor="cp-chapter-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                            <label
+                              htmlFor="cp-chapter-select"
+                              className="block text-xs font-semibold text-slate-400 mb-1"
+                            >
                               단원
                             </label>
                             <select
@@ -2355,7 +2534,9 @@ export default function Home() {
                                 const newCh = e.target.value;
                                 setConceptChapter(newCh);
                                 setConceptSubunit(newCh);
-                                const stages = concept31Hierarchy[newCh]?.[newCh] || ['유형별', '단원마무리'];
+                                const stages = concept31Hierarchy[newCh]?.[
+                                  newCh
+                                ] || ['유형별', '단원마무리'];
                                 setConceptStage(stages[0] || '유형별');
                               }}
                             >
@@ -2367,7 +2548,10 @@ export default function Home() {
                             </select>
                           </div>
                           <div>
-                            <label htmlFor="cp-stage-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                            <label
+                              htmlFor="cp-stage-select"
+                              className="block text-xs font-semibold text-slate-400 mb-1"
+                            >
                               단계(유형)
                             </label>
                             <select
@@ -2387,7 +2571,10 @@ export default function Home() {
                       ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
                           <div>
-                            <label htmlFor="cp-chapter-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                            <label
+                              htmlFor="cp-chapter-select"
+                              className="block text-xs font-semibold text-slate-400 mb-1"
+                            >
                               대단원
                             </label>
                             <select
@@ -2397,10 +2584,13 @@ export default function Home() {
                               onChange={(e) => {
                                 const newCh = e.target.value;
                                 setConceptChapter(newCh);
-                                const subs = Object.keys(conceptHierarchy[newCh] || {});
+                                const subs = Object.keys(
+                                  conceptHierarchy[newCh] || {},
+                                );
                                 const firstSub = subs[0] || '';
                                 setConceptSubunit(firstSub);
-                                const stages = conceptHierarchy[newCh]?.[firstSub] || [];
+                                const stages =
+                                  conceptHierarchy[newCh]?.[firstSub] || [];
                                 setConceptStage(stages[0] || '');
                               }}
                             >
@@ -2412,7 +2602,10 @@ export default function Home() {
                             </select>
                           </div>
                           <div>
-                            <label htmlFor="cp-subunit-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                            <label
+                              htmlFor="cp-subunit-select"
+                              className="block text-xs font-semibold text-slate-400 mb-1"
+                            >
                               소단원
                             </label>
                             <select
@@ -2422,11 +2615,15 @@ export default function Home() {
                               onChange={(e) => {
                                 const newSub = e.target.value;
                                 setConceptSubunit(newSub);
-                                const stages = conceptHierarchy[conceptChapter]?.[newSub] || [];
+                                const stages =
+                                  conceptHierarchy[conceptChapter]?.[newSub] ||
+                                  [];
                                 setConceptStage(stages[0] || '');
                               }}
                             >
-                              {Object.keys(conceptHierarchy[conceptChapter] || {}).map((sub) => (
+                              {Object.keys(
+                                conceptHierarchy[conceptChapter] || {},
+                              ).map((sub) => (
                                 <option key={sub} value={sub}>
                                   {sub.replace(/_/g, ' ')}
                                 </option>
@@ -2434,7 +2631,10 @@ export default function Home() {
                             </select>
                           </div>
                           <div>
-                            <label htmlFor="cp-stage-select" className="block text-xs font-semibold text-slate-400 mb-1">
+                            <label
+                              htmlFor="cp-stage-select"
+                              className="block text-xs font-semibold text-slate-400 mb-1"
+                            >
                               단계(유형)
                             </label>
                             <select
@@ -2443,7 +2643,11 @@ export default function Home() {
                               value={conceptStage}
                               onChange={(e) => setConceptStage(e.target.value)}
                             >
-                              {(conceptHierarchy[conceptChapter]?.[conceptSubunit] || []).map((stg) => (
+                              {(
+                                conceptHierarchy[conceptChapter]?.[
+                                  conceptSubunit
+                                ] || []
+                              ).map((stg) => (
                                 <option key={stg} value={stg}>
                                   {stg.replace(/_/g, ' ')}
                                 </option>
@@ -2463,7 +2667,9 @@ export default function Home() {
                             </span>
                             {currentConceptRange && (
                               <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                                💡 제공 문항: {currentConceptRange.min} ~ {currentConceptRange.max}번 ({currentConceptRange.count}문제)
+                                💡 제공 문항: {currentConceptRange.min} ~{' '}
+                                {currentConceptRange.max}번 (
+                                {currentConceptRange.count}문제)
                               </span>
                             )}
                           </div>
@@ -2476,7 +2682,9 @@ export default function Home() {
                                 : '번호 입력 (예: 1-5 또는 1, 2, 3)'
                             }
                             value={conceptQuickInput}
-                            onChange={(e) => setConceptQuickInput(e.target.value)}
+                            onChange={(e) =>
+                              setConceptQuickInput(e.target.value)
+                            }
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
                                 e.preventDefault();
@@ -2503,9 +2711,11 @@ export default function Home() {
                             >
                               <span className="text-slate-200">
                                 <span className="text-emerald-400 font-semibold">
-                                  [{textbook === 'concept-middle-3-1'
+                                  [
+                                  {textbook === 'concept-middle-3-1'
                                     ? item.chapter.replace(/_/g, ' ')
-                                    : item.subunit.replace(/_/g, ' ')}]
+                                    : item.subunit.replace(/_/g, ' ')}
+                                  ]
                                 </span>{' '}
                                 {item.stage.replace(/_/g, ' ')} :{' '}
                                 <span className="font-mono text-emerald-400 font-bold">
@@ -2517,9 +2727,13 @@ export default function Home() {
                                 type="button"
                                 className="text-slate-400 hover:text-red-400 font-bold ml-2 px-1 cursor-pointer"
                                 onClick={() => {
-                                  const next = conceptItems.filter((it) => it.id !== item.id);
+                                  const next = conceptItems.filter(
+                                    (it) => it.id !== item.id,
+                                  );
                                   setConceptItems(next);
-                                  void handleRefreshPreview(textbook, { conceptItems: next });
+                                  void handleRefreshPreview(textbook, {
+                                    conceptItems: next,
+                                  });
                                 }}
                               >
                                 ×
@@ -2537,109 +2751,113 @@ export default function Home() {
                     textbook !== 'blacklabel-middle-3-1' &&
                     textbook !== 'concept-middle-2-2' &&
                     textbook !== 'concept-middle-3-1' && (
-                    <>
-                      <div>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <label htmlFor="hs-problem-numbers" className="text-xs font-semibold text-slate-300">
-                            {textbook === 'ssen-middle-3-1'
-                              ? '문제 번호 입력 (쎈 3-1: 50 ~ 1398번 문항 제공)'
-                              : textbook === 'ssen-middle-2-2'
-                              ? '문제 번호 입력 (쎈 2-2: 21 ~ 1142번 문항 제공)'
-                              : '문제 번호 입력 (쉼표, 범위 지원)'}
-                          </label>
-                          <span className="text-xs text-slate-400">
-                            {textbook === 'ssen-middle-3-1' ? (
-                              <>
-                                예:{' '}
-                                <code className="bg-slate-800 text-emerald-300 px-1 py-0.5 rounded">
-                                  50-58
-                                </code>
-                                ,{' '}
-                                <code className="bg-slate-800 text-emerald-300 px-1 py-0.5 rounded">
-                                  50, 65, 120
-                                </code>
-                              </>
-                            ) : textbook === 'ssen-middle-2-2' ? (
-                              <>
-                                예:{' '}
-                                <code className="bg-slate-800 text-emerald-300 px-1 py-0.5 rounded">
-                                  21-28
-                                </code>
-                                ,{' '}
-                                <code className="bg-slate-800 text-emerald-300 px-1 py-0.5 rounded">
-                                  21, 25, 30
-                                </code>
-                              </>
-                            ) : (
-                              <>
-                                예:{' '}
-                                <code className="bg-slate-800 text-blue-300 px-1 py-0.5 rounded">
-                                  1-8
-                                </code>
-                                ,{' '}
-                                <code className="bg-slate-800 text-blue-300 px-1 py-0.5 rounded">
-                                  1, 3, 5-10
-                                </code>
-                              </>
-                            )}
-                          </span>
-                        </div>
-                        <textarea
-                          id="hs-problem-numbers"
-                          className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg text-slate-100 font-mono text-sm outline-none transition-all"
-                          rows={2}
-                          placeholder={
-                            textbook === 'ssen-middle-3-1'
-                              ? '50-58'
-                              : textbook === 'ssen-middle-2-2'
-                              ? '21-28'
-                              : '1-8'
-                          }
-                          value={numbers}
-                          onChange={(e) => setNumbers(e.target.value)}
-                        />
-                      </div>
-
-                      <div className="mt-2.5 flex gap-2 flex-wrap">
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#2a1912] hover:bg-[#4d2c20] border border-[#4a3023] hover:border-[#63c5ae] rounded-lg text-[11px] font-semibold text-[#d8c5b6] hover:text-white transition-all cursor-pointer"
-                          onClick={handleSortNumbers}
-                        >
-                          <ArrowDownAZ className="size-3.5" /> 번호 오름차순 정렬
-                        </button>
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#2a1912] hover:bg-[#4d2c20] border border-[#8b563d] hover:border-[#e08a5b] rounded-lg text-[11px] font-semibold text-[#e08a5b] hover:text-[#f0c1a6] transition-all cursor-pointer"
-                          onClick={() => setNumbers('')}
-                        >
-                          <Trash2 className="size-3.5" /> 번호 전체 비우기
-                        </button>
-                      </div>
-
-                      {/* Selected problem numbers */}
-                      {parsedProblemNumbers.length > 0 && (
-                        <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 max-h-36 overflow-y-auto px-1 py-1 text-sm text-[#d8c5b6]">
-                          {parsedProblemNumbers.map((num) => (
-                            <span
-                              key={num}
-                              className="inline-flex items-center gap-1 font-medium"
+                      <>
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <label
+                              htmlFor="hs-problem-numbers"
+                              className="text-xs font-semibold text-slate-300"
                             >
-                              No. {num}
-                              <button
-                                type="button"
-                                className="text-[#8d7d6c] hover:text-[#e08a5b] font-bold cursor-pointer"
-                                onClick={() => handleRemoveTag(num)}
-                                aria-label={`문항 ${num} 삭제`}
-                              >
-                                ×
-                              </button>
+                              {textbook === 'ssen-middle-3-1'
+                                ? '문제 번호 입력 (쎈 3-1: 50 ~ 1398번 문항 제공)'
+                                : textbook === 'ssen-middle-2-2'
+                                  ? '문제 번호 입력 (쎈 2-2: 21 ~ 1142번 문항 제공)'
+                                  : '문제 번호 입력 (쉼표, 범위 지원)'}
+                            </label>
+                            <span className="text-xs text-slate-400">
+                              {textbook === 'ssen-middle-3-1' ? (
+                                <>
+                                  예:{' '}
+                                  <code className="bg-slate-800 text-emerald-300 px-1 py-0.5 rounded">
+                                    50-58
+                                  </code>
+                                  ,{' '}
+                                  <code className="bg-slate-800 text-emerald-300 px-1 py-0.5 rounded">
+                                    50, 65, 120
+                                  </code>
+                                </>
+                              ) : textbook === 'ssen-middle-2-2' ? (
+                                <>
+                                  예:{' '}
+                                  <code className="bg-slate-800 text-emerald-300 px-1 py-0.5 rounded">
+                                    21-28
+                                  </code>
+                                  ,{' '}
+                                  <code className="bg-slate-800 text-emerald-300 px-1 py-0.5 rounded">
+                                    21, 25, 30
+                                  </code>
+                                </>
+                              ) : (
+                                <>
+                                  예:{' '}
+                                  <code className="bg-slate-800 text-blue-300 px-1 py-0.5 rounded">
+                                    1-8
+                                  </code>
+                                  ,{' '}
+                                  <code className="bg-slate-800 text-blue-300 px-1 py-0.5 rounded">
+                                    1, 3, 5-10
+                                  </code>
+                                </>
+                              )}
                             </span>
-                          ))}
+                          </div>
+                          <textarea
+                            id="hs-problem-numbers"
+                            className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg text-slate-100 font-mono text-sm outline-none transition-all"
+                            rows={2}
+                            placeholder={
+                              textbook === 'ssen-middle-3-1'
+                                ? '50-58'
+                                : textbook === 'ssen-middle-2-2'
+                                  ? '21-28'
+                                  : '1-8'
+                            }
+                            value={numbers}
+                            onChange={(e) => setNumbers(e.target.value)}
+                          />
                         </div>
-                      )}
-                    </>
-                  )}
+
+                        <div className="mt-2.5 flex gap-2 flex-wrap">
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#2a1912] hover:bg-[#4d2c20] border border-[#4a3023] hover:border-[#63c5ae] rounded-lg text-[11px] font-semibold text-[#d8c5b6] hover:text-white transition-all cursor-pointer"
+                            onClick={handleSortNumbers}
+                          >
+                            <ArrowDownAZ className="size-3.5" /> 번호 오름차순
+                            정렬
+                          </button>
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#2a1912] hover:bg-[#4d2c20] border border-[#8b563d] hover:border-[#e08a5b] rounded-lg text-[11px] font-semibold text-[#e08a5b] hover:text-[#f0c1a6] transition-all cursor-pointer"
+                            onClick={() => setNumbers('')}
+                          >
+                            <Trash2 className="size-3.5" /> 번호 전체 비우기
+                          </button>
+                        </div>
+
+                        {/* Selected problem numbers */}
+                        {parsedProblemNumbers.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 max-h-36 overflow-y-auto px-1 py-1 text-sm text-[#d8c5b6]">
+                            {parsedProblemNumbers.map((num) => (
+                              <span
+                                key={num}
+                                className="inline-flex items-center gap-1 font-medium"
+                              >
+                                No. {num}
+                                <button
+                                  type="button"
+                                  className="text-[#8d7d6c] hover:text-[#e08a5b] font-bold cursor-pointer"
+                                  onClick={() => handleRemoveTag(num)}
+                                  aria-label={`문항 ${num} 삭제`}
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
                 </div>
               </div>
 
@@ -2655,7 +2873,9 @@ export default function Home() {
                     <span className="size-5.5 rounded-full flex items-center justify-center text-xs font-extrabold bg-amber-500/20 text-amber-400 border border-amber-500/30">
                       4
                     </span>
-                    <h3 className="text-sm font-bold text-slate-100">상세 양식 & 표지 설정</h3>
+                    <h3 className="text-sm font-bold text-slate-100">
+                      상세 양식 & 표지 설정
+                    </h3>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400">
@@ -2670,7 +2890,10 @@ export default function Home() {
                   <div className="p-4 border-t border-slate-800/80 space-y-3">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label htmlFor="cover-title-input" className="block text-xs font-semibold text-slate-400 mb-1.5">
+                        <label
+                          htmlFor="cover-title-input"
+                          className="block text-xs font-semibold text-slate-400 mb-1.5"
+                        >
                           표지 메인 제목
                         </label>
                         <input
@@ -2682,7 +2905,10 @@ export default function Home() {
                         />
                       </div>
                       <div>
-                        <label htmlFor="academy-name-input" className="block text-xs font-semibold text-slate-400 mb-1.5">
+                        <label
+                          htmlFor="academy-name-input"
+                          className="block text-xs font-semibold text-slate-400 mb-1.5"
+                        >
                           학원/기관명 (바닥글)
                         </label>
                         <input
@@ -2696,7 +2922,10 @@ export default function Home() {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label htmlFor="cover-subtitle-input" className="block text-xs font-semibold text-slate-400 mb-1.5">
+                        <label
+                          htmlFor="cover-subtitle-input"
+                          className="block text-xs font-semibold text-slate-400 mb-1.5"
+                        >
                           표지 부제목
                         </label>
                         <input
@@ -2708,7 +2937,10 @@ export default function Home() {
                         />
                       </div>
                       <div>
-                        <label htmlFor="test-date-input" className="block text-xs font-semibold text-slate-400 mb-1.5">
+                        <label
+                          htmlFor="test-date-input"
+                          className="block text-xs font-semibold text-slate-400 mb-1.5"
+                        >
                           출제 일자
                         </label>
                         <input
@@ -2729,7 +2961,9 @@ export default function Home() {
                             checked={includeCover}
                             onChange={(e) => setIncludeCover(e.target.checked)}
                           />
-                          <span className="font-semibold">표지(Cover) 페이지 포함</span>
+                          <span className="font-semibold">
+                            표지(Cover) 페이지 포함
+                          </span>
                         </label>
 
                         {includeCover && (
@@ -2738,7 +2972,9 @@ export default function Home() {
                               type="checkbox"
                               className="size-4 rounded accent-blue-600"
                               checked={includeCharacter}
-                              onChange={(e) => setIncludeCharacter(e.target.checked)}
+                              onChange={(e) =>
+                                setIncludeCharacter(e.target.checked)
+                              }
                             />
                             <span>표지 중앙 로고/마스코트 표시</span>
                           </label>
@@ -2761,11 +2997,14 @@ export default function Home() {
                                 표지 중앙 로고 / 마스코트
                               </span>
                               <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-400">
-                                {customCharacter ? '커스텀 로고 적용 중' : '기본 마스코트 적용 중'}
+                                {customCharacter
+                                  ? '커스텀 로고 적용 중'
+                                  : '기본 마스코트 적용 중'}
                               </span>
                             </div>
                             <p className="text-[11px] text-slate-400 mt-0.5">
-                              표지 상단 원형 엠블럼 중앙에 깔끔하고 선명하게 인쇄됩니다.
+                              표지 상단 원형 엠블럼 중앙에 깔끔하고 선명하게
+                              인쇄됩니다.
                             </p>
                             <div className="flex items-center gap-2 mt-2">
                               <label
@@ -2798,7 +3037,8 @@ export default function Home() {
                       )}
 
                       <small className="block text-xs text-slate-400">
-                        ※ 표지 중앙 &quot;{currentCoverTitle}&quot; / 하단 학생 이름 / 2×2 문제 배열 / 바닥글 {academyName} 적용
+                        ※ 표지 중앙 &quot;{currentCoverTitle}&quot; / 하단 학생
+                        이름 / 2×2 문제 배열 / 바닥글 {academyName} 적용
                       </small>
                     </div>
                   </div>
@@ -2829,7 +3069,8 @@ export default function Home() {
                   <span>
                     {busy
                       ? '생성 중…'
-                      : studentMode === 'batch' && parsedBatchStudentNames.length > 1
+                      : studentMode === 'batch' &&
+                          parsedBatchStudentNames.length > 1
                         ? `📦 ${parsedBatchStudentNames.length}명 일괄 생성 (ZIP 압축)`
                         : 'PDF 생성 및 다운로드'}
                   </span>
@@ -2857,17 +3098,22 @@ export default function Home() {
             {/* Right Preview Panel */}
             <section
               className={`bg-[#151822] border border-[#242938] rounded-xl shadow-xl flex flex-col p-4 sm:p-5 sticky top-6 transition-all duration-200 ${
-                previewExpanded ? 'min-h-[1180px]' : 'min-h-[960px] xl:min-h-[1020px]'
+                previewExpanded
+                  ? 'min-h-[1180px]'
+                  : 'min-h-[960px] xl:min-h-[1020px]'
               }`}
             >
               <div className="flex flex-wrap items-center justify-between pb-3.5 mb-3.5 border-b border-[#242938] gap-2.5">
                 <div className="flex items-center gap-2.5 flex-wrap">
-                  <h3 className="text-sm font-bold text-slate-100">실시간 오답노트 미리보기</h3>
-                  {studentMode === 'batch' && parsedBatchStudentNames.length > 0 && (
-                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300">
-                      1번 학생 ({parsedBatchStudentNames[0]}) 미리보기
-                    </span>
-                  )}
+                  <h3 className="text-sm font-bold text-slate-100">
+                    실시간 오답노트 미리보기
+                  </h3>
+                  {studentMode === 'batch' &&
+                    parsedBatchStudentNames.length > 0 && (
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300">
+                        1번 학생 ({parsedBatchStudentNames[0]}) 미리보기
+                      </span>
+                    )}
                   <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400">
                     {previewLoading
                       ? '생성 중…'
@@ -2877,7 +3123,8 @@ export default function Home() {
                   </span>
                   {highSchoolProblemCount > 0 && (
                     <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
-                      총 {highSchoolProblemCount}문항 ({highSchoolPageCount}페이지)
+                      총 {highSchoolProblemCount}문항 ({highSchoolPageCount}
+                      페이지)
                     </span>
                   )}
                 </div>
@@ -2887,11 +3134,21 @@ export default function Home() {
                     {/* View Mode Toggle: Fit vs FitH */}
                     <button
                       type="button"
-                      onClick={() => setPreviewViewMode((prev) => (prev === 'Fit' ? 'FitH' : 'Fit'))}
+                      onClick={() =>
+                        setPreviewViewMode((prev) =>
+                          prev === 'Fit' ? 'FitH' : 'Fit',
+                        )
+                      }
                       className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#1F2433] hover:bg-[#2A3245] border border-[#30384F] text-slate-300 hover:text-white transition-all cursor-pointer"
-                      title={previewViewMode === 'Fit' ? '가로폭에 맞추어 확대' : 'A4 전체 페이지 한눈에 맞춤'}
+                      title={
+                        previewViewMode === 'Fit'
+                          ? '가로폭에 맞추어 확대'
+                          : 'A4 전체 페이지 한눈에 맞춤'
+                      }
                     >
-                      {previewViewMode === 'Fit' ? '🔍 가로폭 확대' : '📄 전체 맞춤'}
+                      {previewViewMode === 'Fit'
+                        ? '🔍 가로폭 확대'
+                        : '📄 전체 맞춤'}
                     </button>
 
                     {/* Expand Height Toggle */}
@@ -2899,7 +3156,11 @@ export default function Home() {
                       type="button"
                       onClick={() => setPreviewExpanded((prev) => !prev)}
                       className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#1F2433] hover:bg-[#2A3245] border border-[#30384F] text-slate-300 hover:text-white transition-all cursor-pointer"
-                      title={previewExpanded ? '기본 높이로 복원' : '미리보기 창 대형 확대'}
+                      title={
+                        previewExpanded
+                          ? '기본 높이로 복원'
+                          : '미리보기 창 대형 확대'
+                      }
                     >
                       {previewExpanded ? '창 기본 크기' : '⤢ 창 대형 확대'}
                     </button>
@@ -2920,7 +3181,9 @@ export default function Home() {
 
               <div
                 className={`flex-1 bg-[#090A0E] border border-[#1C202E] rounded-lg overflow-hidden flex flex-col items-center justify-center relative transition-all duration-200 ${
-                  previewExpanded ? 'min-h-[1100px]' : 'min-h-[900px] xl:min-h-[960px]'
+                  previewExpanded
+                    ? 'min-h-[1100px]'
+                    : 'min-h-[900px] xl:min-h-[960px]'
                 }`}
               >
                 {previewLoading && (
@@ -2950,7 +3213,9 @@ export default function Home() {
                     </h4>
                     <p className="text-xs text-slate-400 mb-4 leading-relaxed">
                       좌측에서 틀린 문제 번호를 입력하신 후<br />
-                      <strong className="text-blue-400">[미리보기 갱신]</strong>{' '}
+                      <strong className="text-blue-400">
+                        [미리보기 갱신]
+                      </strong>{' '}
                       버튼을 누르면 실제 시험지/오답노트 PDF가 이곳에 고화질로
                       렌더링됩니다.
                     </p>
@@ -2980,7 +3245,9 @@ export default function Home() {
                       disabled={previewLoading || busy}
                       className="mt-4 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-500/30 transition-all cursor-pointer flex items-center gap-2"
                     >
-                      <RefreshCw className={`size-4 ${previewLoading ? 'animate-spin' : ''}`} />
+                      <RefreshCw
+                        className={`size-4 ${previewLoading ? 'animate-spin' : ''}`}
+                      />
                       지금 실시간 미리보기 생성
                     </button>
                   </div>
@@ -3028,7 +3295,9 @@ export default function Home() {
                 </span>
               </h1>
               {!sessionToken && (
-                <span className="login-header-caption">PERSONALIZED REVIEW SYSTEM</span>
+                <span className="login-header-caption">
+                  PERSONALIZED REVIEW SYSTEM
+                </span>
               )}
             </div>
           </div>
@@ -3061,9 +3330,13 @@ export default function Home() {
         ) : !sessionToken ? (
           <section className="login-stage">
             <div className="login-intro">
-              <div className="login-kicker"><span /> DASAN MIRAE ACADEMY</div>
+              <div className="login-kicker">
+                <span /> DASAN MIRAE ACADEMY
+              </div>
               <h2 className="login-headline">
-                <span className="login-headline-line1">필요한 문제만 골라서</span>
+                <span className="login-headline-line1">
+                  필요한 문제만 골라서
+                </span>
                 <span className="login-headline-line2">오답노트 만들기</span>
               </h2>
 
@@ -3075,7 +3348,9 @@ export default function Home() {
                   </div>
                   <div className="login-feature-text">
                     <div className="login-feature-title-wrap">
-                      <strong className="login-feature-title">초고속 맞춤 제작</strong>
+                      <strong className="login-feature-title">
+                        초고속 맞춤 제작
+                      </strong>
                       <span className="login-feature-tag">3초 완성</span>
                     </div>
                     <p className="login-feature-desc">
@@ -3091,7 +3366,9 @@ export default function Home() {
                   </div>
                   <div className="login-feature-text">
                     <div className="login-feature-title-wrap">
-                      <strong className="login-feature-title">중고등 다수 교재 완비</strong>
+                      <strong className="login-feature-title">
+                        중고등 다수 교재 완비
+                      </strong>
                       <span className="login-feature-tag">전 문항 DB</span>
                     </div>
                     <p className="login-feature-desc">
@@ -3107,7 +3384,9 @@ export default function Home() {
                   </div>
                   <div className="login-feature-text">
                     <div className="login-feature-title-wrap">
-                      <strong className="login-feature-title">출력 전용 고화질 PDF</strong>
+                      <strong className="login-feature-title">
+                        출력 전용 고화질 PDF
+                      </strong>
                       <span className="login-feature-tag">원클릭 인쇄</span>
                     </div>
                     <p className="login-feature-desc">
@@ -3119,7 +3398,9 @@ export default function Home() {
               </div>
 
               <div className="login-intro-rule" />
-              <span className="login-intro-caption">SMART REVIEW · SIMPLE PRACTICE</span>
+              <span className="login-intro-caption">
+                SMART REVIEW · SIMPLE PRACTICE
+              </span>
             </div>
             <Card className="login-card">
               <CardHeader className="login-card-header">
@@ -3135,7 +3416,9 @@ export default function Home() {
               <CardContent className="login-card-content">
                 <form className="space-y-4" onSubmit={login}>
                   <label htmlFor="login-id" className="block space-y-2">
-                    <span className="font-medium">아이디 <small>USERNAME</small></span>
+                    <span className="font-medium">
+                      아이디 <small>USERNAME</small>
+                    </span>
                     <Input
                       id="login-id"
                       value={loginId}
@@ -3145,7 +3428,9 @@ export default function Home() {
                     />
                   </label>
                   <label htmlFor="login-password" className="block space-y-2">
-                    <span className="font-medium">비밀번호 <small>PASSWORD</small></span>
+                    <span className="font-medium">
+                      비밀번호 <small>PASSWORD</small>
+                    </span>
                     <Input
                       id="login-password"
                       type="password"
@@ -3198,7 +3483,11 @@ export default function Home() {
                     <p>MIDDLE SCHOOL</p>
                   </div>
                   <span className="choice-status">
-                    {textbooks.filter((item) => item.department === 'middle').length} BOOKS
+                    {
+                      textbooks.filter((item) => item.department === 'middle')
+                        .length
+                    }{' '}
+                    BOOKS
                   </span>
                 </div>
               </button>
@@ -3219,7 +3508,11 @@ export default function Home() {
                     <p>HIGH SCHOOL</p>
                   </div>
                   <span className="choice-status">
-                    {textbooks.filter((item) => item.department === 'high').length} BOOKS
+                    {
+                      textbooks.filter((item) => item.department === 'high')
+                        .length
+                    }{' '}
+                    BOOKS
                   </span>
                 </div>
               </button>
@@ -3251,17 +3544,29 @@ export default function Home() {
                 .filter((item) => item.department === department)
                 .map((item, index) => (
                   <div key={item.id} className="textbook-entry">
-                    {index === 0 || item.subject !== textbooks.filter((tb) => tb.department === department)[index - 1]?.subject ? (
-                      <div className={`textbook-semester-heading ${item.subject === '중3-1' ? 'semester-3-1' : 'semester-2-2'}`}>
+                    {index === 0 ||
+                    item.subject !==
+                      textbooks.filter((tb) => tb.department === department)[
+                        index - 1
+                      ]?.subject ? (
+                      <div
+                        className={`textbook-semester-heading ${item.subject === '중3-1' ? 'semester-3-1' : 'semester-2-2'}`}
+                      >
                         <span>{item.subject}</span>
-                        <span>{item.subject === '중3-1' ? '3학년 1학기 교재' : '2학년 2학기 교재'}</span>
+                        <span>
+                          {item.subject === '중3-1'
+                            ? '3학년 1학기 교재'
+                            : '2학년 2학기 교재'}
+                        </span>
                       </div>
                     ) : null}
                     <button
                       type="button"
                       onClick={() => {
                         if (!item.available) {
-                          setStatus(`${item.title}는 아직 준비 중인 교재입니다.`);
+                          setStatus(
+                            `${item.title}는 아직 준비 중인 교재입니다.`,
+                          );
                           return;
                         }
                         selectTextbook(item.id);
@@ -3269,14 +3574,21 @@ export default function Home() {
                       }}
                       className={`textbook-row group ${item.subject === '중3-1' ? 'textbook-row-3-1' : 'textbook-row-2-2'}`}
                     >
-                      <span className="textbook-index">{String(index + 1).padStart(2, '0')}</span>
+                      <span className="textbook-index">
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
                       <BookOpen className="textbook-icon" />
                       <div className="min-w-0 flex-1">
                         <h3 className="textbook-name-line">
-                          {item.title} <span className="textbook-subject">{item.subject}</span>
+                          {item.title}{' '}
+                          <span className="textbook-subject">
+                            {item.subject}
+                          </span>
                         </h3>
                       </div>
-                      <span className="textbook-action">{item.available ? '선택 →' : '준비 중'}</span>
+                      <span className="textbook-action">
+                        {item.available ? '선택 →' : '준비 중'}
+                      </span>
                     </button>
                   </div>
                 ))}
@@ -3300,12 +3612,16 @@ export default function Home() {
                     type="button"
                     variant="outline"
                     onClick={() => {
-                      setDepartment(department === 'middle' ? 'high' : 'middle');
+                      setDepartment(
+                        department === 'middle' ? 'high' : 'middle',
+                      );
                       setTextbook(null);
                       setPreviewPdfUrl(null);
                     }}
                   >
-                    {department === 'middle' ? '고등부 교재 바로가기' : '중등부 교재 바로가기'}
+                    {department === 'middle'
+                      ? '고등부 교재 바로가기'
+                      : '중등부 교재 바로가기'}
                   </Button>
                 </div>
               </CardHeader>
@@ -3382,8 +3698,9 @@ export default function Home() {
                             const newCh = e.target.value;
                             setBlacklabelChapter(newCh);
                             setBlacklabelSubunit(newCh);
-                            const stages =
-                              blacklabel31Hierarchy[newCh]?.[newCh] || ['Step1', 'Step2', 'Step3', 'Step4'];
+                            const stages = blacklabel31Hierarchy[newCh]?.[
+                              newCh
+                            ] || ['Step1', 'Step2', 'Step3', 'Step4'];
                             setBlacklabelStage(stages[0] || 'Step1');
                           }}
                         >
@@ -3499,8 +3816,9 @@ export default function Home() {
                             const newCh = e.target.value;
                             setConceptChapter(newCh);
                             setConceptSubunit(newCh);
-                            const stages =
-                              concept31Hierarchy[newCh]?.[newCh] || ['유형별', '단원마무리'];
+                            const stages = concept31Hierarchy[newCh]?.[
+                              newCh
+                            ] || ['유형별', '단원마무리'];
                             setConceptStage(stages[0] || '유형별');
                           }}
                         >
@@ -3565,8 +3883,7 @@ export default function Home() {
                             const newSub = e.target.value;
                             setConceptSubunit(newSub);
                             const stages =
-                              conceptHierarchy[conceptChapter]?.[newSub] ||
-                              [];
+                              conceptHierarchy[conceptChapter]?.[newSub] || [];
                             setConceptStage(stages[0] || '');
                           }}
                         >
@@ -3844,7 +4161,8 @@ export default function Home() {
                                   {textbook === 'concept-middle-3-1'
                                     ? item.chapter.replace(/_/g, ' ')
                                     : `${item.chapter.replace(/_/g, ' ')} > ${item.subunit.replace(/_/g, ' ')}`}
-                                  ] {item.stage.replace(/_/g, ' ')} · {item.numbers}번
+                                  ] {item.stage.replace(/_/g, ' ')} ·{' '}
+                                  {item.numbers}번
                                   <span className="ml-2 text-slate-500">
                                     ({item.count}문제)
                                   </span>
