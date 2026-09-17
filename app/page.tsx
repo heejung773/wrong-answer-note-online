@@ -3238,7 +3238,7 @@ export default function Home() {
 
                 {previewPdfUrl ? (
                   <iframe
-                    key={`${previewPdfUrl}-${previewViewMode}`}
+                    key={`${previewPdfUrl}-${previewViewMode}-${previewPage}`}
                     src={`${previewPdfUrl}#toolbar=0&navpanes=0&view=${previewViewMode}&page=${previewPage}`}
                     title="오답노트 실시간 미리보기"
                     className="w-full h-full rounded-lg border-0 bg-white shadow-2xl transition-all"
