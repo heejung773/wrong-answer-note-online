@@ -972,7 +972,17 @@ export default function Home() {
       if (groupCount > 0) problemPages += 1;
       return problemPages + Math.ceil(highSchoolProblemCount / 40) + (includeCover ? 1 : 0);
     }
-    return Math.ceil(highSchoolProblemCount / 4) + (includeCover ? 1 : 0);
+    const answerPageSize =
+      textbook === 'blacklabel-middle-2-2' || textbook === 'blacklabel-middle-3-1'
+        ? 48
+        : textbook === 'concept-middle-2-2' || textbook === 'concept-middle-3-1' || textbook === 'gojaengi-common-math-2'
+          ? 0
+          : 60;
+    return (
+      Math.ceil(highSchoolProblemCount / 4) +
+      (answerPageSize ? Math.ceil(highSchoolProblemCount / answerPageSize) : 0) +
+      (includeCover ? 1 : 0)
+    );
   }, [highSchoolProblemCount, includeCover, olympusItems, textbook]);
 
   function handleSortNumbers() {
