@@ -1408,7 +1408,10 @@ export default function Home() {
   }, [grade, sessionToken, student, textbook]);
 
   useEffect(() => {
-    setPreviewPage((page) => Math.min(page, Math.max(1, highSchoolPageCount)));
+    const timer = window.setTimeout(() => {
+      setPreviewPage((page) => Math.min(page, Math.max(1, highSchoolPageCount)));
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [highSchoolPageCount]);
 
   async function handleDownloadPdf(mode: 'download' | 'print' = 'download') {
