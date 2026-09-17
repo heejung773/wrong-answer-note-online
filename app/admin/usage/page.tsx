@@ -34,6 +34,10 @@ export default function AdminUsagePage() {
   const [draftFromDate, setDraftFromDate] = useState('');
   const [draftToDate, setDraftToDate] = useState('');
   const [detailPage, setDetailPage] = useState(1);
+  const [loginRequired, setLoginRequired] = useState(false);
+  const [loginEmail, setLoginEmail] = useState('teacher01@academy.local');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginBusy, setLoginBusy] = useState(false);
   const supabase = useMemo(() => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -50,7 +54,7 @@ export default function AdminUsagePage() {
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
       if (!token) {
-        setError('로그인이 필요합니다.');
+        setLoginRequired(true);
         setLoading(false);
         return;
       }
@@ -115,6 +119,70 @@ export default function AdminUsagePage() {
   const selectedEmail = summary.find(
     ([userId]) => userId === selectedUserId,
   )?.[1].email;
+
+  async function handleAdminLogin(event: { preventDefault: () => void }) {
+    event.preventDefault();
+    if (!supabase) return;
+    setLoginBusy(true);
+    setError('');
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: loginEmail.trim(),
+      password: loginPassword,
+    });
+    if (signInError) {
+      setError('이메일 또는 비밀번호를 확인해 주세요.');
+      setLoginBusy(false);
+      return;
+    }
+    window.location.reload();
+  }
+
+  if (loginRequired) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#0b0c10] px-5 text-[#f6efe5]">
+        <form
+          className="w-full max-w-md rounded-2xl border border-white/15 bg-white/5 p-7"
+          onSubmit={handleAdminLogin}
+        >
+          <p className="text-xs uppercase tracking-[0.25em] text-[#d69a63]">
+            Admin
+          </p>
+          <h1 className="mt-3 text-2xl font-semibold">관리자 로그인</h1>
+          <p className="mt-2 text-sm text-[#b9b0a6]">
+            관리자 Supabase 계정으로 로그인해 주세요.
+          </p>
+          <label className="mt-6 block text-sm text-[#b9b0a6]">
+            이메일
+            <input
+              className="mt-2 w-full rounded-md border border-white/15 bg-black/20 px-3 py-2 text-[#f6efe5]"
+              type="email"
+              value={loginEmail}
+              onChange={(event) => setLoginEmail(event.target.value)}
+              required
+            />
+          </label>
+          <label className="mt-4 block text-sm text-[#b9b0a6]">
+            비밀번호
+            <input
+              className="mt-2 w-full rounded-md border border-white/15 bg-black/20 px-3 py-2 text-[#f6efe5]"
+              type="password"
+              value={loginPassword}
+              onChange={(event) => setLoginPassword(event.target.value)}
+              required
+            />
+          </label>
+          {error && <p className="mt-4 text-sm text-red-200">{error}</p>}
+          <button
+            className="mt-6 w-full rounded-md bg-[#d69a63] px-4 py-2.5 font-medium text-[#171317] disabled:opacity-50"
+            disabled={loginBusy}
+            type="submit"
+          >
+            {loginBusy ? '로그인 중…' : '관리자 로그인'}
+          </button>
+        </form>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#0b0c10] px-5 py-10 text-[#f6efe5] sm:px-10">
