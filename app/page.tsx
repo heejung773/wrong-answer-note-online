@@ -3062,11 +3062,14 @@ export default function Home() {
           <section className="login-stage">
             <div className="login-intro">
               <div className="login-kicker"><span /> DASAN MIRAE ACADEMY</div>
-              <h2><span className="login-intro-soft">오늘의 학습을</span> <em>정리하는 시간</em></h2>
-              <p>필요한 문제만 골라 담고,<br />나만의 오답노트를 만들어 보세요.</p>
+              <h2 className="login-headline">
+                <span className="login-headline-line1">필요한 문제만 골라서</span>
+                <span className="login-headline-line2">오답노트 만들기</span>
+              </h2>
 
               <div className="login-features">
-                <div className="login-feature-item">
+                <div className="login-feature-item login-feature-speed">
+                  <div className="login-feature-badge">01</div>
                   <div className="login-feature-icon">
                     <Zap />
                   </div>
@@ -3075,7 +3078,8 @@ export default function Home() {
                     <span>번호만 입력하면 3초 만에 레이아웃 완성</span>
                   </div>
                 </div>
-                <div className="login-feature-item">
+                <div className="login-feature-item login-feature-books">
+                  <div className="login-feature-badge">02</div>
                   <div className="login-feature-icon">
                     <BookOpen />
                   </div>
@@ -3084,7 +3088,8 @@ export default function Home() {
                     <span>시너지·올림포스·쎈·블랙라벨 탑재</span>
                   </div>
                 </div>
-                <div className="login-feature-item">
+                <div className="login-feature-item login-feature-print">
+                  <div className="login-feature-badge">03</div>
                   <div className="login-feature-icon">
                     <FileDown />
                   </div>
