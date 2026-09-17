@@ -3074,8 +3074,14 @@ export default function Home() {
                     <Zap />
                   </div>
                   <div className="login-feature-text">
-                    <strong>초고속 맞춤 제작</strong>
-                    <span>번호만 입력하면 3초 만에 레이아웃 완성</span>
+                    <div className="login-feature-title-wrap">
+                      <strong className="login-feature-title">초고속 맞춤 제작</strong>
+                      <span className="login-feature-tag">3초 완성</span>
+                    </div>
+                    <p className="login-feature-desc">
+                      <span className="login-feature-bullet" />
+                      번호만 입력하면 문제 레이아웃 즉시 완성
+                    </p>
                   </div>
                 </div>
                 <div className="login-feature-item login-feature-books">
@@ -3084,8 +3090,14 @@ export default function Home() {
                     <BookOpen />
                   </div>
                   <div className="login-feature-text">
-                    <strong>중·고등 7종 교재 완비</strong>
-                    <span>시너지·올림포스·쎈·블랙라벨 탑재</span>
+                    <div className="login-feature-title-wrap">
+                      <strong className="login-feature-title">중고등 다수 교재 완비</strong>
+                      <span className="login-feature-tag">전 문항 DB</span>
+                    </div>
+                    <p className="login-feature-desc">
+                      <span className="login-feature-bullet" />
+                      시너지 · 올림포스 · 쎈 · 블랙라벨 탑재
+                    </p>
                   </div>
                 </div>
                 <div className="login-feature-item login-feature-print">
@@ -3094,8 +3106,14 @@ export default function Home() {
                     <FileDown />
                   </div>
                   <div className="login-feature-text">
-                    <strong>출력 전용 고화질 PDF</strong>
-                    <span>빠른정답 표 자동 포함 및 원클릭 인쇄</span>
+                    <div className="login-feature-title-wrap">
+                      <strong className="login-feature-title">출력 전용 고화질 PDF</strong>
+                      <span className="login-feature-tag">원클릭 인쇄</span>
+                    </div>
+                    <p className="login-feature-desc">
+                      <span className="login-feature-bullet" />
+                      빠른정답 표 자동 포함 및 학생별 맞춤 시험지
+                    </p>
                   </div>
                 </div>
               </div>

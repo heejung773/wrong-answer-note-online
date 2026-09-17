@@ -562,18 +562,48 @@ html:has(.selection-canvas) {
 .login-feature-text {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.45rem;
+  min-width: 0;
 }
-.login-feature-text strong {
-  font-size: 1.32rem; /* 1.5배 확대 */
+.login-feature-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+.login-feature-title {
+  font-size: 1.38rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+.login-feature-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.76rem;
   font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.25;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
 }
-.login-feature-text span {
-  font-size: 1.02rem; /* 1.4~1.5배 확대 */
-  font-weight: 600;
-  line-height: 1.4;
+.login-feature-desc {
+  margin: 0;
+  font-size: 1.0rem;
+  font-weight: 500;
+  line-height: 1.45;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.login-feature-bullet {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 /* 01. Speed: Energetic Warm Amber / Gold */
@@ -590,11 +620,16 @@ html:has(.selection-canvas) {
   border: 1.5px solid rgba(245, 158, 11, 0.45);
   color: #f59e0b;
 }
-.login-feature-speed .login-feature-text strong {
-  color: #fff7ed;
+.login-feature-speed .login-feature-tag {
+  background: rgba(245, 158, 11, 0.22);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.5);
 }
-.login-feature-speed .login-feature-text span {
-  color: #d1b9a5;
+.login-feature-speed .login-feature-desc {
+  color: #eedcd0;
+}
+.login-feature-speed .login-feature-bullet {
+  background: #f59e0b;
 }
 .login-feature-speed:hover {
   background: rgba(38, 22, 12, 0.92);
@@ -622,11 +657,16 @@ html:has(.selection-canvas) {
   border: 1.5px solid rgba(45, 212, 191, 0.45);
   color: #2dd4bf;
 }
-.login-feature-books .login-feature-text strong {
-  color: #f0fdfa;
+.login-feature-books .login-feature-tag {
+  background: rgba(45, 212, 191, 0.22);
+  color: #5eead4;
+  border: 1px solid rgba(45, 212, 191, 0.5);
 }
-.login-feature-books .login-feature-text span {
-  color: #b2dfdb;
+.login-feature-books .login-feature-desc {
+  color: #cdeae4;
+}
+.login-feature-books .login-feature-bullet {
+  background: #2dd4bf;
 }
 .login-feature-books:hover {
   background: rgba(20, 28, 24, 0.92);
@@ -654,11 +694,16 @@ html:has(.selection-canvas) {
   border: 1.5px solid rgba(255, 87, 34, 0.45);
   color: #ff5722;
 }
-.login-feature-print .login-feature-text strong {
-  color: #fff5f5;
+.login-feature-print .login-feature-tag {
+  background: rgba(255, 87, 34, 0.22);
+  color: #ffab91;
+  border: 1px solid rgba(255, 87, 34, 0.5);
 }
-.login-feature-print .login-feature-text span {
-  color: #dfb2a9;
+.login-feature-print .login-feature-desc {
+  color: #f3dcd6;
+}
+.login-feature-print .login-feature-bullet {
+  background: #ff5722;
 }
 .login-feature-print:hover {
   background: rgba(38, 18, 14, 0.92);
@@ -720,10 +765,12 @@ html:has(.selection-canvas) {
   .login-headline-line2 { font-size: clamp(2.1rem, 8.5vw, 2.8rem); }
   .login-features { margin-top: 1.2rem; gap: 0.75rem; max-width: 100%; }
   .login-feature-item { padding: 0.9rem 1rem; gap: 0.85rem; }
-  .login-feature-icon { width: 2.7rem; height: 2.7rem; }
-  .login-feature-icon svg { width: 1.35rem; height: 1.35rem; }
-  .login-feature-text strong { font-size: 1.1rem; }
-  .login-feature-text span { font-size: 0.88rem; }
+  .login-feature-icon { width: 2.8rem; height: 2.8rem; }
+  .login-feature-icon svg { width: 1.4rem; height: 1.4rem; }
+  .login-feature-title { font-size: 1.15rem; }
+  .login-feature-tag { font-size: 0.68rem; padding: 0.1rem 0.45rem; }
+  .login-feature-desc { font-size: 0.88rem; }
+  .login-feature-bullet { width: 4px; height: 4px; }
   .login-intro-rule, .login-intro-caption { display: none; }
   .login-card { width: 100%; }
   .login-header-academy { font-size: .9rem !important; }
