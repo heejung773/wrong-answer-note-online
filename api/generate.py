@@ -74,6 +74,8 @@ OLYMPUS_UNITS = {
     "2. 함수의 연속": "unit-2",
     "3. 미분계수와 도함수": "unit-3",
     "4. 도함수의 활용": "unit-4",
+    "5. 부정적분과 정적분": "unit-5",
+    "6. 정적분의 활용": "unit-6",
 }
 OLYMPUS_TYPES = {
     "유형완성하기": "standard",
