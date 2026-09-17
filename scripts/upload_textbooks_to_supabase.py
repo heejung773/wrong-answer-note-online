@@ -32,6 +32,11 @@ def main() -> None:
         ),
     )
     parser.add_argument("--manifest", type=Path, help="사용할 매니페스트 파일 경로")
+    parser.add_argument("--source-dir", type=Path, help="번호형 PNG가 있는 별도 폴더")
+    parser.add_argument("--object-prefix", help="별도 폴더 파일의 Storage 경로 접두사")
+    parser.add_argument("--start", type=int, help="별도 폴더 업로드 시작 번호")
+    parser.add_argument("--end", type=int, help="별도 폴더 업로드 끝 번호")
+    parser.add_argument("--olympus-units", nargs="+", type=int, help="올림푸스 단원 번호들")
     args = parser.parse_args()
     def load_env_local() -> None:
         env_file = ROOT / ".env.local"
@@ -52,15 +57,39 @@ def main() -> None:
     bucket = os.environ.get("SUPABASE_STORAGE_BUCKET", "textbook-problems")
     if not url or not secret:
         raise SystemExit("NEXT_PUBLIC_SUPABASE_URL과 SUPABASE_SECRET_KEY를 로컬 환경에 설정해야 합니다.")
-    manifest_path = args.manifest or (
+    if args.olympus_units:
+        type_map = {"유형완성하기": "standard", "서술형완성하기": "written", "고난도도전": "challenge"}
+        files = []
+        source_root = Path(r"D:\올림푸스_미적분")
+        for unit in args.olympus_units:
+            unit_dirs = list(source_root.glob(f"{unit}. *"))
+            if len(unit_dirs) != 1:
+                raise SystemExit(f"올림푸스 단원 폴더를 하나로 확인할 수 없습니다: {unit}")
+            for korean_type, slug in type_map.items():
+                folder = unit_dirs[0] / korean_type
+                for source in sorted(folder.glob("*.png")):
+                    files.append({"source": str(source), "object": f"olympus-calculus/unit-{unit}/{slug}/{source.name}"})
+    elif args.source_dir:
+        if not args.object_prefix or args.start is None or args.end is None:
+            raise SystemExit("--source-dir 사용 시 --object-prefix, --start, --end가 모두 필요합니다.")
+        if args.start > args.end:
+            raise SystemExit("--start는 --end보다 클 수 없습니다.")
+        files = []
+        for number in range(args.start, args.end + 1):
+            source = args.source_dir / f"{number:04d}.png"
+            if not source.is_file():
+                raise SystemExit(f"누락된 파일: {source}")
+            files.append({"source": str(source), "object": f"{args.object_prefix}/{number:04d}.png"})
+    else:
+        manifest_path = args.manifest or (
         ROOT / "tmp" / f"{args.textbook}-upload-manifest.json"
         if args.textbook and (ROOT / "tmp" / f"{args.textbook}-upload-manifest.json").is_file()
         else MANIFEST
-    )
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    files = manifest["files"]
-    if args.textbook:
-        files = [item for item in files if str(item["object"]).startswith(args.textbook + "/")]
+        )
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        files = manifest["files"]
+        if args.textbook:
+            files = [item for item in files if str(item["object"]).startswith(args.textbook + "/")]
     total = len(files)
     for index, item in enumerate(files, 1):
         source = Path(item["source"])

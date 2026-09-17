@@ -463,6 +463,8 @@ const olympusUnits = [
   '2. 함수의 연속',
   '3. 미분계수와 도함수',
   '4. 도함수의 활용',
+  '5. 부정적분과 정적분',
+  '6. 정적분의 활용',
 ];
 
 const olympusRanges: Record<
@@ -488,6 +490,16 @@ const olympusRanges: Record<
     유형완성하기: { min: 1, max: 129, count: 129 },
     서술형완성하기: { min: 1, max: 6, count: 6 },
     고난도도전: { min: 1, max: 8, count: 8 },
+  },
+  '5. 부정적분과 정적분': {
+    유형완성하기: { min: 1, max: 88, count: 88 },
+    서술형완성하기: { min: 1, max: 6, count: 6 },
+    고난도도전: { min: 1, max: 3, count: 3 },
+  },
+  '6. 정적분의 활용': {
+    유형완성하기: { min: 1, max: 56, count: 56 },
+    서술형완성하기: { min: 1, max: 6, count: 6 },
+    고난도도전: { min: 1, max: 6, count: 6 },
   },
 };
 
@@ -555,8 +567,8 @@ const allTextbookInfo: Record<
   },
   'synergy-common-math-2': {
     name: '마플시너지 공통수학2',
-    max_num: 991,
-    desc: '총 991문항 데이터베이스 연동',
+    max_num: 1895,
+    desc: '총 1895문항 데이터베이스 연동',
   },
   'olympus-calculus': {
     name: 'EBS 올림포스 미적분',
