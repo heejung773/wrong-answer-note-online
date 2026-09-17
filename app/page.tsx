@@ -952,8 +952,28 @@ export default function Home() {
   ]);
 
   const highSchoolPageCount = useMemo(() => {
+    if (textbook === 'olympus-calculus') {
+      let problemPages = 0;
+      let groupType: string | null = null;
+      let groupCount = 0;
+      for (const item of olympusItems) {
+        const type = item.problemType === '고난도도전' ? 'wide' : 'normal';
+        if (groupType !== type || groupCount >= 4) {
+          if (groupCount > 0) problemPages += 1;
+          groupType = type;
+          groupCount = 0;
+        }
+        groupCount += item.count;
+        while (groupCount >= 4) {
+          problemPages += 1;
+          groupCount -= 4;
+        }
+      }
+      if (groupCount > 0) problemPages += 1;
+      return problemPages + Math.ceil(highSchoolProblemCount / 40) + (includeCover ? 1 : 0);
+    }
     return Math.ceil(highSchoolProblemCount / 4) + (includeCover ? 1 : 0);
-  }, [highSchoolProblemCount, includeCover]);
+  }, [highSchoolProblemCount, includeCover, olympusItems, textbook]);
 
   function handleSortNumbers() {
     try {
