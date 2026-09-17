@@ -6,6 +6,8 @@ import Image from 'next/image';
 import {
   ArrowDownAZ,
   BookOpen,
+  ChevronLeft,
+  ChevronRight,
   CheckCircle2,
   ExternalLink,
   FileDown,
@@ -770,6 +772,7 @@ export default function Home() {
   const [busy, setBusy] = useState(false);
   const [checkingSession, setCheckingSession] = useState(configured);
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
+  const [previewPage, setPreviewPage] = useState(1);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewViewMode, setPreviewViewMode] = useState<'Fit' | 'FitH'>('Fit');
   const [previewExpanded, setPreviewExpanded] = useState(false);
@@ -1363,6 +1366,7 @@ export default function Home() {
         const result = (await response.json()) as { downloadUrl?: string };
         if (result.downloadUrl) {
           setPreviewPdfUrl(result.downloadUrl);
+          setPreviewPage(1);
           setStatus('미리보기가 갱신되었습니다.');
           return;
         }
@@ -1373,6 +1377,7 @@ export default function Home() {
         URL.revokeObjectURL(previewPdfUrl);
       }
       setPreviewPdfUrl(url);
+      setPreviewPage(1);
       setStatus('미리보기가 최신 상태로 갱신되었습니다.');
     } catch (error) {
       setStatus(
@@ -1401,6 +1406,10 @@ export default function Home() {
     }, 500);
     return () => window.clearTimeout(timer);
   }, [grade, sessionToken, student, textbook]);
+
+  useEffect(() => {
+    setPreviewPage((page) => Math.min(page, Math.max(1, highSchoolPageCount)));
+  }, [highSchoolPageCount]);
 
   async function handleDownloadPdf(mode: 'download' | 'print' = 'download') {
     if (!sessionToken || !textbook) return;
@@ -3151,6 +3160,15 @@ export default function Home() {
 
                 {previewPdfUrl && (
                   <div className="flex items-center gap-1.5 flex-wrap">
+                    <div className="inline-flex items-center rounded-full bg-[#151923] border border-[#30384F] overflow-hidden">
+                      <button type="button" onClick={() => setPreviewPage((page) => Math.max(1, page - 1))} disabled={previewPage <= 1} className="p-2.5 text-slate-300 hover:bg-[#242A3A] disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed" aria-label="이전 페이지">
+                        <ChevronLeft className="size-4" />
+                      </button>
+                      <span className="min-w-14 text-center text-sm font-bold text-slate-200">{previewPage}/{Math.max(1, highSchoolPageCount)}</span>
+                      <button type="button" onClick={() => setPreviewPage((page) => Math.min(Math.max(1, highSchoolPageCount), page + 1))} disabled={previewPage >= Math.max(1, highSchoolPageCount)} className="p-2.5 text-slate-300 hover:bg-[#242A3A] disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed" aria-label="다음 페이지">
+                        <ChevronRight className="size-4" />
+                      </button>
+                    </div>
                     {/* View Mode Toggle: Fit vs FitH */}
                     <button
                       type="button"
@@ -3218,7 +3236,7 @@ export default function Home() {
                 {previewPdfUrl ? (
                   <iframe
                     key={`${previewPdfUrl}-${previewViewMode}`}
-                    src={`${previewPdfUrl}#toolbar=0&navpanes=0&view=${previewViewMode}`}
+                    src={`${previewPdfUrl}#toolbar=0&navpanes=0&view=${previewViewMode}&page=${previewPage}`}
                     title="오답노트 실시간 미리보기"
                     className="w-full h-full rounded-lg border-0 bg-white shadow-2xl transition-all"
                     style={{ minHeight: previewExpanded ? '1100px' : '960px' }}
