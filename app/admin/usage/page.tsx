@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { CalendarDays, Search } from 'lucide-react';
 
 type EventRow = {
   id: string;
@@ -30,6 +31,8 @@ export default function AdminUsagePage() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const [draftFromDate, setDraftFromDate] = useState('');
+  const [draftToDate, setDraftToDate] = useState('');
   const [detailPage, setDetailPage] = useState(1);
   const supabase = useMemo(() => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -134,33 +137,50 @@ export default function AdminUsagePage() {
             <section className="mt-8 flex flex-wrap items-end gap-3 rounded-xl border border-white/10 bg-white/5 p-4">
               <label className="text-sm text-[#b9b0a6]">
                 시작일
-                <input
-                  className="mt-1 block rounded-md border border-white/15 bg-black/20 px-3 py-2 text-[#f6efe5]"
-                  type="date"
-                  value={fromDate}
-                  onChange={(event) => {
-                    setFromDate(event.target.value);
-                    setDetailPage(1);
-                  }}
-                />
+                <span className="relative mt-1 block">
+                  <CalendarDays className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#f0b77d]" />
+                  <input
+                    className="block rounded-md border border-white/15 bg-black/20 py-2 pl-9 pr-3 text-[#f6efe5] [color-scheme:dark]"
+                    type="date"
+                    value={draftFromDate}
+                    onChange={(event) => {
+                      setDraftFromDate(event.target.value);
+                    }}
+                  />
+                </span>
               </label>
               <label className="text-sm text-[#b9b0a6]">
                 종료일
-                <input
-                  className="mt-1 block rounded-md border border-white/15 bg-black/20 px-3 py-2 text-[#f6efe5]"
-                  type="date"
-                  value={toDate}
-                  onChange={(event) => {
-                    setToDate(event.target.value);
-                    setDetailPage(1);
-                  }}
-                />
+                <span className="relative mt-1 block">
+                  <CalendarDays className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#f0b77d]" />
+                  <input
+                    className="block rounded-md border border-white/15 bg-black/20 py-2 pl-9 pr-3 text-[#f6efe5] [color-scheme:dark]"
+                    type="date"
+                    value={draftToDate}
+                    onChange={(event) => {
+                      setDraftToDate(event.target.value);
+                    }}
+                  />
+                </span>
               </label>
+              <button
+                className="inline-flex items-center gap-2 rounded-md bg-[#d69a63] px-4 py-2 text-sm font-medium text-[#171317] hover:bg-[#efb47b]"
+                onClick={() => {
+                  setFromDate(draftFromDate);
+                  setToDate(draftToDate);
+                  setDetailPage(1);
+                }}
+                type="button"
+              >
+                <Search className="size-4" /> 검색
+              </button>
               <button
                 className="rounded-md border border-white/15 px-3 py-2 text-sm text-[#f0b77d] hover:bg-white/10"
                 onClick={() => {
                   setFromDate('');
                   setToDate('');
+                  setDraftFromDate('');
+                  setDraftToDate('');
                   setDetailPage(1);
                 }}
                 type="button"
