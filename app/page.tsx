@@ -1236,10 +1236,7 @@ export default function Home() {
 
     if (nextTb === 'ssen-common-math-1') {
       setSelectedSsenChapter('');
-      const nums = parsedProblemNumbers;
-      if (nums.length === 0 || nums.some((n) => n < 40 || n > 1316)) {
-        setNumbers('40, 41, 42, 43');
-      }
+      setNumbers('');
     } else if (nextTb === 'ssen-middle-2-2') {
       const nums = parsedProblemNumbers;
       if (nums.length === 0 || nums.some((n) => n < 21 || n > 1142)) {
@@ -1797,9 +1794,10 @@ export default function Home() {
     let curNumbers = overrideItems?.numbers ?? numbers;
     if (activeTb === 'ssen-common-math-1') {
       const parsed = parsedProblemNumbers;
-      if (parsed.length === 0 || parsed.some((n) => n < 40 || n > 1316)) {
-        curNumbers = '40, 41, 42, 43';
-        setNumbers(curNumbers);
+      if (parsed.length === 0) {
+        setPreviewPdfUrl(null);
+        setStatus('문제 번호를 입력해 주세요.');
+        return;
       }
     } else if (activeTb === 'ssen-middle-2-2') {
       const parsed = parsedProblemNumbers;
@@ -1954,6 +1952,10 @@ export default function Home() {
     if (!sessionToken || !textbook) return;
     const selectedTextbook = textbooks.find((item) => item.id === textbook);
     if (!selectedTextbook?.available) return;
+    if (highSchoolProblemCount === 0) {
+      setStatus('문제 번호를 입력해 주세요.');
+      return;
+    }
     const isBatch =
       studentMode === 'batch' && parsedBatchStudentNames.length > 1;
     const isBatchPrint = mode === 'print' && isBatch;
@@ -3569,18 +3571,7 @@ export default function Home() {
                                     className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#2B354F] focus:border-sky-400 focus:ring-1 focus:ring-sky-400 rounded-lg text-slate-100 text-xs sm:text-sm outline-none transition-all cursor-pointer font-medium"
                                     value={selectedSsenChapter}
                                     onChange={(e) => {
-                                      const val = e.target.value;
-                                      setSelectedSsenChapter(val);
-                                      if (val) {
-                                        const cur = numbers.trim();
-                                        if (
-                                          !cur ||
-                                          cur === '40, 41, 42, 43' ||
-                                          cur === '40-48'
-                                        ) {
-                                          setNumbers(val);
-                                        }
-                                      }
+                                      setSelectedSsenChapter(e.target.value);
                                     }}
                                   >
                                     <option value="">
@@ -3618,9 +3609,9 @@ export default function Home() {
                                       setNumbers(selectedSsenChapter);
                                     }}
                                     className="flex-1 sm:flex-none px-3.5 py-2.5 bg-[#1b2234] hover:bg-[#25304a] border border-[#2f3d61] disabled:bg-slate-800 disabled:text-slate-500 disabled:border-slate-800 disabled:cursor-not-allowed text-sky-300 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-                                    title="입력창의 내용을 선택한 단원 범위로 교체합니다"
+                                    title="입력창의 내용을 선택한 단원의 전체 범위로 넣습니다"
                                   >
-                                    단원만 입력
+                                    단원 전체 넣기
                                   </button>
                                 </div>
                               </div>
