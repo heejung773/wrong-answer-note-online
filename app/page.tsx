@@ -573,62 +573,62 @@ type BasicSsenItem = {
 const basicSsenHierarchy: Record<string, Record<string, string[]>> = {
   "I. 도형의 성질": {
     "01 삼각형의 성질 (1)": [
-      "자신감 기본&핵심유형 1 (11~15쪽)",
-      "자신감 기본&핵심유형 2 (19~21쪽)",
+      "기본&핵심유형 1 (11~15쪽)",
+      "기본&핵심유형 2 (19~21쪽)",
       "꼭 나오는 학교시험기출 (22~23쪽)"
     ],
     "02 삼각형의 성질 (2)": [
-      "자신감 기본&핵심유형 1 (29~31쪽)",
-      "자신감 기본&핵심유형 2 (36~40쪽)",
+      "기본&핵심유형 1 (29~31쪽)",
+      "기본&핵심유형 2 (36~40쪽)",
       "꼭 나오는 학교시험기출 (41~42쪽)"
     ],
     "03 사각형의 성질 (1)": [
-      "자신감 기본&핵심유형 1 (47~50쪽)",
-      "자신감 기본&핵심유형 2 (54~57쪽)",
+      "기본&핵심유형 1 (47~50쪽)",
+      "기본&핵심유형 2 (54~57쪽)",
       "꼭 나오는 학교시험기출 (58~59쪽)"
     ],
     "04 사각형의 성질 (2)": [
-      "자신감 기본&핵심유형 1 (66~68쪽)",
-      "자신감 기본&핵심유형 2 (72~74쪽)",
-      "자신감 기본&핵심유형 3 (77~81쪽)",
+      "기본&핵심유형 1 (66~68쪽)",
+      "기본&핵심유형 2 (72~74쪽)",
+      "기본&핵심유형 3 (77~81쪽)",
       "꼭 나오는 학교시험기출 (82~84쪽)"
     ]
   },
   "II. 도형의 닮음": {
     "05 도형의 닮음": [
-      "자신감 기본&핵심유형 1 (91~94쪽)",
-      "자신감 기본&핵심유형 2 (98~101쪽)",
+      "기본&핵심유형 1 (91~94쪽)",
+      "기본&핵심유형 2 (98~101쪽)",
       "꼭 나오는 학교시험기출 (102~104쪽)"
     ],
     "06 평행선 사이의 선분의 길이의 비": [
-      "자신감 기본&핵심유형 1 (109~111쪽)",
-      "자신감 기본&핵심유형 2 (114~115쪽)",
+      "기본&핵심유형 1 (109~111쪽)",
+      "기본&핵심유형 2 (114~115쪽)",
       "꼭 나오는 학교시험기출 (116~117쪽)"
     ],
     "07 삼각형의 무게중심과 닮음의 활용": [
-      "자신감 기본&핵심유형 1 (121~124쪽)",
-      "자신감 기본&핵심유형 2 (128~130쪽)",
-      "자신감 기본&핵심유형 3 (133~135쪽)",
+      "기본&핵심유형 1 (121~124쪽)",
+      "기본&핵심유형 2 (128~130쪽)",
+      "기본&핵심유형 3 (133~135쪽)",
       "꼭 나오는 학교시험기출 (136~138쪽)"
     ]
   },
   "III. 피타고라스 정리": {
     "08 피타고라스 정리": [
-      "자신감 기본&핵심유형 1 (144~147쪽)",
-      "자신감 기본&핵심유형 2 (150~151쪽)",
-      "자신감 기본&핵심유형 3 (155~156쪽)",
+      "기본&핵심유형 1 (144~147쪽)",
+      "기본&핵심유형 2 (150~151쪽)",
+      "기본&핵심유형 3 (155~156쪽)",
       "꼭 나오는 학교시험기출 (157~158쪽)"
     ]
   },
   "IV. 확률": {
     "09 경우의 수": [
-      "자신감 기본&핵심유형 1 (165~170쪽)",
-      "자신감 기본&핵심유형 2 (175~178쪽)",
+      "기본&핵심유형 1 (165~170쪽)",
+      "기본&핵심유형 2 (175~178쪽)",
       "꼭 나오는 학교시험기출 (179~180쪽)"
     ],
     "10 확률": [
-      "자신감 기본&핵심유형 1 (187~189쪽)",
-      "자신감 기본&핵심유형 2 (193~195쪽)",
+      "기본&핵심유형 1 (187~189쪽)",
+      "기본&핵심유형 2 (193~195쪽)",
       "꼭 나오는 학교시험기출 (196~197쪽)"
     ]
   }
@@ -636,36 +636,60 @@ const basicSsenHierarchy: Record<string, Record<string, string[]>> = {
 
 const basicSsenStageSlugs: Record<string, string> = {
   "꼭 나오는 학교시험기출 (22~23쪽)": "school",
+  "기본&핵심유형 1 (11~15쪽)": "basic1",
+  "기본&핵심유형 2 (19~21쪽)": "basic2",
+  "꼭 나오는 학교시험기출 (41~42쪽)": "school",
+  "기본&핵심유형 1 (29~31쪽)": "basic1",
+  "기본&핵심유형 2 (36~40쪽)": "basic2",
+  "꼭 나오는 학교시험기출 (58~59쪽)": "school",
+  "기본&핵심유형 1 (47~50쪽)": "basic1",
+  "기본&핵심유형 2 (54~57쪽)": "basic2",
+  "꼭 나오는 학교시험기출 (82~84쪽)": "school",
+  "기본&핵심유형 1 (66~68쪽)": "basic1",
+  "기본&핵심유형 2 (72~74쪽)": "basic2",
+  "기본&핵심유형 3 (77~81쪽)": "basic3",
+  "꼭 나오는 학교시험기출 (102~104쪽)": "school",
+  "기본&핵심유형 1 (91~94쪽)": "basic1",
+  "기본&핵심유형 2 (98~101쪽)": "basic2",
+  "꼭 나오는 학교시험기출 (116~117쪽)": "school",
+  "기본&핵심유형 1 (109~111쪽)": "basic1",
+  "기본&핵심유형 2 (114~115쪽)": "basic2",
+  "꼭 나오는 학교시험기출 (136~138쪽)": "school",
+  "기본&핵심유형 1 (121~124쪽)": "basic1",
+  "기본&핵심유형 2 (128~130쪽)": "basic2",
+  "기본&핵심유형 3 (133~135쪽)": "basic3",
+  "꼭 나오는 학교시험기출 (157~158쪽)": "school",
+  "기본&핵심유형 1 (144~147쪽)": "basic1",
+  "기본&핵심유형 2 (150~151쪽)": "basic2",
+  "기본&핵심유형 3 (155~156쪽)": "basic3",
+  "꼭 나오는 학교시험기출 (179~180쪽)": "school",
+  "기본&핵심유형 1 (165~170쪽)": "basic1",
+  "기본&핵심유형 2 (175~178쪽)": "basic2",
+  "꼭 나오는 학교시험기출 (196~197쪽)": "school",
+  "기본&핵심유형 1 (187~189쪽)": "basic1",
+  "기본&핵심유형 2 (193~195쪽)": "basic2",
+  // Legacy with 자신감 prefix
   "자신감 기본&핵심유형 1 (11~15쪽)": "basic1",
   "자신감 기본&핵심유형 2 (19~21쪽)": "basic2",
-  "꼭 나오는 학교시험기출 (41~42쪽)": "school",
   "자신감 기본&핵심유형 1 (29~31쪽)": "basic1",
   "자신감 기본&핵심유형 2 (36~40쪽)": "basic2",
-  "꼭 나오는 학교시험기출 (58~59쪽)": "school",
   "자신감 기본&핵심유형 1 (47~50쪽)": "basic1",
   "자신감 기본&핵심유형 2 (54~57쪽)": "basic2",
-  "꼭 나오는 학교시험기출 (82~84쪽)": "school",
   "자신감 기본&핵심유형 1 (66~68쪽)": "basic1",
   "자신감 기본&핵심유형 2 (72~74쪽)": "basic2",
   "자신감 기본&핵심유형 3 (77~81쪽)": "basic3",
-  "꼭 나오는 학교시험기출 (102~104쪽)": "school",
   "자신감 기본&핵심유형 1 (91~94쪽)": "basic1",
   "자신감 기본&핵심유형 2 (98~101쪽)": "basic2",
-  "꼭 나오는 학교시험기출 (116~117쪽)": "school",
   "자신감 기본&핵심유형 1 (109~111쪽)": "basic1",
   "자신감 기본&핵심유형 2 (114~115쪽)": "basic2",
-  "꼭 나오는 학교시험기출 (136~138쪽)": "school",
   "자신감 기본&핵심유형 1 (121~124쪽)": "basic1",
   "자신감 기본&핵심유형 2 (128~130쪽)": "basic2",
   "자신감 기본&핵심유형 3 (133~135쪽)": "basic3",
-  "꼭 나오는 학교시험기출 (157~158쪽)": "school",
   "자신감 기본&핵심유형 1 (144~147쪽)": "basic1",
   "자신감 기본&핵심유형 2 (150~151쪽)": "basic2",
   "자신감 기본&핵심유형 3 (155~156쪽)": "basic3",
-  "꼭 나오는 학교시험기출 (179~180쪽)": "school",
   "자신감 기본&핵심유형 1 (165~170쪽)": "basic1",
   "자신감 기본&핵심유형 2 (175~178쪽)": "basic2",
-  "꼭 나오는 학교시험기출 (196~197쪽)": "school",
   "자신감 기본&핵심유형 1 (187~189쪽)": "basic1",
   "자신감 기본&핵심유형 2 (193~195쪽)": "basic2"
 };
@@ -1061,14 +1085,14 @@ export default function Home() {
   const [basicSsenSubunit, setBasicSsenSubunit] =
     useState('01 삼각형의 성질 (1)');
   const [basicSsenStage, setBasicSsenStage] = useState(
-    '자신감 기본&핵심유형 1 (11~15쪽)',
+    '기본&핵심유형 1 (11~15쪽)',
   );
   const [basicSsenItems, setBasicSsenItems] = useState<BasicSsenItem[]>([
     {
       id: 1,
       chapter: 'I. 도형의 성질',
       subunit: '01 삼각형의 성질 (1)',
-      stage: '자신감 기본&핵심유형 1 (11~15쪽)',
+      stage: '기본&핵심유형 1 (11~15쪽)',
       numbers: '1-4',
       count: 4,
     },
@@ -1217,7 +1241,7 @@ export default function Home() {
     } else if (nextTb === 'basic-ssen-middle-2-2') {
       setBasicSsenChapter('I. 도형의 성질');
       setBasicSsenSubunit('01 삼각형의 성질 (1)');
-      setBasicSsenStage('자신감 기본&핵심유형 1 (11~15쪽)');
+      setBasicSsenStage('기본&핵심유형 1 (11~15쪽)');
     } else if (nextTb === 'olympus-calculus') {
       if (olympusItems.length === 0) {
         setOlympusItems([
@@ -1741,7 +1765,7 @@ export default function Home() {
             id: Date.now(),
             chapter: 'I. 도형의 성질',
             subunit: '01 삼각형의 성질 (1)',
-            stage: '자신감 기본&핵심유형 1 (11~15쪽)',
+            stage: '기본&핵심유형 1 (11~15쪽)',
             numbers: '1-4',
             count: 4,
           },
@@ -3393,27 +3417,28 @@ export default function Home() {
                         </div>
                       </div>
 
-                      {/* 선택된 단원·단계 상세 정보 배너 (가로 전폭 배치) */}
-                      <div className="p-3 bg-sky-950/40 rounded-xl border border-sky-500/30 mb-3">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="size-2 rounded-full bg-sky-400 shrink-0 animate-pulse" />
-                            <div className="text-xs font-bold text-sky-100 leading-snug">
-                              <span className="text-sky-400 font-semibold">{basicSsenChapter}</span>
-                              <span className="text-slate-500 mx-1.5 font-normal">›</span>
-                              <span className="text-sky-300 font-semibold">{basicSsenSubunit}</span>
-                              <span className="text-slate-500 mx-1.5 font-normal">›</span>
-                              <span className="text-sky-200 font-bold bg-sky-900/60 px-2 py-0.5 rounded border border-sky-500/30 inline-block">{basicSsenStage}</span>
-                            </div>
-                          </div>
-                          {currentBasicSsenRange && (
-                            <div className="shrink-0 self-start sm:self-auto flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-500/20 text-sky-200 border border-sky-500/40 text-xs font-semibold whitespace-nowrap shadow-sm">
+                      {/* 선택된 단원·단계 상세 정보 배너 (가로 일렬 배치) */}
+                      <div className="p-3 bg-sky-950/40 rounded-xl border border-sky-500/30 mb-3 space-y-2">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-sky-100 whitespace-nowrap overflow-x-auto py-0.5 scrollbar-none">
+                          <span className="size-2 rounded-full bg-sky-400 shrink-0 animate-pulse" />
+                          <span className="text-sky-400 font-semibold shrink-0">{basicSsenChapter}</span>
+                          <span className="text-slate-500 font-normal shrink-0">›</span>
+                          <span className="text-sky-300 font-semibold shrink-0">{basicSsenSubunit}</span>
+                          <span className="text-slate-500 font-normal shrink-0">›</span>
+                          <span className="text-sky-100 font-bold bg-sky-900/70 px-2 py-0.5 rounded border border-sky-500/40 shrink-0">
+                            {basicSsenStage.replace('자신감 ', '')}
+                          </span>
+                        </div>
+                        {currentBasicSsenRange && (
+                          <div className="flex items-center justify-between pt-1.5 border-t border-sky-500/20 text-xs">
+                            <span className="text-slate-400 text-[11px] font-medium">선택 단계 제공 문항</span>
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-sky-500/20 text-sky-200 border border-sky-500/40 font-semibold text-xs whitespace-nowrap shadow-sm">
                               <span className="text-sky-300">💡</span>
                               <span>제공 문항: <strong className="text-white font-mono">{currentBasicSsenRange.min} ~ {currentBasicSsenRange.max}번</strong></span>
                               <span className="text-sky-300/80 text-[11px] font-normal">({currentBasicSsenRange.count}문제)</span>
                             </div>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* 문항 번호 입력 및 액션 버튼 행 */}
@@ -3485,7 +3510,7 @@ export default function Home() {
                                   {item.subunit}
                                 </span>
                                 <span className="text-slate-300 font-medium truncate">
-                                  {item.stage}
+                                  {item.stage.replace('자신감 ', '')}
                                 </span>
                                 <span className="text-slate-500 font-bold">:</span>
                                 <span className="font-mono text-sky-300 font-bold bg-black/40 px-2 py-0.5 rounded border border-white/5">
@@ -5099,7 +5124,7 @@ export default function Home() {
                                 className="flex items-center justify-between gap-3 rounded-lg bg-white p-3 text-sm"
                               >
                                 <span>
-                                  {index + 1}. [{item.subunit}] {item.stage} ·{' '}
+                                  {index + 1}. [{item.subunit}] {item.stage.replace('자신감 ', '')} ·{' '}
                                   {item.numbers}번
                                   <span className="ml-2 text-slate-500">
                                     ({item.count}문제)

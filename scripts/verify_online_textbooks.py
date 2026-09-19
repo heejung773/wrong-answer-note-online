@@ -79,9 +79,9 @@ def main() -> None:
         cp_items = [(cp_ch, cp_sub, "01_개념익히기", "1", cp_img1), (cp_ch, cp_sub, "02_핵심유형", "8", cp_img2)]
         assert_pdf("concept-middle-2-2", generate.create_concept_pdf("테스트", "2학년", cp_items), 3)
 
-        bs_ch, bs_sub, bs_stg = "I. 도형의 성질", "01 삼각형의 성질 (1)", "자신감 기본&핵심유형 1 (11~15쪽)"
-        bs_img1 = read(BASIC_SSEN / "문제모음_인쇄용" / bs_ch / bs_sub / bs_stg / "0001.png")
-        bs_img2 = read(BASIC_SSEN / "문제모음_인쇄용" / bs_ch / bs_sub / bs_stg / "0002.png")
+        bs_ch, bs_sub, bs_stg = "I. 도형의 성질", "01 삼각형의 성질 (1)", "기본&핵심유형 1 (11~15쪽)"
+        bs_img1 = generate.load_basic_ssen_image("https://test.supabase.co", "test-key", "test-bucket", bs_ch, bs_sub, bs_stg, "1")
+        bs_img2 = generate.load_basic_ssen_image("https://test.supabase.co", "test-key", "test-bucket", bs_ch, bs_sub, bs_stg, "2")
         bs_items = [(bs_ch, bs_sub, bs_stg, "1", bs_img1), (bs_ch, bs_sub, bs_stg, "2", bs_img2)]
         assert_pdf("basic-ssen-middle-2-2", generate.create_basic_ssen_pdf("테스트", "2학년", bs_items), 3)
     finally:
