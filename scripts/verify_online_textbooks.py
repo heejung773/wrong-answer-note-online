@@ -16,6 +16,7 @@ COMMON = Path(r"D:\시너지_공통수학2")
 ALGEBRA = Path(r"D:\시너지_대수")
 OLYMPUS = Path(r"D:\올림푸스_미적분")
 GOJAENGI = Path(r"D:\공수2_고쟁이")
+SSEN_COMMON_1 = Path(r"D:\공통수학1_쎈")
 SSEN = Path(r"D:\중등부교재작업\중2학년2학기\쎈수학")
 BLACKLABEL = Path(r"D:\중등부교재작업\중2학년2학기\블랙라벨")
 CONCEPT = Path(r"D:\중등부교재작업\중2학년2학기\개념유형파워(유형편)")
@@ -81,7 +82,12 @@ def main() -> None:
         gojaengi_images = [(number, read(GOJAENGI / "문제모음" / f"{number:04d}.png")) for number in gojaengi_numbers]
         assert_pdf("gojaengi-common-math-2", generate.create_pdf("테스트", "2학년", gojaengi_images, None, "gojaengi-common-math-2"), 2)
 
-        # 6. 쎈수학 중2-2 (중등부)
+        # 6. 쎈 공통수학1 (고등부)
+        cm1_numbers = [40, 114]
+        cm1_images = [(number, read(SSEN_COMMON_1 / "문제모음" / "01_다항식의_연산" / f"{number:04d}.png")) for number in cm1_numbers]
+        assert_pdf("ssen-common-math-1", generate.create_pdf("테스트", "1학년", cm1_images, None, "ssen-common-math-1"), 2)
+
+        # 7. 쎈수학 중2-2 (중등부)
         ssen_numbers = [21, 100]
         ssen_images = [(number, read(SSEN / "문제모음" / f"{number:04d}.png")) for number in ssen_numbers]
         assert_pdf("ssen-middle-2-2", generate.create_pdf("테스트", "2학년", ssen_images, None, "ssen-middle-2-2"), 2)

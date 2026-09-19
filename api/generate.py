@@ -48,6 +48,9 @@ TEXTBOOKS = {
     "gojaengi-common-math-2": {
         "title": "고쟁이 공통수학2",
     },
+    "ssen-common-math-1": {
+        "title": "쎈 공통수학1",
+    },
     "ssen-middle-2-2": {
         "title": "쎈 수학 중2-2",
     },
@@ -264,6 +267,18 @@ def load_images(supabase_url: str, secret_key: str, bucket: str, textbook: str, 
                     continue
                 except Exception:
                     pass
+        elif textbook == "ssen-common-math-1":
+            local_root = Path(r"D:\공통수학1_쎈\문제모음")
+            if local_root.is_dir():
+                found_cand = next(local_root.glob(f"*/{number:04d}.png"), None)
+                if found_cand and found_cand.is_file():
+                    try:
+                        data = found_cand.read_bytes()
+                        Image.open(BytesIO(data)).verify()
+                        images.append((number, data))
+                        continue
+                    except Exception:
+                        pass
         object_path = urllib.parse.quote(f"{bucket}/{textbook}/{number:04d}.png", safe="/")
         url = f"{supabase_url}/storage/v1/object/authenticated/{object_path}"
         try:
@@ -1925,7 +1940,7 @@ class handler(BaseHTTPRequestHandler):
                 selected_answers = None
                 if textbook == "synergy-algebra":
                     selected_answers = load_synergy_algebra_answers(supabase_url, secret_key, bucket, numbers)
-                elif textbook not in ("gojaengi-common-math-2", "ssen-middle-2-2", "ssen-middle-3-1"):
+                elif textbook not in ("gojaengi-common-math-2", "ssen-middle-2-2", "ssen-middle-3-1", "ssen-common-math-1"):
                     all_answers = load_quick_answers(supabase_url, secret_key, bucket, textbook)
                     missing_answers = [number for number in numbers if number not in all_answers]
                     if missing_answers:

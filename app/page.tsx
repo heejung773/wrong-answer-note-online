@@ -44,6 +44,7 @@ type TextbookId =
   | 'synergy-common-math-2'
   | 'olympus-calculus'
   | 'gojaengi-common-math-2'
+  | 'ssen-common-math-1'
   | 'ssen-middle-2-2'
   | 'blacklabel-middle-2-2'
   | 'concept-middle-2-2'
@@ -51,6 +52,19 @@ type TextbookId =
   | 'ssen-middle-3-1'
   | 'blacklabel-middle-3-1'
   | 'concept-middle-3-1';
+
+const SSEN_COMMON_MATH_1_CHAPTERS = [
+  { id: '01', name: '01. 다항식의 연산', range: '40-114', count: 75 },
+  { id: '02', name: '02. 나머지정리와 인수분해', range: '159-278', count: 120 },
+  { id: '03', name: '03. 복소수', range: '331-406', count: 76 },
+  { id: '04', name: '04. 이차방정식', range: '442-547', count: 106 },
+  { id: '05', name: '05. 이차방정식과 이차함수', range: '586-657', count: 72 },
+  { id: '06', name: '06. 여러 가지 방정식', range: '689-776', count: 88 },
+  { id: '07', name: '07. 일차부등식', range: '814-884', count: 71 },
+  { id: '08', name: '08. 이차부등식', range: '924-1031', count: 108 },
+  { id: '09', name: '09. 순열과 조합', range: '1075-1199', count: 125 },
+  { id: '10', name: '10. 행렬과 그 연산', range: '1231-1316', count: 86 },
+];
 
 type Department = 'middle' | 'high';
 
@@ -103,6 +117,13 @@ const textbooks: TextbookItem[] = [
     id: 'gojaengi-common-math-2',
     title: '고쟁이',
     subject: '공통수학2',
+    available: true,
+    department: 'high',
+  },
+  {
+    id: 'ssen-common-math-1',
+    title: '쎈 공통수학1',
+    subject: '공통수학1',
     available: true,
     department: 'high',
   },
@@ -892,6 +913,11 @@ const allTextbookInfo: Record<
     max_num: 380,
     desc: '총 380문항 데이터베이스 연동',
   },
+  'ssen-common-math-1': {
+    name: '신사고 쎈 공통수학1',
+    max_num: 1316,
+    desc: '10개 단원 총 927문항 데이터베이스 연동',
+  },
   'ssen-middle-2-2': {
     name: '신사고 쎈 중2-2',
     max_num: 1154,
@@ -1207,7 +1233,12 @@ export default function Home() {
     if (nextDept) setDepartment(nextDept);
     setPreviewPdfUrl(null);
 
-    if (nextTb === 'ssen-middle-2-2') {
+    if (nextTb === 'ssen-common-math-1') {
+      const nums = parsedProblemNumbers;
+      if (nums.length === 0 || nums.some((n) => n < 40 || n > 1316)) {
+        setNumbers('40, 41, 42, 43');
+      }
+    } else if (nextTb === 'ssen-middle-2-2') {
       const nums = parsedProblemNumbers;
       if (nums.length === 0 || nums.some((n) => n < 21 || n > 1142)) {
         setNumbers('21, 22, 23, 24');
@@ -1346,7 +1377,8 @@ export default function Home() {
         ? 48
         : textbook === 'concept-middle-2-2' ||
             textbook === 'concept-middle-3-1' ||
-            textbook === 'gojaengi-common-math-2'
+            textbook === 'gojaengi-common-math-2' ||
+            textbook === 'ssen-common-math-1'
           ? 0
           : 60;
     return (
@@ -1354,7 +1386,7 @@ export default function Home() {
       (answerPageSize ? Math.ceil(highSchoolProblemCount / answerPageSize) : 0) +
       (includeCover ? 1 : 0)
     );
-  }, [basicSsenItems, highSchoolProblemCount, includeCover, olympusItems, textbook]);
+  }, [highSchoolProblemCount, includeCover, olympusItems, textbook]);
 
   function handleSortNumbers() {
     try {
@@ -1761,7 +1793,13 @@ export default function Home() {
     }
 
     let curNumbers = overrideItems?.numbers ?? numbers;
-    if (activeTb === 'ssen-middle-2-2') {
+    if (activeTb === 'ssen-common-math-1') {
+      const parsed = parsedProblemNumbers;
+      if (parsed.length === 0 || parsed.some((n) => n < 40 || n > 1316)) {
+        curNumbers = '40, 41, 42, 43';
+        setNumbers(curNumbers);
+      }
+    } else if (activeTb === 'ssen-middle-2-2') {
       const parsed = parsedProblemNumbers;
       if (parsed.length === 0 || parsed.some((n) => n < 21 || n > 1142)) {
         curNumbers = '21, 22, 23, 24';
@@ -3508,19 +3546,73 @@ export default function Home() {
                     textbook !== 'basic-ssen-middle-2-2' && (
                       <>
                         <div>
+                          {/* Ssen Common Math 1 chapter guide chips */}
+                          {textbook === 'ssen-common-math-1' && (
+                            <div className="mb-3 p-3 bg-[#111420] border border-[#232a3d] rounded-xl">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs font-bold text-sky-400 flex items-center gap-1.5">
+                                  <span>📌</span> 단원별 문항 범위 안내 (클릭 시 번호 자동 추가)
+                                </span>
+                                <span className="text-[11px] text-slate-400">
+                                  10개 단원 (총 927제)
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
+                                {SSEN_COMMON_MATH_1_CHAPTERS.map((ch) => (
+                                  <button
+                                    key={ch.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setNumbers((prev) =>
+                                        prev.trim()
+                                          ? `${prev.trim()}, ${ch.range}`
+                                          : ch.range,
+                                      );
+                                    }}
+                                    className="px-2 py-1.5 bg-[#171b29] hover:bg-[#232b42] border border-[#2b354f] hover:border-sky-400 rounded-lg text-left transition-all cursor-pointer group"
+                                    title={`${ch.name} (${ch.range}, ${ch.count}문항)`}
+                                  >
+                                    <div className="text-[11px] font-semibold text-slate-200 group-hover:text-sky-300 truncate">
+                                      {ch.name}
+                                    </div>
+                                    <div className="text-[10px] font-mono text-sky-400/90 flex items-center justify-between mt-0.5">
+                                      <span>{ch.range}</span>
+                                      <span className="text-slate-500">
+                                        {ch.count}제
+                                      </span>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
                           <div className="flex items-center justify-between mb-1.5">
                             <label
                               htmlFor="hs-problem-numbers"
                               className="text-xs font-semibold text-slate-300"
                             >
-                              {textbook === 'ssen-middle-3-1'
-                                ? '문제 번호 입력 (쎈 3-1: 50 ~ 1398번 문항 제공)'
-                                : textbook === 'ssen-middle-2-2'
-                                  ? '문제 번호 입력 (쎈 2-2: 21 ~ 1142번 문항 제공)'
-                                  : '문제 번호 입력 (쉼표, 범위 지원)'}
+                              {textbook === 'ssen-common-math-1'
+                                ? '문제 번호 입력 (쎈 공통수학1: 40 ~ 1316번 문항 제공)'
+                                : textbook === 'ssen-middle-3-1'
+                                  ? '문제 번호 입력 (쎈 3-1: 50 ~ 1398번 문항 제공)'
+                                  : textbook === 'ssen-middle-2-2'
+                                    ? '문제 번호 입력 (쎈 2-2: 21 ~ 1142번 문항 제공)'
+                                    : '문제 번호 입력 (쉼표, 범위 지원)'}
                             </label>
                             <span className="text-xs text-slate-400">
-                              {textbook === 'ssen-middle-3-1' ? (
+                              {textbook === 'ssen-common-math-1' ? (
+                                <>
+                                  예:{' '}
+                                  <code className="bg-slate-800 text-sky-300 px-1 py-0.5 rounded">
+                                    40-48
+                                  </code>
+                                  ,{' '}
+                                  <code className="bg-slate-800 text-sky-300 px-1 py-0.5 rounded">
+                                    40, 65, 1231
+                                  </code>
+                                </>
+                              ) : textbook === 'ssen-middle-3-1' ? (
                                 <>
                                   예:{' '}
                                   <code className="bg-slate-800 text-emerald-300 px-1 py-0.5 rounded">
@@ -3561,11 +3653,13 @@ export default function Home() {
                             className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg text-slate-100 font-mono text-sm outline-none transition-all"
                             rows={2}
                             placeholder={
-                              textbook === 'ssen-middle-3-1'
-                                ? '50-58'
-                                : textbook === 'ssen-middle-2-2'
-                                  ? '21-28'
-                                  : '1-8'
+                              textbook === 'ssen-common-math-1'
+                                ? '40-48'
+                                : textbook === 'ssen-middle-3-1'
+                                  ? '50-58'
+                                  : textbook === 'ssen-middle-2-2'
+                                    ? '21-28'
+                                    : '1-8'
                             }
                             value={numbers}
                             onChange={(e) => setNumbers(e.target.value)}
