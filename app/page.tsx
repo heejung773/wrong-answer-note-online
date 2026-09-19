@@ -3397,30 +3397,6 @@ export default function Home() {
                         </div>
                       </div>
 
-                      {/* 선택된 단원·단계 상세 정보 배너 (가로 일렬 배치) */}
-                      <div className="p-3 bg-sky-950/40 rounded-xl border border-sky-500/30 mb-3 space-y-2">
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-sky-100 whitespace-nowrap overflow-x-auto py-0.5 scrollbar-none">
-                          <span className="size-2 rounded-full bg-sky-400 shrink-0 animate-pulse" />
-                          <span className="text-sky-400 font-semibold shrink-0">{basicSsenChapter}</span>
-                          <span className="text-slate-500 font-normal shrink-0">›</span>
-                          <span className="text-sky-300 font-semibold shrink-0">{basicSsenSubunit}</span>
-                          <span className="text-slate-500 font-normal shrink-0">›</span>
-                          <span className="text-sky-100 font-bold bg-sky-900/70 px-2 py-0.5 rounded border border-sky-500/40 shrink-0">
-                            {basicSsenStage.replace('자신감 ', '')}
-                          </span>
-                        </div>
-                        {currentBasicSsenRange && (
-                          <div className="flex items-center justify-between pt-1.5 border-t border-sky-500/20 text-xs">
-                            <span className="text-slate-400 text-[11px] font-medium">선택 단계 제공 문항</span>
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-sky-500/20 text-sky-200 border border-sky-500/40 font-semibold text-xs whitespace-nowrap shadow-sm">
-                              <span className="text-sky-300">💡</span>
-                              <span>제공 문항: <strong className="text-white font-mono">{currentBasicSsenRange.min} ~ {currentBasicSsenRange.max}번</strong></span>
-                              <span className="text-sky-300/80 text-[11px] font-normal">({currentBasicSsenRange.count}문제)</span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
                       {/* 문항 번호 입력 및 액션 버튼 행 */}
                       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2.5 bg-slate-950/70 rounded-xl border border-white/10">
                         <div className="flex-1">
@@ -3429,7 +3405,7 @@ export default function Home() {
                             className="w-full px-3 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 placeholder-slate-500 text-xs outline-none font-mono"
                             placeholder={
                               currentBasicSsenRange
-                                ? `문제 번호 입력 (예: 1-5 또는 1, 3, 5 / 최대 ${currentBasicSsenRange.max}번)`
+                                ? `문제 번호 입력 (제공: ${currentBasicSsenRange.min}~${currentBasicSsenRange.max}번 / 예: 1-5 또는 1, 3, 5)`
                                 : '예: 1-5 또는 1, 3, 5'
                             }
                             value={basicSsenQuickInput}
