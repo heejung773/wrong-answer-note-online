@@ -1139,6 +1139,7 @@ export default function Home() {
   const [blacklabelQuickInput, setBlacklabelQuickInput] = useState('1-3');
   const [conceptQuickInput, setConceptQuickInput] = useState('1-3');
   const [basicSsenQuickInput, setBasicSsenQuickInput] = useState('1-4');
+  const [selectedSsenChapter, setSelectedSsenChapter] = useState('');
   const [includeCover, setIncludeCover] = useState(true);
   const [includeCharacter, setIncludeCharacter] = useState(true);
   const [customCharacter, setCustomCharacter] = useState<string | null>(null);
@@ -1234,6 +1235,7 @@ export default function Home() {
     setPreviewPdfUrl(null);
 
     if (nextTb === 'ssen-common-math-1') {
+      setSelectedSsenChapter('');
       const nums = parsedProblemNumbers;
       if (nums.length === 0 || nums.some((n) => n < 40 || n > 1316)) {
         setNumbers('40, 41, 42, 43');
@@ -3546,44 +3548,108 @@ export default function Home() {
                     textbook !== 'basic-ssen-middle-2-2' && (
                       <>
                         <div>
-                          {/* Ssen Common Math 1 chapter guide chips */}
+                          {/* Ssen Common Math 1 chapter dropdown selector */}
                           {textbook === 'ssen-common-math-1' && (
                             <div className="mb-3 p-3 bg-[#111420] border border-[#232a3d] rounded-xl">
                               <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-bold text-sky-400 flex items-center gap-1.5">
-                                  <span>📌</span> 단원별 문항 범위 안내 (클릭 시 번호 자동 추가)
-                                </span>
+                                <label
+                                  htmlFor="ssen-chapter-select"
+                                  className="text-xs font-bold text-sky-400 flex items-center gap-1.5 cursor-pointer"
+                                >
+                                  <span>📌</span> 단원 선택 (드롭다운 목록)
+                                </label>
                                 <span className="text-[11px] text-slate-400">
                                   10개 단원 (총 927제)
                                 </span>
                               </div>
-                              <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
-                                {SSEN_COMMON_MATH_1_CHAPTERS.map((ch) => (
+                              <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+                                <div className="relative flex-1">
+                                  <select
+                                    id="ssen-chapter-select"
+                                    className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#2B354F] focus:border-sky-400 focus:ring-1 focus:ring-sky-400 rounded-lg text-slate-100 text-xs sm:text-sm outline-none transition-all cursor-pointer font-medium"
+                                    value={selectedSsenChapter}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setSelectedSsenChapter(val);
+                                      if (val) {
+                                        const cur = numbers.trim();
+                                        if (
+                                          !cur ||
+                                          cur === '40, 41, 42, 43' ||
+                                          cur === '40-48'
+                                        ) {
+                                          setNumbers(val);
+                                        }
+                                      }
+                                    }}
+                                  >
+                                    <option value="">
+                                      -- 단원을 선택하세요 (전체 10개 단원 목록) --
+                                    </option>
+                                    {SSEN_COMMON_MATH_1_CHAPTERS.map((ch) => (
+                                      <option key={ch.id} value={ch.range}>
+                                        {ch.name} (범위: {ch.range} · {ch.count}문항)
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <div className="flex items-center gap-1.5 shrink-0">
                                   <button
-                                    key={ch.id}
                                     type="button"
+                                    disabled={!selectedSsenChapter}
                                     onClick={() => {
+                                      if (!selectedSsenChapter) return;
                                       setNumbers((prev) =>
                                         prev.trim()
-                                          ? `${prev.trim()}, ${ch.range}`
-                                          : ch.range,
+                                          ? `${prev.trim()}, ${selectedSsenChapter}`
+                                          : selectedSsenChapter,
                                       );
                                     }}
-                                    className="px-2 py-1.5 bg-[#171b29] hover:bg-[#232b42] border border-[#2b354f] hover:border-sky-400 rounded-lg text-left transition-all cursor-pointer group"
-                                    title={`${ch.name} (${ch.range}, ${ch.count}문항)`}
+                                    className="flex-1 sm:flex-none px-3.5 py-2.5 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1 shadow-sm"
+                                    title="현재 입력된 번호 뒤에 이 단원의 범위를 추가합니다"
                                   >
-                                    <div className="text-[11px] font-semibold text-slate-200 group-hover:text-sky-300 truncate">
-                                      {ch.name}
-                                    </div>
-                                    <div className="text-[10px] font-mono text-sky-400/90 flex items-center justify-between mt-0.5">
-                                      <span>{ch.range}</span>
-                                      <span className="text-slate-500">
-                                        {ch.count}제
-                                      </span>
-                                    </div>
+                                    <span>+ 범위 추가</span>
                                   </button>
-                                ))}
+                                  <button
+                                    type="button"
+                                    disabled={!selectedSsenChapter}
+                                    onClick={() => {
+                                      if (!selectedSsenChapter) return;
+                                      setNumbers(selectedSsenChapter);
+                                    }}
+                                    className="flex-1 sm:flex-none px-3.5 py-2.5 bg-[#1b2234] hover:bg-[#25304a] border border-[#2f3d61] disabled:bg-slate-800 disabled:text-slate-500 disabled:border-slate-800 disabled:cursor-not-allowed text-sky-300 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                                    title="입력창의 내용을 선택한 단원 범위로 교체합니다"
+                                  >
+                                    단원만 입력
+                                  </button>
+                                </div>
                               </div>
+                              {selectedSsenChapter && (
+                                <div className="mt-2 text-xs text-sky-300 flex items-center justify-between bg-[#151a28] px-3 py-2 rounded-lg border border-[#232f48]">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sky-400 font-bold">선택 단원:</span>
+                                    <span className="text-slate-100 font-medium">
+                                      {
+                                        SSEN_COMMON_MATH_1_CHAPTERS.find(
+                                          (c) => c.range === selectedSsenChapter,
+                                        )?.name
+                                      }
+                                    </span>
+                                    <span className="font-mono text-sky-400 bg-sky-950/60 px-2 py-0.5 rounded border border-sky-800/40">
+                                      {selectedSsenChapter}번
+                                    </span>
+                                  </div>
+                                  <span className="text-slate-400">
+                                    총{' '}
+                                    {
+                                      SSEN_COMMON_MATH_1_CHAPTERS.find(
+                                        (c) => c.range === selectedSsenChapter,
+                                      )?.count
+                                    }
+                                    문항
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           )}
 
