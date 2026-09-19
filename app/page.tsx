@@ -53,18 +53,6 @@ type TextbookId =
   | 'blacklabel-middle-3-1'
   | 'concept-middle-3-1';
 
-const SSEN_COMMON_MATH_1_CHAPTERS = [
-  { id: '01', name: '01. 다항식의 연산', range: '40-114', count: 75 },
-  { id: '02', name: '02. 나머지정리와 인수분해', range: '159-278', count: 120 },
-  { id: '03', name: '03. 복소수', range: '331-406', count: 76 },
-  { id: '04', name: '04. 이차방정식', range: '442-547', count: 106 },
-  { id: '05', name: '05. 이차방정식과 이차함수', range: '586-657', count: 72 },
-  { id: '06', name: '06. 여러 가지 방정식', range: '689-776', count: 88 },
-  { id: '07', name: '07. 일차부등식', range: '814-884', count: 71 },
-  { id: '08', name: '08. 이차부등식', range: '924-1031', count: 108 },
-  { id: '09', name: '09. 순열과 조합', range: '1075-1199', count: 125 },
-  { id: '10', name: '10. 행렬과 그 연산', range: '1231-1316', count: 86 },
-];
 
 type Department = 'middle' | 'high';
 
@@ -1139,7 +1127,6 @@ export default function Home() {
   const [blacklabelQuickInput, setBlacklabelQuickInput] = useState('1-3');
   const [conceptQuickInput, setConceptQuickInput] = useState('1-3');
   const [basicSsenQuickInput, setBasicSsenQuickInput] = useState('1-4');
-  const [selectedSsenChapter, setSelectedSsenChapter] = useState('');
   const [includeCover, setIncludeCover] = useState(true);
   const [includeCharacter, setIncludeCharacter] = useState(true);
   const [customCharacter, setCustomCharacter] = useState<string | null>(null);
@@ -1235,8 +1222,10 @@ export default function Home() {
     setPreviewPdfUrl(null);
 
     if (nextTb === 'ssen-common-math-1') {
-      setSelectedSsenChapter('');
-      setNumbers('');
+      const nums = parsedProblemNumbers;
+      if (nums.length === 0 || nums.some((n) => n < 40 || n > 1316)) {
+        setNumbers('40, 41, 42, 43');
+      }
     } else if (nextTb === 'ssen-middle-2-2') {
       const nums = parsedProblemNumbers;
       if (nums.length === 0 || nums.some((n) => n < 21 || n > 1142)) {
@@ -1794,10 +1783,9 @@ export default function Home() {
     let curNumbers = overrideItems?.numbers ?? numbers;
     if (activeTb === 'ssen-common-math-1') {
       const parsed = parsedProblemNumbers;
-      if (parsed.length === 0) {
-        setPreviewPdfUrl(null);
-        setStatus('문제 번호를 입력해 주세요.');
-        return;
+      if (parsed.length === 0 || parsed.some((n) => n < 40 || n > 1316)) {
+        curNumbers = '40, 41, 42, 43';
+        setNumbers(curNumbers);
       }
     } else if (activeTb === 'ssen-middle-2-2') {
       const parsed = parsedProblemNumbers;
@@ -3550,80 +3538,16 @@ export default function Home() {
                     textbook !== 'basic-ssen-middle-2-2' && (
                       <>
                         <div>
-                          {/* Ssen Common Math 1 chapter dropdown selector */}
-                          {textbook === 'ssen-common-math-1' && (
-                            <div className="mb-3 p-3 bg-[#111420] border border-[#232a3d] rounded-xl">
-                              <div className="flex items-center justify-between mb-2">
-                                <label
-                                  htmlFor="ssen-chapter-select"
-                                  className="text-xs font-bold text-sky-400 flex items-center gap-1.5 cursor-pointer"
-                                >
-                                  <span>📌</span> 단원 선택 (드롭다운 목록)
-                                </label>
-                                <span className="text-[11px] text-slate-400">
-                                  10개 단원 (총 927제)
-                                </span>
-                              </div>
-                              <div>
-                                <select
-                                  id="ssen-chapter-select"
-                                  className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#2B354F] focus:border-sky-400 focus:ring-1 focus:ring-sky-400 rounded-lg text-slate-100 text-xs sm:text-sm outline-none transition-all cursor-pointer font-medium"
-                                  value={selectedSsenChapter}
-                                  onChange={(e) => {
-                                    setSelectedSsenChapter(e.target.value);
-                                  }}
-                                >
-                                  <option value="">
-                                    -- 단원을 선택하세요 (문항 범위 확인용) --
-                                  </option>
-                                  {SSEN_COMMON_MATH_1_CHAPTERS.map((ch) => (
-                                    <option key={ch.id} value={ch.range}>
-                                      {ch.name} (범위: {ch.range} · {ch.count}문항)
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                              {selectedSsenChapter && (
-                                <div className="mt-2 text-xs text-sky-300 flex items-center justify-between bg-[#151a28] px-3 py-2 rounded-lg border border-[#232f48]">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sky-400 font-bold">선택 단원:</span>
-                                    <span className="text-slate-100 font-medium">
-                                      {
-                                        SSEN_COMMON_MATH_1_CHAPTERS.find(
-                                          (c) => c.range === selectedSsenChapter,
-                                        )?.name
-                                      }
-                                    </span>
-                                    <span className="font-mono text-sky-400 bg-sky-950/60 px-2 py-0.5 rounded border border-sky-800/40">
-                                      {selectedSsenChapter}번
-                                    </span>
-                                  </div>
-                                  <span className="text-slate-400">
-                                    총{' '}
-                                    {
-                                      SSEN_COMMON_MATH_1_CHAPTERS.find(
-                                        (c) => c.range === selectedSsenChapter,
-                                      )?.count
-                                    }
-                                    문항
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          )}
-
                           <div className="flex items-center justify-between mb-1.5">
                             <label
                               htmlFor="hs-problem-numbers"
                               className="text-xs font-semibold text-slate-300"
                             >
-                              {textbook === 'ssen-common-math-1'
-                                ? '문제 번호 입력'
-                                : textbook === 'ssen-middle-3-1'
-                                  ? '문제 번호 입력 (쎈 3-1: 50 ~ 1398번 문항 제공)'
-                                  : textbook === 'ssen-middle-2-2'
-                                    ? '문제 번호 입력 (쎈 2-2: 21 ~ 1142번 문항 제공)'
-                                    : '문제 번호 입력 (쉼표, 범위 지원)'}
+                              {textbook === 'ssen-middle-3-1'
+                                ? '문제 번호 입력 (쎈 3-1: 50 ~ 1398번 문항 제공)'
+                                : textbook === 'ssen-middle-2-2'
+                                  ? '문제 번호 입력 (쎈 2-2: 21 ~ 1142번 문항 제공)'
+                                  : '문제 번호 입력 (쉼표, 범위 지원)'}
                             </label>
                             <span className="text-xs text-slate-400">
                               {textbook === 'ssen-common-math-1' ? (
