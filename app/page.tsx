@@ -4277,10 +4277,6 @@ export default function Home() {
                       </strong>
                       <span className="login-feature-tag">3초 완성</span>
                     </div>
-                    <p className="login-feature-desc">
-                      <span className="login-feature-bullet" />
-                      번호만 입력하면 문제 레이아웃 즉시 완성
-                    </p>
                   </div>
                 </div>
                 <div className="login-feature-item login-feature-books">
@@ -4295,10 +4291,6 @@ export default function Home() {
                       </strong>
                       <span className="login-feature-tag">전 문항 DB</span>
                     </div>
-                    <p className="login-feature-desc">
-                      <span className="login-feature-bullet" />
-                      시너지 · 올림포스 · 쎈 · 블랙라벨 탑재
-                    </p>
                   </div>
                 </div>
                 <div className="login-feature-item login-feature-print">
@@ -4313,10 +4305,6 @@ export default function Home() {
                       </strong>
                       <span className="login-feature-tag">원클릭 인쇄</span>
                     </div>
-                    <p className="login-feature-desc">
-                      <span className="login-feature-bullet" />
-                      빠른정답 표 자동 포함 및 학생별 맞춤 시험지
-                    </p>
                   </div>
                 </div>
               </div>
