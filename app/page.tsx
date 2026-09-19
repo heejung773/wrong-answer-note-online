@@ -3282,8 +3282,8 @@ export default function Home() {
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
-                        <div>
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 mb-3">
+                        <div className="sm:col-span-3">
                           <label
                             htmlFor="bs-chapter-select"
                             className="block text-xs font-semibold text-slate-400 mb-1"
@@ -3292,7 +3292,8 @@ export default function Home() {
                           </label>
                           <select
                             id="bs-chapter-select"
-                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                            title={basicSsenChapter}
+                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer truncate"
                             value={basicSsenChapter}
                             onChange={(e) => {
                               const newCh = e.target.value;
@@ -3314,7 +3315,7 @@ export default function Home() {
                             ))}
                           </select>
                         </div>
-                        <div>
+                        <div className="sm:col-span-4">
                           <label
                             htmlFor="bs-subunit-select"
                             className="block text-xs font-semibold text-slate-400 mb-1"
@@ -3323,7 +3324,8 @@ export default function Home() {
                           </label>
                           <select
                             id="bs-subunit-select"
-                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                            title={basicSsenSubunit}
+                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer truncate"
                             value={basicSsenSubunit}
                             onChange={(e) => {
                               const newSub = e.target.value;
@@ -3343,7 +3345,7 @@ export default function Home() {
                             ))}
                           </select>
                         </div>
-                        <div>
+                        <div className="sm:col-span-5">
                           <label
                             htmlFor="bs-stage-select"
                             className="block text-xs font-semibold text-slate-400 mb-1"
@@ -3352,7 +3354,8 @@ export default function Home() {
                           </label>
                           <select
                             id="bs-stage-select"
-                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                            title={basicSsenStage}
+                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer truncate"
                             value={basicSsenStage}
                             onChange={(e) => setBasicSsenStage(e.target.value)}
                           >
@@ -3369,26 +3372,38 @@ export default function Home() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 p-2.5 bg-slate-950/60 rounded-lg border border-white/5">
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="block text-xs font-bold text-sky-400">
-                              {basicSsenSubunit} · {basicSsenStage}
-                            </span>
-                            {currentBasicSsenRange && (
-                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                                💡 제공 문항: {currentBasicSsenRange.min} ~{' '}
-                                {currentBasicSsenRange.max}번 (
-                                {currentBasicSsenRange.count}문제)
-                              </span>
-                            )}
+                      {/* 선택된 단원·단계 상세 정보 배너 (가로 전폭 배치) */}
+                      <div className="p-3 bg-sky-950/40 rounded-xl border border-sky-500/30 mb-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="size-2 rounded-full bg-sky-400 shrink-0 animate-pulse" />
+                            <div className="text-xs font-bold text-sky-100 leading-snug">
+                              <span className="text-sky-400 font-semibold">{basicSsenChapter}</span>
+                              <span className="text-slate-500 mx-1.5 font-normal">›</span>
+                              <span className="text-sky-300 font-semibold">{basicSsenSubunit}</span>
+                              <span className="text-slate-500 mx-1.5 font-normal">›</span>
+                              <span className="text-sky-200 font-bold bg-sky-900/60 px-2 py-0.5 rounded border border-sky-500/30 inline-block">{basicSsenStage}</span>
+                            </div>
                           </div>
+                          {currentBasicSsenRange && (
+                            <div className="shrink-0 self-start sm:self-auto flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-500/20 text-sky-200 border border-sky-500/40 text-xs font-semibold whitespace-nowrap shadow-sm">
+                              <span className="text-sky-300">💡</span>
+                              <span>제공 문항: <strong className="text-white font-mono">{currentBasicSsenRange.min} ~ {currentBasicSsenRange.max}번</strong></span>
+                              <span className="text-sky-300/80 text-[11px] font-normal">({currentBasicSsenRange.count}문제)</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* 문항 번호 입력 및 액션 버튼 행 */}
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2.5 bg-slate-950/70 rounded-xl border border-white/10">
+                        <div className="flex-1">
                           <input
                             type="text"
-                            className="w-full px-3 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 placeholder-slate-500 text-xs outline-none"
+                            className="w-full px-3 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 placeholder-slate-500 text-xs outline-none font-mono"
                             placeholder={
                               currentBasicSsenRange
-                                ? `예: 1-5 또는 1, 3, 5 (최대: ${currentBasicSsenRange.max}번)`
+                                ? `문제 번호 입력 (예: 1-5 또는 1, 3, 5 / 최대 ${currentBasicSsenRange.max}번)`
                                 : '예: 1-5 또는 1, 3, 5'
                             }
                             value={basicSsenQuickInput}
@@ -3403,10 +3418,10 @@ export default function Home() {
                             }}
                           />
                         </div>
-                        <div className="flex gap-1.5 self-end">
+                        <div className="flex items-center gap-1.5 shrink-0">
                           <button
                             type="button"
-                            className="px-2.5 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 shrink-0 transition-all cursor-pointer"
+                            className="px-2.5 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 rounded-lg border border-slate-700 transition-all cursor-pointer"
                             onClick={() => {
                               if (!currentBasicSsenRange) return;
                               const max10 = Math.min(10, currentBasicSsenRange.max);
@@ -3417,7 +3432,7 @@ export default function Home() {
                           </button>
                           <button
                             type="button"
-                            className="px-2.5 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 shrink-0 transition-all cursor-pointer"
+                            className="px-2.5 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 rounded-lg border border-slate-700 transition-all cursor-pointer"
                             onClick={() => {
                               if (!currentBasicSsenRange) return;
                               setBasicSsenQuickInput(
@@ -3427,36 +3442,42 @@ export default function Home() {
                           >
                             전체
                           </button>
+                          <button
+                            type="button"
+                            className="px-3.5 py-2 text-xs font-bold bg-sky-600 hover:bg-sky-500 active:scale-95 text-white rounded-lg shadow shrink-0 transition-all cursor-pointer"
+                            onClick={addBasicSsenItem}
+                          >
+                            + 문항 추가
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          className="px-3.5 py-2 text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white rounded-lg shadow shrink-0 self-end transition-all cursor-pointer"
-                          onClick={addBasicSsenItem}
-                        >
-                          + 문항 추가
-                        </button>
                       </div>
 
                       {basicSsenItems.length > 0 && (
-                        <div className="mt-3 space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                        <div className="mt-3 space-y-1.5 max-h-48 overflow-y-auto pr-1">
                           {basicSsenItems.map((item) => (
                             <div
                               key={item.id}
-                              className="flex items-center justify-between text-xs bg-slate-900/90 border border-slate-800 rounded px-3 py-2"
+                              className="flex items-center justify-between text-xs bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-sky-500/40 rounded-lg px-3 py-2 transition-all"
                             >
-                              <span className="text-slate-200">
-                                <span className="text-sky-400 font-semibold">
-                                  [{item.subunit}]
-                                </span>{' '}
-                                {item.stage} :{' '}
-                                <span className="font-mono text-sky-400 font-bold">
-                                  {item.numbers}
-                                </span>{' '}
-                                ({item.count}제)
-                              </span>
+                              <div className="flex items-center gap-2 flex-wrap min-w-0 flex-1">
+                                <span className="px-1.5 py-0.5 rounded bg-sky-950 text-sky-400 border border-sky-500/30 font-semibold text-[11px] shrink-0">
+                                  {item.subunit}
+                                </span>
+                                <span className="text-slate-300 font-medium truncate">
+                                  {item.stage}
+                                </span>
+                                <span className="text-slate-500 font-bold">:</span>
+                                <span className="font-mono text-sky-300 font-bold bg-black/40 px-2 py-0.5 rounded border border-white/5">
+                                  {item.numbers}번
+                                </span>
+                                <span className="text-slate-400 text-[11px]">
+                                  ({item.count}제)
+                                </span>
+                              </div>
                               <button
                                 type="button"
-                                className="text-slate-400 hover:text-red-400 font-bold ml-2 px-1 cursor-pointer"
+                                title="삭제"
+                                className="text-slate-400 hover:text-red-400 font-bold ml-2 px-1 cursor-pointer shrink-0"
                                 onClick={() => {
                                   const next = basicSsenItems.filter(
                                     (it) => it.id !== item.id,
