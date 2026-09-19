@@ -46,3 +46,4 @@ __pycache__/
 # local AI workspace guidance
 AGENTS.md
 CLAUDE.md
+GEMINI.md

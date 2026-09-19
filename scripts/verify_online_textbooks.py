@@ -18,6 +18,7 @@ GOJAENGI = Path(r"D:\공수2_고쟁이")
 SSEN = Path(r"D:\중등부교재작업\중2학년2학기\쎈수학")
 BLACKLABEL = Path(r"D:\중등부교재작업\중2학년2학기\블랙라벨")
 CONCEPT = Path(r"D:\중등부교재작업\중2학년2학기\개념유형파워(유형편)")
+BASIC_SSEN = Path(r"D:\중등부교재작업\중2학년2학기\베이직쎈")
 
 
 def read(path: Path) -> bytes:
@@ -77,6 +78,12 @@ def main() -> None:
         cp_img2 = read(CONCEPT / "문제모음" / cp_ch / cp_sub / "02_핵심유형" / "0008.png")
         cp_items = [(cp_ch, cp_sub, "01_개념익히기", "1", cp_img1), (cp_ch, cp_sub, "02_핵심유형", "8", cp_img2)]
         assert_pdf("concept-middle-2-2", generate.create_concept_pdf("테스트", "2학년", cp_items), 3)
+
+        bs_ch, bs_sub, bs_stg = "I. 도형의 성질", "01 삼각형의 성질 (1)", "자신감 기본&핵심유형 1 (11~15쪽)"
+        bs_img1 = read(BASIC_SSEN / "문제모음_인쇄용" / bs_ch / bs_sub / bs_stg / "0001.png")
+        bs_img2 = read(BASIC_SSEN / "문제모음_인쇄용" / bs_ch / bs_sub / bs_stg / "0002.png")
+        bs_items = [(bs_ch, bs_sub, bs_stg, "1", bs_img1), (bs_ch, bs_sub, bs_stg, "2", bs_img2)]
+        assert_pdf("basic-ssen-middle-2-2", generate.create_basic_ssen_pdf("테스트", "2학년", bs_items), 2)
     finally:
         generate.request_bytes = original_request
 

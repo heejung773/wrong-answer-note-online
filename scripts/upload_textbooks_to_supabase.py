@@ -26,6 +26,7 @@ def main() -> None:
             "ssen-middle-2-2",
             "blacklabel-middle-2-2",
             "concept-middle-2-2",
+            "basic-ssen-middle-2-2",
             "ssen-middle-3-1",
             "blacklabel-middle-3-1",
             "concept-middle-3-1",

@@ -58,6 +58,9 @@ TEXTBOOKS = {
     "concept-middle-2-2": {
         "title": "개념유형파워 중2-2",
     },
+    "basic-ssen-middle-2-2": {
+        "title": "베이직쎈 중2-2",
+    },
     "ssen-middle-3-1": {
         "title": "쎈 수학 중3-1",
     },
@@ -1347,6 +1350,121 @@ def create_concept_pdf(
     return output.getvalue()
 
 
+BASIC_SSEN_CHAPTER_SLUGS = {
+    "I. 도형의 성질": "ch1",
+    "II. 도형의 닮음": "ch2",
+    "III. 피타고라스 정리": "ch3",
+    "IV. 확률": "ch4",
+}
+
+
+def basic_ssen_stage_slug(stage: str) -> str:
+    if "기본&핵심유형 1" in stage:
+        return "basic1"
+    if "기본&핵심유형 2" in stage:
+        return "basic2"
+    if "기본&핵심유형 3" in stage:
+        return "basic3"
+    if "학교시험기출" in stage:
+        return "school"
+    return stage
+
+
+def load_basic_ssen_image(
+    supabase_url: str,
+    secret_key: str,
+    bucket: str,
+    chapter: str,
+    subunit: str,
+    stage: str,
+    number_str: str,
+) -> bytes:
+    num = int(number_str) if number_str.isdigit() else None
+    filename = f"{num:04d}.png" if num is not None else f"{number_str}.png"
+
+    # Local-first fast resolution
+    local_source = Path(r"D:\중등부교재작업\중2학년2학기\베이직쎈\문제모음_인쇄용") / chapter / subunit / stage / filename
+    if local_source.is_file():
+        try:
+            return local_source.read_bytes()
+        except Exception:
+            pass
+
+    c_slug = BASIC_SSEN_CHAPTER_SLUGS.get(chapter, "ch1")
+    sub_slug = "sub" + subunit.strip().split()[0]
+    s_slug = basic_ssen_stage_slug(stage)
+
+    candidates = [filename]
+    if num is not None:
+        candidates.extend([f"{num}.png", f"{num:02d}.png"])
+
+    headers = {"apikey": secret_key}
+    for cand in candidates:
+        object_path = urllib.parse.quote(f"{bucket}/basic-ssen-middle-2-2/{c_slug}/{sub_slug}/{s_slug}/{cand}", safe="/")
+        try:
+            return request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
+        except urllib.error.HTTPError as err:
+            if err.code in (400, 404):
+                continue
+            raise
+    clean_sub = subunit.replace("_", " ")
+    clean_stg = stage.replace("_", " ")
+    raise ValueError(f"베이직쎈 문제 이미지를 찾을 수 없습니다: [{clean_sub} > {clean_stg}] {number_str}번 (해당 단계의 제공 번호를 확인해 주세요)")
+
+
+def create_basic_ssen_pdf(
+    student: str,
+    grade: str,
+    items: list[tuple[str, str, str, str, bytes]],
+    cover_options: dict | None = None,
+) -> bytes:
+    opts = cover_options or {}
+    include_cover = opts.get("include_cover", True)
+    academy_name = opts.get("academy_name") or "다산미래학원"
+    pdfmetrics.registerFont(UnicodeCIDFont("HYSMyeongJo-Medium"))
+    output = BytesIO()
+    width, height = A4
+    c = canvas.Canvas(output, pagesize=A4, pageCompression=1)
+    if include_cover:
+        opts_with_prob = dict(opts)
+        opts_with_prob.setdefault("total_problems", len(items))
+        draw_cover(c, student, grade, width, height, "basic-ssen-middle-2-2", opts_with_prob)
+        c.showPage()
+
+    current_page = 1
+    side, bottom, gap = 10 * mm, 14 * mm, 5 * mm
+    groups = [items[i:i + 4] for i in range(0, len(items), 4)]
+    cell_w = (width - side * 2 - gap) / 2
+    cell_h = (height - 10 * mm - bottom - gap) / 2
+    boxes = [
+        (side, bottom + cell_h + gap),
+        (side + cell_w + gap, bottom + cell_h + gap),
+        (side, bottom),
+        (side + cell_w + gap, bottom),
+    ]
+    for group in groups:
+        for idx, (chapter, subunit, stage, num_str, data) in enumerate(group):
+            x, y = boxes[idx]
+            c.roundRect(x, y, cell_w, cell_h, 2 * mm)
+            c.setFont("HYSMyeongJo-Medium", 8.5)
+            clean_sub = subunit.replace("_", " ")
+            clean_stg = stage.replace("_", " ")
+            c.drawString(x + 3 * mm, y + cell_h - 5.3 * mm, f"[{clean_sub}] {clean_stg}")
+            c.drawRightString(x + cell_w - 3 * mm, y + cell_h - 5.3 * mm, f"No. {num_str}")
+            reader = pdf_image_reader(data, 900, 1150)
+            iw, ih = reader.getSize()
+            available_w, available_h = cell_w - 6 * mm, cell_h - 14 * mm
+            scale = min(available_w / iw, available_h / ih)
+            dw, dh = iw * scale, ih * scale
+            c.drawImage(reader, x + 3 * mm, y + cell_h - 9 * mm - dh, dw, dh, preserveAspectRatio=True)
+        draw_footer(c, current_page, width, academy_name)
+        c.showPage()
+        current_page += 1
+
+    c.save()
+    return output.getvalue()
+
+
 class handler(BaseHTTPRequestHandler):
     def send_json_data(self, status: int, payload: dict) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -1530,6 +1648,29 @@ class handler(BaseHTTPRequestHandler):
 
                 def make_pdf(st: str) -> bytes:
                     return create_concept_pdf(st, grade, concept_items, cover_options, textbook=textbook)
+
+            elif textbook == "basic-ssen-middle-2-2":
+                raw_items = payload.get("basicSsenItems")
+                if not isinstance(raw_items, list) or not raw_items:
+                    raise ValueError("베이직쎈 문제를 목록에 추가해 주세요.")
+                basic_ssen_items = []
+                total = 0
+                for item in raw_items:
+                    if not isinstance(item, dict):
+                        raise ValueError("베이직쎈 입력 목록을 확인해 주세요.")
+                    chapter = str(item.get("chapter", "")).strip()
+                    subunit = str(item.get("subunit", "")).strip()
+                    stage = str(item.get("stage", "")).strip()
+                    tokens = parse_problem_tokens(str(item.get("numbers", "")))
+                    total += len(tokens)
+                    if total > 100:
+                        raise ValueError("전체 목록에서 최대 100문제까지 만들 수 있습니다.")
+                    for num_str in tokens:
+                        data = load_basic_ssen_image(supabase_url, secret_key, bucket, chapter, subunit, stage, num_str)
+                        basic_ssen_items.append((chapter, subunit, stage, num_str, data))
+
+                def make_pdf(st: str) -> bytes:
+                    return create_basic_ssen_pdf(st, grade, basic_ssen_items, cover_options)
 
             else:
                 numbers = parse_numbers(str(payload.get("numbers", "")))

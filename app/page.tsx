@@ -47,6 +47,7 @@ type TextbookId =
   | 'ssen-middle-2-2'
   | 'blacklabel-middle-2-2'
   | 'concept-middle-2-2'
+  | 'basic-ssen-middle-2-2'
   | 'ssen-middle-3-1'
   | 'blacklabel-middle-3-1'
   | 'concept-middle-3-1';
@@ -122,6 +123,13 @@ const textbooks: TextbookItem[] = [
   {
     id: 'concept-middle-2-2',
     title: '개념유형파워',
+    subject: '중2-2',
+    available: true,
+    department: 'middle',
+  },
+  {
+    id: 'basic-ssen-middle-2-2',
+    title: '베이직쎈',
     subject: '중2-2',
     available: true,
     department: 'middle',
@@ -553,6 +561,284 @@ const concept31Hierarchy: Record<string, Record<string, string[]>> = {
   },
 };
 
+type BasicSsenItem = {
+  id: number;
+  chapter: string;
+  subunit: string;
+  stage: string;
+  numbers: string;
+  count: number;
+};
+
+const basicSsenHierarchy: Record<string, Record<string, string[]>> = {
+  "I. 도형의 성질": {
+    "01 삼각형의 성질 (1)": [
+      "자신감 기본&핵심유형 1 (11~15쪽)",
+      "자신감 기본&핵심유형 2 (19~21쪽)",
+      "꼭 나오는 학교시험기출 (22~23쪽)"
+    ],
+    "02 삼각형의 성질 (2)": [
+      "자신감 기본&핵심유형 1 (29~31쪽)",
+      "자신감 기본&핵심유형 2 (36~40쪽)",
+      "꼭 나오는 학교시험기출 (41~42쪽)"
+    ],
+    "03 사각형의 성질 (1)": [
+      "자신감 기본&핵심유형 1 (47~50쪽)",
+      "자신감 기본&핵심유형 2 (54~57쪽)",
+      "꼭 나오는 학교시험기출 (58~59쪽)"
+    ],
+    "04 사각형의 성질 (2)": [
+      "자신감 기본&핵심유형 1 (66~68쪽)",
+      "자신감 기본&핵심유형 2 (72~74쪽)",
+      "자신감 기본&핵심유형 3 (77~81쪽)",
+      "꼭 나오는 학교시험기출 (82~84쪽)"
+    ]
+  },
+  "II. 도형의 닮음": {
+    "05 도형의 닮음": [
+      "자신감 기본&핵심유형 1 (91~94쪽)",
+      "자신감 기본&핵심유형 2 (98~101쪽)",
+      "꼭 나오는 학교시험기출 (102~104쪽)"
+    ],
+    "06 평행선 사이의 선분의 길이의 비": [
+      "자신감 기본&핵심유형 1 (109~111쪽)",
+      "자신감 기본&핵심유형 2 (114~115쪽)",
+      "꼭 나오는 학교시험기출 (116~117쪽)"
+    ],
+    "07 삼각형의 무게중심과 닮음의 활용": [
+      "자신감 기본&핵심유형 1 (121~124쪽)",
+      "자신감 기본&핵심유형 2 (128~130쪽)",
+      "자신감 기본&핵심유형 3 (133~135쪽)",
+      "꼭 나오는 학교시험기출 (136~138쪽)"
+    ]
+  },
+  "III. 피타고라스 정리": {
+    "08 피타고라스 정리": [
+      "자신감 기본&핵심유형 1 (144~147쪽)",
+      "자신감 기본&핵심유형 2 (150~151쪽)",
+      "자신감 기본&핵심유형 3 (155~156쪽)",
+      "꼭 나오는 학교시험기출 (157~158쪽)"
+    ]
+  },
+  "IV. 확률": {
+    "09 경우의 수": [
+      "자신감 기본&핵심유형 1 (165~170쪽)",
+      "자신감 기본&핵심유형 2 (175~178쪽)",
+      "꼭 나오는 학교시험기출 (179~180쪽)"
+    ],
+    "10 확률": [
+      "자신감 기본&핵심유형 1 (187~189쪽)",
+      "자신감 기본&핵심유형 2 (193~195쪽)",
+      "꼭 나오는 학교시험기출 (196~197쪽)"
+    ]
+  }
+};
+
+const basicSsenStageSlugs: Record<string, string> = {
+  "꼭 나오는 학교시험기출 (22~23쪽)": "school",
+  "자신감 기본&핵심유형 1 (11~15쪽)": "basic1",
+  "자신감 기본&핵심유형 2 (19~21쪽)": "basic2",
+  "꼭 나오는 학교시험기출 (41~42쪽)": "school",
+  "자신감 기본&핵심유형 1 (29~31쪽)": "basic1",
+  "자신감 기본&핵심유형 2 (36~40쪽)": "basic2",
+  "꼭 나오는 학교시험기출 (58~59쪽)": "school",
+  "자신감 기본&핵심유형 1 (47~50쪽)": "basic1",
+  "자신감 기본&핵심유형 2 (54~57쪽)": "basic2",
+  "꼭 나오는 학교시험기출 (82~84쪽)": "school",
+  "자신감 기본&핵심유형 1 (66~68쪽)": "basic1",
+  "자신감 기본&핵심유형 2 (72~74쪽)": "basic2",
+  "자신감 기본&핵심유형 3 (77~81쪽)": "basic3",
+  "꼭 나오는 학교시험기출 (102~104쪽)": "school",
+  "자신감 기본&핵심유형 1 (91~94쪽)": "basic1",
+  "자신감 기본&핵심유형 2 (98~101쪽)": "basic2",
+  "꼭 나오는 학교시험기출 (116~117쪽)": "school",
+  "자신감 기본&핵심유형 1 (109~111쪽)": "basic1",
+  "자신감 기본&핵심유형 2 (114~115쪽)": "basic2",
+  "꼭 나오는 학교시험기출 (136~138쪽)": "school",
+  "자신감 기본&핵심유형 1 (121~124쪽)": "basic1",
+  "자신감 기본&핵심유형 2 (128~130쪽)": "basic2",
+  "자신감 기본&핵심유형 3 (133~135쪽)": "basic3",
+  "꼭 나오는 학교시험기출 (157~158쪽)": "school",
+  "자신감 기본&핵심유형 1 (144~147쪽)": "basic1",
+  "자신감 기본&핵심유형 2 (150~151쪽)": "basic2",
+  "자신감 기본&핵심유형 3 (155~156쪽)": "basic3",
+  "꼭 나오는 학교시험기출 (179~180쪽)": "school",
+  "자신감 기본&핵심유형 1 (165~170쪽)": "basic1",
+  "자신감 기본&핵심유형 2 (175~178쪽)": "basic2",
+  "꼭 나오는 학교시험기출 (196~197쪽)": "school",
+  "자신감 기본&핵심유형 1 (187~189쪽)": "basic1",
+  "자신감 기본&핵심유형 2 (193~195쪽)": "basic2"
+};
+
+const basicSsenRanges: Record<string, { min: number; max: number; count: number }> = {
+  "ch1/sub01/school": {
+    "min": 1,
+    "max": 13,
+    "count": 13
+  },
+  "ch1/sub01/basic1": {
+    "min": 1,
+    "max": 30,
+    "count": 30
+  },
+  "ch1/sub01/basic2": {
+    "min": 1,
+    "max": 17,
+    "count": 17
+  },
+  "ch1/sub02/school": {
+    "min": 1,
+    "max": 13,
+    "count": 13
+  },
+  "ch1/sub02/basic1": {
+    "min": 1,
+    "max": 18,
+    "count": 18
+  },
+  "ch1/sub02/basic2": {
+    "min": 1,
+    "max": 29,
+    "count": 29
+  },
+  "ch1/sub03/school": {
+    "min": 1,
+    "max": 12,
+    "count": 12
+  },
+  "ch1/sub03/basic1": {
+    "min": 1,
+    "max": 23,
+    "count": 23
+  },
+  "ch1/sub03/basic2": {
+    "min": 1,
+    "max": 20,
+    "count": 20
+  },
+  "ch1/sub04/school": {
+    "min": 1,
+    "max": 17,
+    "count": 17
+  },
+  "ch1/sub04/basic1": {
+    "min": 1,
+    "max": 18,
+    "count": 18
+  },
+  "ch1/sub04/basic2": {
+    "min": 1,
+    "max": 15,
+    "count": 15
+  },
+  "ch1/sub04/basic3": {
+    "min": 1,
+    "max": 26,
+    "count": 26
+  },
+  "ch2/sub05/school": {
+    "min": 1,
+    "max": 18,
+    "count": 18
+  },
+  "ch2/sub05/basic1": {
+    "min": 1,
+    "max": 20,
+    "count": 20
+  },
+  "ch2/sub05/basic2": {
+    "min": 1,
+    "max": 21,
+    "count": 21
+  },
+  "ch2/sub06/school": {
+    "min": 1,
+    "max": 12,
+    "count": 12
+  },
+  "ch2/sub06/basic1": {
+    "min": 1,
+    "max": 16,
+    "count": 16
+  },
+  "ch2/sub06/basic2": {
+    "min": 1,
+    "max": 11,
+    "count": 11
+  },
+  "ch2/sub07/school": {
+    "min": 1,
+    "max": 17,
+    "count": 17
+  },
+  "ch2/sub07/basic1": {
+    "min": 1,
+    "max": 21,
+    "count": 21
+  },
+  "ch2/sub07/basic2": {
+    "min": 1,
+    "max": 18,
+    "count": 18
+  },
+  "ch2/sub07/basic3": {
+    "min": 1,
+    "max": 18,
+    "count": 18
+  },
+  "ch3/sub08/school": {
+    "min": 1,
+    "max": 13,
+    "count": 13
+  },
+  "ch3/sub08/basic1": {
+    "min": 1,
+    "max": 23,
+    "count": 23
+  },
+  "ch3/sub08/basic2": {
+    "min": 1,
+    "max": 9,
+    "count": 9
+  },
+  "ch3/sub08/basic3": {
+    "min": 1,
+    "max": 13,
+    "count": 13
+  },
+  "ch4/sub09/school": {
+    "min": 1,
+    "max": 14,
+    "count": 14
+  },
+  "ch4/sub09/basic1": {
+    "min": 1,
+    "max": 35,
+    "count": 35
+  },
+  "ch4/sub09/basic2": {
+    "min": 1,
+    "max": 26,
+    "count": 26
+  },
+  "ch4/sub10/school": {
+    "min": 1,
+    "max": 13,
+    "count": 13
+  },
+  "ch4/sub10/basic1": {
+    "min": 1,
+    "max": 20,
+    "count": 20
+  },
+  "ch4/sub10/basic2": {
+    "min": 1,
+    "max": 20,
+    "count": 20
+  }
+};
+
+
 const allTextbookInfo: Record<
   string,
   { name: string; max_num: number; desc: string }
@@ -596,6 +882,11 @@ const allTextbookInfo: Record<
     name: '개념유형파워 중2-2',
     max_num: 100,
     desc: '대단원·소단원·유형별 문항 데이터베이스 연동',
+  },
+  'basic-ssen-middle-2-2': {
+    name: '신사고 베이직쎈 중2-2',
+    max_num: 35,
+    desc: '10개 소단원 · 33개 단계 (총 609문항) 데이터베이스 연동',
   },
   'ssen-middle-3-1': {
     name: '신사고 쎈 중3-1',
@@ -766,6 +1057,23 @@ export default function Home() {
     }
   };
 
+  const [basicSsenChapter, setBasicSsenChapter] = useState('I. 도형의 성질');
+  const [basicSsenSubunit, setBasicSsenSubunit] =
+    useState('01 삼각형의 성질 (1)');
+  const [basicSsenStage, setBasicSsenStage] = useState(
+    '자신감 기본&핵심유형 1 (11~15쪽)',
+  );
+  const [basicSsenItems, setBasicSsenItems] = useState<BasicSsenItem[]>([
+    {
+      id: 1,
+      chapter: 'I. 도형의 성질',
+      subunit: '01 삼각형의 성질 (1)',
+      stage: '자신감 기본&핵심유형 1 (11~15쪽)',
+      numbers: '1-4',
+      count: 4,
+    },
+  ]);
+
   const [status, setStatus] = useState(
     configured ? '로그인이 필요합니다.' : 'Supabase 연결 설정 전입니다.',
   );
@@ -780,6 +1088,7 @@ export default function Home() {
   const [olympusQuickInput, setOlympusQuickInput] = useState('1-4');
   const [blacklabelQuickInput, setBlacklabelQuickInput] = useState('1-3');
   const [conceptQuickInput, setConceptQuickInput] = useState('1-3');
+  const [basicSsenQuickInput, setBasicSsenQuickInput] = useState('1-4');
   const [includeCover, setIncludeCover] = useState(true);
   const [includeCharacter, setIncludeCharacter] = useState(true);
   const [customCharacter, setCustomCharacter] = useState<string | null>(null);
@@ -853,6 +1162,21 @@ export default function Home() {
     return blacklabelRanges[`${cSlug}/${subSlug}/${sSlug}`] || null;
   }, [blacklabelChapter, blacklabelSubunit, blacklabelStage, textbook]);
 
+  const currentBasicSsenRange = useMemo(() => {
+    if (textbook !== 'basic-ssen-middle-2-2') return null;
+    const cSlug =
+      basicSsenChapter === 'I. 도형의 성질'
+        ? 'ch1'
+        : basicSsenChapter === 'II. 도형의 닮음'
+        ? 'ch2'
+        : basicSsenChapter === 'III. 피타고라스 정리'
+        ? 'ch3'
+        : 'ch4';
+    const subSlug = `sub${basicSsenSubunit.split(' ')[0]}`;
+    const sSlug = basicSsenStageSlugs[basicSsenStage] || basicSsenStage;
+    return basicSsenRanges[`${cSlug}/${subSlug}/${sSlug}`] || null;
+  }, [basicSsenChapter, basicSsenSubunit, basicSsenStage, textbook]);
+
   function selectTextbook(nextTb: TextbookId) {
     setTextbook(nextTb);
     const nextDept = textbooks.find((t) => t.id === nextTb)?.department;
@@ -890,6 +1214,10 @@ export default function Home() {
       setConceptChapter(firstCh);
       setConceptSubunit(firstCh);
       setConceptStage(firstStg);
+    } else if (nextTb === 'basic-ssen-middle-2-2') {
+      setBasicSsenChapter('I. 도형의 성질');
+      setBasicSsenSubunit('01 삼각형의 성질 (1)');
+      setBasicSsenStage('자신감 기본&핵심유형 1 (11~15쪽)');
     } else if (nextTb === 'olympus-calculus') {
       if (olympusItems.length === 0) {
         setOlympusItems([
@@ -953,12 +1281,16 @@ export default function Home() {
     ) {
       return conceptItems.reduce((acc, item) => acc + item.count, 0);
     }
+    if (textbook === 'basic-ssen-middle-2-2') {
+      return basicSsenItems.reduce((acc, item) => acc + item.count, 0);
+    }
     return parsedProblemNumbers.length;
   }, [
     textbook,
     olympusItems,
     blacklabelItems,
     conceptItems,
+    basicSsenItems,
     parsedProblemNumbers,
   ]);
 
@@ -986,7 +1318,10 @@ export default function Home() {
     const answerPageSize =
       textbook === 'blacklabel-middle-2-2' || textbook === 'blacklabel-middle-3-1'
         ? 48
-        : textbook === 'concept-middle-2-2' || textbook === 'concept-middle-3-1' || textbook === 'gojaengi-common-math-2'
+        : textbook === 'concept-middle-2-2' ||
+          textbook === 'concept-middle-3-1' ||
+          textbook === 'basic-ssen-middle-2-2' ||
+          textbook === 'gojaengi-common-math-2'
           ? 0
           : 60;
     return (
@@ -1203,9 +1538,73 @@ export default function Home() {
     }
   }
 
+  function addBasicSsenItem() {
+    try {
+      if (!basicSsenQuickInput.trim()) {
+        throw new Error('문제번호를 입력해 주세요 (예: 1-10)');
+      }
+      const count = countProblemTokens(basicSsenQuickInput);
+      const currentCount = basicSsenItems.reduce(
+        (acc, item) => acc + item.count,
+        0,
+      );
+      if (currentCount + count > 100) {
+        throw new Error(
+          `한 번에 최대 100문제까지 추가할 수 있습니다. (현재: ${currentCount}문제)`,
+        );
+      }
+      if (currentBasicSsenRange) {
+        const tokens = basicSsenQuickInput.trim().split(/[\s,]+/);
+        for (const t of tokens) {
+          if (!t) continue;
+          let minVal = 0;
+          let maxVal = 0;
+          const m = t.match(/^(\d+)\s*[-~]\s*(\d+)$/);
+          if (m) {
+            minVal = Math.min(Number(m[1]), Number(m[2]));
+            maxVal = Math.max(Number(m[1]), Number(m[2]));
+          } else if (/^\d+$/.test(t)) {
+            minVal = Number(t);
+            maxVal = Number(t);
+          }
+          if (minVal > 0) {
+            if (
+              minVal < currentBasicSsenRange.min ||
+              maxVal > currentBasicSsenRange.max
+            ) {
+              throw new Error(
+                `선택한 단계의 제공 문항은 ${currentBasicSsenRange.min}~${currentBasicSsenRange.max}번입니다. (${t}번 제외 필요)`,
+              );
+            }
+          }
+        }
+      }
+      const newItem: BasicSsenItem = {
+        id: Date.now(),
+        chapter: basicSsenChapter,
+        subunit: basicSsenSubunit,
+        stage: basicSsenStage,
+        numbers: basicSsenQuickInput.trim(),
+        count,
+      };
+      const nextItems = [...basicSsenItems, newItem];
+      setBasicSsenItems(nextItems);
+      setBasicSsenQuickInput('');
+      setStatus(
+        `${count}문제를 베이직쎈 목록에 추가했습니다. 미리보기를 갱신합니다…`,
+      );
+      void handleRefreshPreview(textbook, { basicSsenItems: nextItems });
+    } catch (error) {
+      setStatus(
+        error instanceof Error ? error.message : '문제번호를 확인해 주세요.',
+      );
+    }
+  }
+
   async function handleRefreshPreview(
     overrideTb?: unknown,
     overrideItems?: {
+      basicSsenItems?: BasicSsenItem[];
       conceptItems?: ConceptItem[];
       blacklabelItems?: BlacklabelItem[];
       olympusItems?: OlympusItem[];
@@ -1309,6 +1708,27 @@ export default function Home() {
         setConcept22Items(curConcept);
       }
     }
+
+    let curBasicSsen = overrideItems?.basicSsenItems ?? basicSsenItems;
+    if (activeTb === 'basic-ssen-middle-2-2') {
+      curBasicSsen = curBasicSsen.filter(
+        (it) => it.chapter in basicSsenHierarchy,
+      );
+      if (curBasicSsen.length === 0) {
+        curBasicSsen = [
+          {
+            id: Date.now(),
+            chapter: 'I. 도형의 성질',
+            subunit: '01 삼각형의 성질 (1)',
+            stage: '자신감 기본&핵심유형 1 (11~15쪽)',
+            numbers: '1-4',
+            count: 4,
+          },
+        ];
+        setBasicSsenItems(curBasicSsen);
+      }
+    }
+
     if (activeTb === 'olympus-calculus' && curOlympus.length === 0) {
       setPreviewPdfUrl(null);
       setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
@@ -1333,6 +1753,7 @@ export default function Home() {
       activeTb !== 'blacklabel-middle-3-1' &&
       activeTb !== 'concept-middle-2-2' &&
       activeTb !== 'concept-middle-3-1' &&
+      activeTb !== 'basic-ssen-middle-2-2' &&
       activeTb !== 'olympus-calculus'
     ) {
       const parsed = parsedProblemNumbers;
@@ -1380,6 +1801,14 @@ export default function Home() {
             }),
           ),
           conceptItems: curConcept.map(
+            ({ chapter, subunit, stage, numbers }) => ({
+              chapter,
+              subunit,
+              stage,
+              numbers,
+            }),
+          ),
+          basicSsenItems: curBasicSsen.map(
             ({ chapter, subunit, stage, numbers }) => ({
               chapter,
               subunit,
@@ -1506,6 +1935,14 @@ export default function Home() {
             }),
           ),
           conceptItems: conceptItems.map(
+            ({ chapter, subunit, stage, numbers }) => ({
+              chapter,
+              subunit,
+              stage,
+              numbers,
+            }),
+          ),
+          basicSsenItems: basicSsenItems.map(
             ({ chapter, subunit, stage, numbers }) => ({
               chapter,
               subunit,
@@ -1765,6 +2202,10 @@ export default function Home() {
       setStatus('개념유형파워 문제를 목록에 추가해 주세요.');
       return;
     }
+    if (textbook === 'basic-ssen-middle-2-2' && basicSsenItems.length === 0) {
+      setStatus('베이직쎈 문제를 목록에 추가해 주세요.');
+      return;
+    }
     setBusy(true);
     setStatus('오답노트를 만드는 중…');
     try {
@@ -1795,6 +2236,14 @@ export default function Home() {
             }),
           ),
           conceptItems: conceptItems.map(
+            ({ chapter, subunit, stage, numbers }) => ({
+              chapter,
+              subunit,
+              stage,
+              numbers,
+            }),
+          ),
+          basicSsenItems: basicSsenItems.map(
             ({ chapter, subunit, stage, numbers }) => ({
               chapter,
               subunit,
@@ -2821,12 +3270,219 @@ export default function Home() {
                     </div>
                   )}
 
+                  {/* Basic Ssen picker if textbook === 'basic-ssen-middle-2-2' */}
+                  {textbook === 'basic-ssen-middle-2-2' && (
+                    <div className="bg-slate-900/90 border border-sky-500/30 rounded-xl p-3.5 mb-3.5 shadow-lg">
+                      <div className="flex items-center justify-between flex-wrap gap-2 pb-2.5 mb-3 border-b border-white/10">
+                        <span className="text-xs font-bold text-sky-400 flex items-center gap-1.5">
+                          ▲ 베이직쎈 단원·단계 선택기
+                        </span>
+                        <span className="text-xs text-slate-400">
+                          대단원/소단원/단계를 고르고 번호를 추가하세요
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
+                        <div>
+                          <label
+                            htmlFor="bs-chapter-select"
+                            className="block text-xs font-semibold text-slate-400 mb-1"
+                          >
+                            대단원
+                          </label>
+                          <select
+                            id="bs-chapter-select"
+                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                            value={basicSsenChapter}
+                            onChange={(e) => {
+                              const newCh = e.target.value;
+                              setBasicSsenChapter(newCh);
+                              const subs = Object.keys(
+                                basicSsenHierarchy[newCh] || {},
+                              );
+                              const firstSub = subs[0] || '';
+                              setBasicSsenSubunit(firstSub);
+                              const stages =
+                                basicSsenHierarchy[newCh]?.[firstSub] || [];
+                              setBasicSsenStage(stages[0] || '');
+                            }}
+                          >
+                            {Object.keys(basicSsenHierarchy).map((ch) => (
+                              <option key={ch} value={ch}>
+                                {ch}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="bs-subunit-select"
+                            className="block text-xs font-semibold text-slate-400 mb-1"
+                          >
+                            소단원
+                          </label>
+                          <select
+                            id="bs-subunit-select"
+                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                            value={basicSsenSubunit}
+                            onChange={(e) => {
+                              const newSub = e.target.value;
+                              setBasicSsenSubunit(newSub);
+                              const stages =
+                                basicSsenHierarchy[basicSsenChapter]?.[newSub] ||
+                                [];
+                              setBasicSsenStage(stages[0] || '');
+                            }}
+                          >
+                            {Object.keys(
+                              basicSsenHierarchy[basicSsenChapter] || {},
+                            ).map((sub) => (
+                              <option key={sub} value={sub}>
+                                {sub}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="bs-stage-select"
+                            className="block text-xs font-semibold text-slate-400 mb-1"
+                          >
+                            단계(유형)
+                          </label>
+                          <select
+                            id="bs-stage-select"
+                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                            value={basicSsenStage}
+                            onChange={(e) => setBasicSsenStage(e.target.value)}
+                          >
+                            {(
+                              basicSsenHierarchy[basicSsenChapter]?.[
+                                basicSsenSubunit
+                              ] || []
+                            ).map((stg) => (
+                              <option key={stg} value={stg}>
+                                {stg}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 p-2.5 bg-slate-950/60 rounded-lg border border-white/5">
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="block text-xs font-bold text-sky-400">
+                              {basicSsenSubunit} · {basicSsenStage}
+                            </span>
+                            {currentBasicSsenRange && (
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                                💡 제공 문항: {currentBasicSsenRange.min} ~{' '}
+                                {currentBasicSsenRange.max}번 (
+                                {currentBasicSsenRange.count}문제)
+                              </span>
+                            )}
+                          </div>
+                          <input
+                            type="text"
+                            className="w-full px-3 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 placeholder-slate-500 text-xs outline-none"
+                            placeholder={
+                              currentBasicSsenRange
+                                ? `예: 1-5 또는 1, 3, 5 (최대: ${currentBasicSsenRange.max}번)`
+                                : '예: 1-5 또는 1, 3, 5'
+                            }
+                            value={basicSsenQuickInput}
+                            onChange={(e) =>
+                              setBasicSsenQuickInput(e.target.value)
+                            }
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                addBasicSsenItem();
+                              }
+                            }}
+                          />
+                        </div>
+                        <div className="flex gap-1.5 self-end">
+                          <button
+                            type="button"
+                            className="px-2.5 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 shrink-0 transition-all cursor-pointer"
+                            onClick={() => {
+                              if (!currentBasicSsenRange) return;
+                              const max10 = Math.min(10, currentBasicSsenRange.max);
+                              setBasicSsenQuickInput(`1-${max10}`);
+                            }}
+                          >
+                            1~10번
+                          </button>
+                          <button
+                            type="button"
+                            className="px-2.5 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 shrink-0 transition-all cursor-pointer"
+                            onClick={() => {
+                              if (!currentBasicSsenRange) return;
+                              setBasicSsenQuickInput(
+                                `1-${currentBasicSsenRange.max}`,
+                              );
+                            }}
+                          >
+                            전체
+                          </button>
+                        </div>
+                        <button
+                          type="button"
+                          className="px-3.5 py-2 text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white rounded-lg shadow shrink-0 self-end transition-all cursor-pointer"
+                          onClick={addBasicSsenItem}
+                        >
+                          + 문항 추가
+                        </button>
+                      </div>
+
+                      {basicSsenItems.length > 0 && (
+                        <div className="mt-3 space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                          {basicSsenItems.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex items-center justify-between text-xs bg-slate-900/90 border border-slate-800 rounded px-3 py-2"
+                            >
+                              <span className="text-slate-200">
+                                <span className="text-sky-400 font-semibold">
+                                  [{item.subunit}]
+                                </span>{' '}
+                                {item.stage} :{' '}
+                                <span className="font-mono text-sky-400 font-bold">
+                                  {item.numbers}
+                                </span>{' '}
+                                ({item.count}제)
+                              </span>
+                              <button
+                                type="button"
+                                className="text-slate-400 hover:text-red-400 font-bold ml-2 px-1 cursor-pointer"
+                                onClick={() => {
+                                  const next = basicSsenItems.filter(
+                                    (it) => it.id !== item.id,
+                                  );
+                                  setBasicSsenItems(next);
+                                  void handleRefreshPreview(textbook, {
+                                    basicSsenItems: next,
+                                  });
+                                }}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Standard problem input for Synergy, Ssen & Gojaengi */}
                   {textbook !== 'olympus-calculus' &&
                     textbook !== 'blacklabel-middle-2-2' &&
                     textbook !== 'blacklabel-middle-3-1' &&
                     textbook !== 'concept-middle-2-2' &&
-                    textbook !== 'concept-middle-3-1' && (
+                    textbook !== 'concept-middle-3-1' &&
+                    textbook !== 'basic-ssen-middle-2-2' && (
                       <>
                         <div>
                           <div className="flex items-center justify-between mb-1.5">
@@ -4007,6 +4663,80 @@ export default function Home() {
                         </NativeSelect>
                       </label>
                     </>
+                  ) : textbook === 'basic-ssen-middle-2-2' ? (
+                    <>
+                      <label htmlFor="basic-ssen-chapter" className="space-y-2">
+                        <span className="font-medium">대단원</span>
+                        <NativeSelect
+                          id="basic-ssen-chapter"
+                          className="w-full"
+                          value={basicSsenChapter}
+                          onChange={(e) => {
+                            const newCh = e.target.value;
+                            setBasicSsenChapter(newCh);
+                            const subs = Object.keys(
+                              basicSsenHierarchy[newCh] || {},
+                            );
+                            const firstSub = subs[0] || '';
+                            setBasicSsenSubunit(firstSub);
+                            const stages =
+                              basicSsenHierarchy[newCh]?.[firstSub] || [];
+                            setBasicSsenStage(stages[0] || '');
+                          }}
+                        >
+                          {Object.keys(basicSsenHierarchy).map((ch) => (
+                            <NativeSelectOption key={ch} value={ch}>
+                              {ch}
+                            </NativeSelectOption>
+                          ))}
+                        </NativeSelect>
+                      </label>
+                      <label htmlFor="basic-ssen-subunit" className="space-y-2">
+                        <span className="font-medium">소단원</span>
+                        <NativeSelect
+                          id="basic-ssen-subunit"
+                          className="w-full"
+                          value={basicSsenSubunit}
+                          onChange={(e) => {
+                            const newSub = e.target.value;
+                            setBasicSsenSubunit(newSub);
+                            const stages =
+                              basicSsenHierarchy[basicSsenChapter]?.[newSub] || [];
+                            setBasicSsenStage(stages[0] || '');
+                          }}
+                        >
+                          {Object.keys(
+                            basicSsenHierarchy[basicSsenChapter] || {},
+                          ).map((sub) => (
+                            <NativeSelectOption key={sub} value={sub}>
+                              {sub}
+                            </NativeSelectOption>
+                          ))}
+                        </NativeSelect>
+                      </label>
+                      <label
+                        htmlFor="basic-ssen-stage"
+                        className="space-y-2 sm:col-span-2"
+                      >
+                        <span className="font-medium">단계(유형)</span>
+                        <NativeSelect
+                          id="basic-ssen-stage"
+                          className="w-full"
+                          value={basicSsenStage}
+                          onChange={(e) => setBasicSsenStage(e.target.value)}
+                        >
+                          {(
+                            basicSsenHierarchy[basicSsenChapter]?.[
+                              basicSsenSubunit
+                            ] || []
+                          ).map((stg) => (
+                            <NativeSelectOption key={stg} value={stg}>
+                              {stg}
+                            </NativeSelectOption>
+                          ))}
+                        </NativeSelect>
+                      </label>
+                    </>
                   ) : null}
                   <label htmlFor="numbers" className="space-y-2 sm:col-span-2">
                     <span className="font-medium">문제번호</span>
@@ -4018,7 +4748,8 @@ export default function Home() {
                         textbook === 'blacklabel-middle-2-2' ||
                         textbook === 'blacklabel-middle-3-1' ||
                         textbook === 'concept-middle-2-2' ||
-                        textbook === 'concept-middle-3-1'
+                        textbook === 'concept-middle-3-1' ||
+                        textbook === 'basic-ssen-middle-2-2'
                           ? '1, 2, 3 또는 1~5'
                           : '1, 5, 10 또는 1-10'
                       }
@@ -4027,7 +4758,8 @@ export default function Home() {
                         textbook !== 'blacklabel-middle-2-2' &&
                         textbook !== 'blacklabel-middle-3-1' &&
                         textbook !== 'concept-middle-2-2' &&
-                        textbook !== 'concept-middle-3-1'
+                        textbook !== 'concept-middle-3-1' &&
+                        textbook !== 'basic-ssen-middle-2-2'
                       }
                       disabled={!sessionToken}
                     />
@@ -4036,7 +4768,8 @@ export default function Home() {
                       textbook === 'blacklabel-middle-2-2' ||
                       textbook === 'blacklabel-middle-3-1' ||
                       textbook === 'concept-middle-2-2' ||
-                      textbook === 'concept-middle-3-1'
+                      textbook === 'concept-middle-3-1' ||
+                      textbook === 'basic-ssen-middle-2-2'
                         ? '선택한 단원과 단계 안에서 표시된 번호를 입력 후 [목록에 추가]를 누르세요.'
                         : '쉼표·띄어쓰기·연속 범위를 사용할 수 있습니다. 한 번에 최대 100문제입니다.'}
                     </span>
@@ -4260,6 +4993,81 @@ export default function Home() {
                                   variant="outline"
                                   onClick={() =>
                                     setConceptItems((items) =>
+                                      items.filter(
+                                        (entry) => entry.id !== item.id,
+                                      ),
+                                    )
+                                  }
+                                >
+                                  삭제
+                                </Button>
+                              </li>
+                            ))}
+                          </ol>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {textbook === 'basic-ssen-middle-2-2' && (
+                    <div className="space-y-3 sm:col-span-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={addBasicSsenItem}
+                        disabled={busy}
+                      >
+                        목록에 추가
+                      </Button>
+                      <div className="rounded-xl border bg-slate-50 p-4">
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                          <div>
+                            <p className="font-medium">입력한 문제 목록</p>
+                            <p className="text-sm text-slate-500">
+                              총{' '}
+                              {basicSsenItems.reduce(
+                                (total, item) => total + item.count,
+                                0,
+                              )}{' '}
+                              / 100문제
+                            </p>
+                          </div>
+                          {basicSsenItems.length > 0 && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => {
+                                setBasicSsenItems([]);
+                                setStatus('입력 목록을 모두 비웠습니다.');
+                              }}
+                            >
+                              전체 비우기
+                            </Button>
+                          )}
+                        </div>
+                        {basicSsenItems.length === 0 ? (
+                          <p className="rounded-lg bg-white p-3 text-sm text-slate-500">
+                            단원과 단계를 선택하고 번호를 목록에 추가하세요.
+                          </p>
+                        ) : (
+                          <ol className="space-y-2">
+                            {basicSsenItems.map((item, index) => (
+                              <li
+                                key={item.id}
+                                className="flex items-center justify-between gap-3 rounded-lg bg-white p-3 text-sm"
+                              >
+                                <span>
+                                  {index + 1}. [{item.subunit}] {item.stage} ·{' '}
+                                  {item.numbers}번
+                                  <span className="ml-2 text-slate-500">
+                                    ({item.count}문제)
+                                  </span>
+                                </span>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() =>
+                                    setBasicSsenItems((items) =>
                                       items.filter(
                                         (entry) => entry.id !== item.id,
                                       ),
