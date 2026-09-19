@@ -1412,11 +1412,106 @@ def load_basic_ssen_image(
     raise ValueError(f"베이직쎈 문제 이미지를 찾을 수 없습니다: [{clean_sub} > {clean_stg}] {number_str}번 (해당 단계의 제공 번호를 확인해 주세요)")
 
 
+BASIC_SSEN_STAGE_ANSWER_MAP: dict[tuple[str, str], int] = {
+    ("01 삼각형의 성질 (1)", "자신감 기본&핵심유형 1 (11~15쪽)"): 1,
+    ("01 삼각형의 성질 (1)", "자신감 기본&핵심유형 2 (19~21쪽)"): 1,
+    ("01 삼각형의 성질 (1)", "꼭 나오는 학교시험기출 (22~23쪽)"): 1,
+
+    ("02 삼각형의 성질 (2)", "자신감 기본&핵심유형 1 (29~31쪽)"): 1,
+    ("02 삼각형의 성질 (2)", "자신감 기본&핵심유형 2 (36~40쪽)"): 1,
+    ("02 삼각형의 성질 (2)", "꼭 나오는 학교시험기출 (41~42쪽)"): 1,
+
+    ("03 사각형의 성질 (1)", "자신감 기본&핵심유형 1 (47~50쪽)"): 2,
+    ("03 사각형의 성질 (1)", "자신감 기본&핵심유형 2 (54~57쪽)"): 2,
+    ("03 사각형의 성질 (1)", "꼭 나오는 학교시험기출 (58~59쪽)"): 2,
+
+    ("04 사각형의 성질 (2)", "자신감 기본&핵심유형 1 (66~68쪽)"): 2,
+    ("04 사각형의 성질 (2)", "자신감 기본&핵심유형 2 (72~74쪽)"): 2,
+    ("04 사각형의 성질 (2)", "자신감 기본&핵심유형 3 (77~81쪽)"): 2,
+    ("04 사각형의 성질 (2)", "꼭 나오는 학교시험기출 (82~84쪽)"): 2,
+
+    ("05 도형의 닮음", "자신감 기본&핵심유형 1 (91~94쪽)"): 3,
+    ("05 도형의 닮음", "자신감 기본&핵심유형 2 (98~101쪽)"): 3,
+    ("05 도형의 닮음", "꼭 나오는 학교시험기출 (102~104쪽)"): 3,
+
+    ("06 평행선 사이의 선분의 길이의 비", "자신감 기본&핵심유형 1 (109~111쪽)"): 3,
+    ("06 평행선 사이의 선분의 길이의 비", "자신감 기본&핵심유형 2 (114~115쪽)"): 3,
+    ("06 평행선 사이의 선분의 길이의 비", "꼭 나오는 학교시험기출 (116~117쪽)"): 3,
+
+    ("07 삼각형의 무게중심과 닮음의 활용", "자신감 기본&핵심유형 1 (121~124쪽)"): 3,
+    ("07 삼각형의 무게중심과 닮음의 활용", "자신감 기본&핵심유형 2 (128~130쪽)"): 3,
+    ("07 삼각형의 무게중심과 닮음의 활용", "자신감 기본&핵심유형 3 (133~135쪽)"): 4,
+    ("07 삼각형의 무게중심과 닮음의 활용", "꼭 나오는 학교시험기출 (136~138쪽)"): 4,
+
+    ("08 피타고라스 정리", "자신감 기본&핵심유형 1 (144~147쪽)"): 4,
+    ("08 피타고라스 정리", "자신감 기본&핵심유형 2 (150~151쪽)"): 4,
+    ("08 피타고라스 정리", "자신감 기본&핵심유형 3 (155~156쪽)"): 4,
+    ("08 피타고라스 정리", "꼭 나오는 학교시험기출 (157~158쪽)"): 4,
+
+    ("09 경우의 수", "자신감 기본&핵심유형 1 (165~170쪽)"): 4,
+    ("09 경우의 수", "자신감 기본&핵심유형 2 (175~178쪽)"): 5,
+    ("09 경우의 수", "꼭 나오는 학교시험기출 (179~180쪽)"): 5,
+
+    ("10 확률", "자신감 기본&핵심유형 1 (187~189쪽)"): 5,
+    ("10 확률", "자신감 기본&핵심유형 2 (193~195쪽)"): 5,
+    ("10 확률", "꼭 나오는 학교시험기출 (196~197쪽)"): 5,
+}
+
+
+def get_basic_ssen_answer_page(subunit: str, stage: str) -> int:
+    for (sub, stg), page_num in BASIC_SSEN_STAGE_ANSWER_MAP.items():
+        if (sub in subunit or subunit in sub) and (stg in stage or stage in stg):
+            return page_num
+    sub_digits = "".join(c for c in subunit if c.isdigit())
+    if sub_digits in ("01", "1", "02", "2"):
+        return 1
+    if sub_digits in ("03", "3", "04", "4"):
+        return 2
+    if sub_digits in ("05", "5", "06", "6"):
+        return 3
+    if sub_digits in ("07", "7"):
+        return 4 if ("3" in stage or "학교" in stage) else 3
+    if sub_digits in ("08", "8"):
+        return 4
+    if sub_digits in ("09", "9"):
+        return 5 if ("2" in stage or "학교" in stage) else 4
+    if sub_digits in ("10",):
+        return 5
+    return 1
+
+
+def load_basic_ssen_answers_pdf(supabase_url: str = "", secret_key: str = "", bucket: str = "textbook-problems") -> bytes | None:
+    api_cand = Path(__file__).resolve().parent / "basic_ssen_answers.pdf"
+    if api_cand.is_file():
+        try:
+            return api_cand.read_bytes()
+        except Exception:
+            pass
+    local_cand = Path(r"D:\중등부교재작업\중2학년2학기\베이직쎈\중2-2 베이직쎈 빠른정답.pdf")
+    if local_cand.is_file():
+        try:
+            return local_cand.read_bytes()
+        except Exception:
+            pass
+    if supabase_url and secret_key:
+        object_path = urllib.parse.quote(f"{bucket}/basic-ssen-middle-2-2/answers.pdf", safe="/")
+        url = f"{supabase_url}/storage/v1/object/authenticated/{object_path}"
+        headers = {"apikey": secret_key, "Authorization": f"Bearer {secret_key}"}
+        try:
+            return request_bytes(url, headers)
+        except Exception as e:
+            print("[-] Error loading basic_ssen_answers from Supabase:", e)
+    return None
+
+
 def create_basic_ssen_pdf(
     student: str,
     grade: str,
     items: list[tuple[str, str, str, str, bytes]],
     cover_options: dict | None = None,
+    supabase_url: str = "",
+    secret_key: str = "",
+    bucket: str = "textbook-problems",
 ) -> bytes:
     opts = cover_options or {}
     include_cover = opts.get("include_cover", True)
@@ -1454,7 +1549,7 @@ def create_basic_ssen_pdf(
             reader = pdf_image_reader(data, 900, 1150)
             iw, ih = reader.getSize()
             available_w, available_h = cell_w - 6 * mm, cell_h - 14 * mm
-            scale = min(available_w / iw, available_h / ih)
+            scale = min((available_w / iw), (available_h / ih))
             dw, dh = iw * scale, ih * scale
             c.drawImage(reader, x + 3 * mm, y + cell_h - 9 * mm - dh, dw, dh, preserveAspectRatio=True)
         draw_footer(c, current_page, width, academy_name)
@@ -1462,7 +1557,52 @@ def create_basic_ssen_pdf(
         current_page += 1
 
     c.save()
-    return output.getvalue()
+    pdf_bytes = output.getvalue()
+
+    # Append fast answer pages
+    needed_pages = sorted(set(
+        get_basic_ssen_answer_page(subunit, stage)
+        for _, subunit, stage, _, _ in items
+    ))
+    if not needed_pages:
+        needed_pages = [1]
+
+    ans_pdf_bytes = load_basic_ssen_answers_pdf(supabase_url, secret_key, bucket)
+    if ans_pdf_bytes:
+        try:
+            ans_reader = PdfReader(BytesIO(ans_pdf_bytes))
+            main_reader = PdfReader(BytesIO(pdf_bytes))
+            writer = PdfWriter()
+            for p in main_reader.pages:
+                writer.add_page(p)
+
+            total_ans = len(needed_pages)
+            for idx, p_num in enumerate(needed_pages, start=1):
+                if 1 <= p_num <= len(ans_reader.pages):
+                    ans_page = ans_reader.pages[p_num - 1]
+                    ans_page.scale_to(width, height)
+
+                    overlay_pkt = BytesIO()
+                    oc = canvas.Canvas(overlay_pkt, pagesize=A4)
+                    oc.setFont("HYSMyeongJo-Medium", 8)
+                    oc.setFillColorRGB(0.35, 0.35, 0.35)
+                    oc.drawString(10 * mm, 5.2 * mm, f"{academy_name} | 베이직쎈 빠른 정답")
+                    ans_label = f"빠른 정답 ({idx}/{total_ans})" if total_ans > 1 else "빠른 정답"
+                    oc.drawRightString(width - 10 * mm, 5.2 * mm, ans_label)
+                    oc.showPage()
+                    oc.save()
+                    overlay_reader = PdfReader(BytesIO(overlay_pkt.getvalue()))
+                    ans_page.merge_page(overlay_reader.pages[0])
+
+                    writer.add_page(ans_page)
+
+            out_stream = BytesIO()
+            writer.write(out_stream)
+            return out_stream.getvalue()
+        except Exception as e:
+            print("[-] Error appending basic ssen answer pages:", e)
+
+    return pdf_bytes
 
 
 class handler(BaseHTTPRequestHandler):
@@ -1670,7 +1810,15 @@ class handler(BaseHTTPRequestHandler):
                         basic_ssen_items.append((chapter, subunit, stage, num_str, data))
 
                 def make_pdf(st: str) -> bytes:
-                    return create_basic_ssen_pdf(st, grade, basic_ssen_items, cover_options)
+                    return create_basic_ssen_pdf(
+                        st,
+                        grade,
+                        basic_ssen_items,
+                        cover_options,
+                        supabase_url=supabase_url,
+                        secret_key=secret_key,
+                        bucket=bucket,
+                    )
 
             else:
                 numbers = parse_numbers(str(payload.get("numbers", "")))

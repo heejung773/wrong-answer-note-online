@@ -83,7 +83,7 @@ def main() -> None:
         bs_img1 = read(BASIC_SSEN / "문제모음_인쇄용" / bs_ch / bs_sub / bs_stg / "0001.png")
         bs_img2 = read(BASIC_SSEN / "문제모음_인쇄용" / bs_ch / bs_sub / bs_stg / "0002.png")
         bs_items = [(bs_ch, bs_sub, bs_stg, "1", bs_img1), (bs_ch, bs_sub, bs_stg, "2", bs_img2)]
-        assert_pdf("basic-ssen-middle-2-2", generate.create_basic_ssen_pdf("테스트", "2학년", bs_items), 2)
+        assert_pdf("basic-ssen-middle-2-2", generate.create_basic_ssen_pdf("테스트", "2학년", bs_items), 3)
     finally:
         generate.request_bytes = original_request
 
