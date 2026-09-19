@@ -1507,6 +1507,88 @@ def load_basic_ssen_answers_pdf(supabase_url: str = "", secret_key: str = "", bu
     return None
 
 
+def load_basic_ssen_answers(supabase_url: str = "", secret_key: str = "", bucket: str = "textbook-problems") -> dict[str, str]:
+    api_cand = Path(__file__).resolve().parent / "basic_ssen_answers.json"
+    if api_cand.is_file():
+        try:
+            return json.loads(api_cand.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    return {}
+
+
+def draw_basic_ssen_answer_page(
+    c: canvas.Canvas,
+    items: list[tuple[str, str, str, str, bytes]],
+    answers: dict[str, str],
+    page_number: int,
+    page_width: float,
+    page_height: float,
+    answer_page_index: int,
+    total_answer_pages: int,
+    academy_name: str = "다산미래학원",
+) -> None:
+    left = 16 * mm
+    right = page_width - 16 * mm
+    top = page_height - 18 * mm
+
+    c.setFillColorRGB(0.08, 0.13, 0.22)
+    c.setFont("HYSMyeongJo-Medium", 22)
+    title = "빠른 정답"
+    if total_answer_pages > 1:
+        title += f" ({answer_page_index}/{total_answer_pages})"
+    c.drawString(left, top, title)
+
+    c.setFillColorRGB(0.35, 0.35, 0.35)
+    c.setFont("HYSMyeongJo-Medium", 9)
+    c.drawRightString(right, top + 1 * mm, f"오답 {len(items)}문제")
+
+    c.setStrokeColorRGB(0.08, 0.13, 0.22)
+    c.setLineWidth(1.2)
+    c.line(left, top - 4 * mm, right, top - 4 * mm)
+
+    columns = 2 if len(items) <= 24 else 3
+    rows = (len(items) + columns - 1) // columns
+    area_top = top - 14 * mm
+    area_bottom = 19 * mm
+    row_height = min(11 * mm, (area_top - area_bottom) / max(rows, 1))
+    gap = 6 * mm
+    column_width = (right - left - gap * (columns - 1)) / columns
+
+    for index, (chapter, subunit, stage, num_str, _) in enumerate(items):
+        column = index // rows
+        row = index % rows
+        x = left + column * (column_width + gap)
+        y = area_top - (row + 1) * row_height
+
+        c.setFillColorRGB(0.96, 0.97, 0.99) if row % 2 == 0 else c.setFillColorRGB(1, 1, 1)
+        c.rect(x, y, column_width, row_height, stroke=0, fill=1)
+
+        c.setFillColorRGB(0.18, 0.18, 0.18)
+        c.setFont("HYSMyeongJo-Medium", 8.5)
+        clean_sub = subunit.split(" ", 1)[-1] if " " in subunit else subunit
+        clean_stg = stage.replace("자신감 ", "")
+        short_stage = "기본" if "기본" in clean_stg else ("학교" if "학교" in clean_stg else clean_stg[:3])
+        c.drawString(x + 2 * mm, y + 3.5 * mm, f"{clean_sub} {short_stage} {num_str}번")
+
+        num_int = int(num_str) if num_str.isdigit() else None
+        keys = [
+            f"{chapter}/{subunit}/{clean_stg}/{num_str}",
+            f"{chapter}/{subunit}/{clean_stg}/{num_int}" if num_int is not None else None,
+            f"{chapter}/{subunit}/{clean_stg}/{num_int:04d}" if num_int is not None else None,
+            f"{chapter}/{subunit}/{stage}/{num_str}",
+            f"{chapter}/{subunit}/{stage}/{num_int}" if num_int is not None else None,
+            f"{chapter}/{subunit}/{stage}/{num_int:04d}" if num_int is not None else None,
+        ]
+        ans = next((answers[k] for k in keys if k and k in answers), "해설참조")
+        c.drawRightString(x + column_width - 2 * mm, y + 3.5 * mm, str(ans))
+
+    c.setFillColorRGB(0.45, 0.45, 0.45)
+    c.setFont("HYSMyeongJo-Medium", 7.5)
+    c.drawString(left, 13.5 * mm, "출처: 베이직쎈 중2-2 빠른정답")
+    draw_footer(c, page_number, page_width, academy_name)
+
+
 def create_basic_ssen_pdf(
     student: str,
     grade: str,
@@ -1559,10 +1641,24 @@ def create_basic_ssen_pdf(
         c.showPage()
         current_page += 1
 
+    # Check for structured JSON answers first (selected-problems-only table)
+    basic_ssen_answers = load_basic_ssen_answers(supabase_url, secret_key, bucket)
+    if basic_ssen_answers:
+        total_prob_pages = current_page - 1
+        answer_chunks = [items[i:i + 48] for i in range(0, len(items), 48)]
+        for chunk_idx, chunk in enumerate(answer_chunks, start=1):
+            draw_basic_ssen_answer_page(
+                c, chunk, basic_ssen_answers, total_prob_pages + chunk_idx, width, height, chunk_idx, len(answer_chunks), academy_name
+            )
+            if chunk_idx < len(answer_chunks):
+                c.showPage()
+        c.save()
+        return output.getvalue()
+
     c.save()
     pdf_bytes = output.getvalue()
 
-    # Append fast answer pages
+    # Fallback: Append raw fast answer pages if json answers are unavailable
     needed_pages = sorted(set(
         get_basic_ssen_answer_page(subunit, stage)
         for _, subunit, stage, _, _ in items

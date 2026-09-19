@@ -1339,30 +1339,10 @@ export default function Home() {
       if (groupCount > 0) problemPages += 1;
       return problemPages + Math.ceil(highSchoolProblemCount / 40) + (includeCover ? 1 : 0);
     }
-    if (textbook === 'basic-ssen-middle-2-2') {
-      const neededAnswerPages = new Set(
-        basicSsenItems.map((it) => {
-          const sub = it.subunit || '';
-          const stg = it.stage || '';
-          if (sub.includes('01') || sub.includes('02')) return 1;
-          if (sub.includes('03') || sub.includes('04')) return 2;
-          if (sub.includes('05') || sub.includes('06')) return 3;
-          if (sub.includes('07'))
-            return stg.includes('3') || stg.includes('학교') ? 4 : 3;
-          if (sub.includes('08')) return 4;
-          if (sub.includes('09'))
-            return stg.includes('2') || stg.includes('학교') ? 5 : 4;
-          if (sub.includes('10')) return 5;
-          return 1;
-        }),
-      ).size;
-      const problemPages = Math.ceil(highSchoolProblemCount / 4);
-      const ansPages = basicSsenItems.length > 0 ? neededAnswerPages : 0;
-      return problemPages + ansPages + (includeCover ? 1 : 0);
-    }
     const answerPageSize =
       textbook === 'blacklabel-middle-2-2' ||
-      textbook === 'blacklabel-middle-3-1'
+      textbook === 'blacklabel-middle-3-1' ||
+      textbook === 'basic-ssen-middle-2-2'
         ? 48
         : textbook === 'concept-middle-2-2' ||
             textbook === 'concept-middle-3-1' ||
