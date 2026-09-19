@@ -230,6 +230,8 @@ html:has(.selection-canvas) {
 }
 .semester-2-2 { color: #45c6aa; }
 .semester-3-1 { color: #e66b42; }
+.semester-high-1 { color: #38bdf8; }
+.semester-high-2 { color: #c084fc; }
 .textbook-row {
   display: flex;
   width: 100%;
@@ -280,8 +282,12 @@ html:has(.selection-canvas) {
 }
 .textbook-row-2-2 .textbook-subject { color: #45c6aa; background: #45c6aa14; }
 .textbook-row-3-1 .textbook-subject { color: #e66b42; background: #e66b4214; }
+.textbook-row-high-1 .textbook-subject { color: #38bdf8; background: #38bdf814; }
+.textbook-row-high-2 .textbook-subject { color: #c084fc; background: #c084fc14; }
 .textbook-row-2-2:hover { background: #0c211d; }
 .textbook-row-3-1:hover { background: #24150f; }
+.textbook-row-high-1:hover { background: #071f2d; }
+.textbook-row-high-2:hover { background: #1c102a; }
 .textbook-action {
   color: #ffedd7;
   font-size: 0.75rem;

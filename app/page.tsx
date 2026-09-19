@@ -73,17 +73,11 @@ type TextbookItem = {
 };
 
 const textbooks: TextbookItem[] = [
+  // 고등부: 1학년 (공통수학1, 공통수학2)
   {
-    id: 'synergy-calculus',
-    title: '시너지 미적분',
-    subject: '미적분Ⅰ',
-    available: true,
-    department: 'high',
-  },
-  {
-    id: 'synergy-algebra',
-    title: '시너지 대수',
-    subject: '대수',
+    id: 'ssen-common-math-1',
+    title: '쎈 공통수학1',
+    subject: '공통수학1',
     available: true,
     department: 'high',
   },
@@ -95,26 +89,35 @@ const textbooks: TextbookItem[] = [
     department: 'high',
   },
   {
-    id: 'olympus-calculus',
-    title: '올림푸스',
-    subject: '미적분Ⅰ',
-    available: true,
-    department: 'high',
-  },
-  {
     id: 'gojaengi-common-math-2',
     title: '고쟁이',
     subject: '공통수학2',
     available: true,
     department: 'high',
   },
+  // 고등부: 2학년 (대수, 미적분Ⅰ)
   {
-    id: 'ssen-common-math-1',
-    title: '쎈 공통수학1',
-    subject: '공통수학1',
+    id: 'synergy-algebra',
+    title: '시너지 대수',
+    subject: '대수',
     available: true,
     department: 'high',
   },
+  {
+    id: 'synergy-calculus',
+    title: '시너지 미적분',
+    subject: '미적분Ⅰ',
+    available: true,
+    department: 'high',
+  },
+  {
+    id: 'olympus-calculus',
+    title: '올림푸스',
+    subject: '미적분Ⅰ',
+    available: true,
+    department: 'high',
+  },
+  // 중등부: 2학년 2학기
   {
     id: 'ssen-middle-2-2',
     title: '쎈수학',
@@ -143,6 +146,7 @@ const textbooks: TextbookItem[] = [
     available: true,
     department: 'middle',
   },
+  // 중등부: 3학년 1학기
   {
     id: 'ssen-middle-3-1',
     title: '쎈수학',
@@ -165,6 +169,54 @@ const textbooks: TextbookItem[] = [
     department: 'middle',
   },
 ];
+
+type TextbookGroupMeta = {
+  key: string;
+  title: string;
+  subtitle: string;
+  headerClass: string;
+  rowClass: string;
+};
+
+function getTextbookGroupMeta(item: TextbookItem): TextbookGroupMeta {
+  if (item.department === 'middle') {
+    if (item.subject === '중3-1') {
+      return {
+        key: 'middle-3-1',
+        title: '중3-1',
+        subtitle: '3학년 1학기 교재',
+        headerClass: 'semester-3-1',
+        rowClass: 'textbook-row-3-1',
+      };
+    }
+    return {
+      key: 'middle-2-2',
+      title: '중2-2',
+      subtitle: '2학년 2학기 교재',
+      headerClass: 'semester-2-2',
+      rowClass: 'textbook-row-2-2',
+    };
+  }
+
+  // 고등부 (high)
+  if (item.subject === '공통수학1' || item.subject === '공통수학2') {
+    return {
+      key: 'high-1',
+      title: '고등 1학년',
+      subtitle: '공통수학1 · 공통수학2',
+      headerClass: 'semester-high-1',
+      rowClass: 'textbook-row-high-1',
+    };
+  }
+
+  return {
+    key: 'high-2',
+    title: '고등 2학년',
+    subtitle: '대수 · 미적분Ⅰ',
+    headerClass: 'semester-high-2',
+    rowClass: 'textbook-row-high-2',
+  };
+}
 
 type BlacklabelItem = {
   id: number;
@@ -2520,17 +2572,83 @@ export default function Home() {
                         selectTextbook(e.target.value as TextbookId);
                       }}
                     >
-                      {textbooks
-                        .filter((tb) =>
-                          department ? tb.department === department : true,
-                        )
-                        .map((tb) => (
+                      {department === 'high' ? (
+                        <>
+                          <optgroup label="고등 1학년 (공통수학1 · 공통수학2)">
+                            {textbooks
+                              .filter(
+                                (tb) =>
+                                  tb.department === 'high' &&
+                                  (tb.subject === '공통수학1' ||
+                                    tb.subject === '공통수학2'),
+                              )
+                              .map((tb) => (
+                                <option key={tb.id} value={tb.id}>
+                                  {tb.title} (
+                                  {allTextbookInfo[tb.id]?.name || tb.title} -{' '}
+                                  {tb.subject})
+                                </option>
+                              ))}
+                          </optgroup>
+                          <optgroup label="고등 2학년 (대수 · 미적분Ⅰ)">
+                            {textbooks
+                              .filter(
+                                (tb) =>
+                                  tb.department === 'high' &&
+                                  (tb.subject === '대수' ||
+                                    tb.subject === '미적분Ⅰ'),
+                              )
+                              .map((tb) => (
+                                <option key={tb.id} value={tb.id}>
+                                  {tb.title} (
+                                  {allTextbookInfo[tb.id]?.name || tb.title} -{' '}
+                                  {tb.subject})
+                                </option>
+                              ))}
+                          </optgroup>
+                        </>
+                      ) : department === 'middle' ? (
+                        <>
+                          <optgroup label="중학교 2학년 2학기 (중2-2)">
+                            {textbooks
+                              .filter(
+                                (tb) =>
+                                  tb.department === 'middle' &&
+                                  tb.subject === '중2-2',
+                              )
+                              .map((tb) => (
+                                <option key={tb.id} value={tb.id}>
+                                  {tb.title} (
+                                  {allTextbookInfo[tb.id]?.name || tb.title} -{' '}
+                                  {tb.subject})
+                                </option>
+                              ))}
+                          </optgroup>
+                          <optgroup label="중학교 3학년 1학기 (중3-1)">
+                            {textbooks
+                              .filter(
+                                (tb) =>
+                                  tb.department === 'middle' &&
+                                  tb.subject === '중3-1',
+                              )
+                              .map((tb) => (
+                                <option key={tb.id} value={tb.id}>
+                                  {tb.title} (
+                                  {allTextbookInfo[tb.id]?.name || tb.title} -{' '}
+                                  {tb.subject})
+                                </option>
+                              ))}
+                          </optgroup>
+                        </>
+                      ) : (
+                        textbooks.map((tb) => (
                           <option key={tb.id} value={tb.id}>
                             {tb.title} (
                             {allTextbookInfo[tb.id]?.name || tb.title} -{' '}
                             {tb.subject})
                           </option>
-                        ))}
+                        ))
+                      )}
                     </select>
                     <small className="block mt-1.5 text-xs text-slate-400">
                       {currentTbInfo.name} ({currentTbInfo.desc})
@@ -4346,58 +4464,61 @@ export default function Home() {
               </button>
             </div>
             <div className="textbook-list">
-              {textbooks
-                .filter((item) => item.department === department)
-                .map((item, index) => (
-                  <div key={item.id} className="textbook-entry">
-                    {index === 0 ||
-                    item.subject !==
-                      textbooks.filter((tb) => tb.department === department)[
-                        index - 1
-                      ]?.subject ? (
-                      <div
-                        className={`textbook-semester-heading ${item.subject === '중3-1' ? 'semester-3-1' : 'semester-2-2'}`}
+              {(() => {
+                const deptItems = textbooks.filter(
+                  (item) => item.department === department,
+                );
+                return deptItems.map((item, index) => {
+                  const meta = getTextbookGroupMeta(item);
+                  const prevMeta =
+                    index > 0 ? getTextbookGroupMeta(deptItems[index - 1]) : null;
+                  const showHeading =
+                    index === 0 || meta.key !== prevMeta?.key;
+
+                  return (
+                    <div key={item.id} className="textbook-entry">
+                      {showHeading ? (
+                        <div
+                          className={`textbook-semester-heading ${meta.headerClass}`}
+                        >
+                          <span>{meta.title}</span>
+                          <span>{meta.subtitle}</span>
+                        </div>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!item.available) {
+                            setStatus(
+                              `${item.title}는 아직 준비 중인 교재입니다.`,
+                            );
+                            return;
+                          }
+                          selectTextbook(item.id);
+                          setStatus('학생 정보와 문제번호를 입력하세요.');
+                        }}
+                        className={`textbook-row group ${meta.rowClass}`}
                       >
-                        <span>{item.subject}</span>
-                        <span>
-                          {item.subject === '중3-1'
-                            ? '3학년 1학기 교재'
-                            : '2학년 2학기 교재'}
+                        <span className="textbook-index">
+                          {String(index + 1).padStart(2, '0')}
                         </span>
-                      </div>
-                    ) : null}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!item.available) {
-                          setStatus(
-                            `${item.title}는 아직 준비 중인 교재입니다.`,
-                          );
-                          return;
-                        }
-                        selectTextbook(item.id);
-                        setStatus('학생 정보와 문제번호를 입력하세요.');
-                      }}
-                      className={`textbook-row group ${item.subject === '중3-1' ? 'textbook-row-3-1' : 'textbook-row-2-2'}`}
-                    >
-                      <span className="textbook-index">
-                        {String(index + 1).padStart(2, '0')}
-                      </span>
-                      <BookOpen className="textbook-icon" />
-                      <div className="min-w-0 flex-1">
-                        <h3 className="textbook-name-line">
-                          {item.title}{' '}
-                          <span className="textbook-subject">
-                            {item.subject}
-                          </span>
-                        </h3>
-                      </div>
-                      <span className="textbook-action">
-                        {item.available ? '선택 →' : '준비 중'}
-                      </span>
-                    </button>
-                  </div>
-                ))}
+                        <BookOpen className="textbook-icon" />
+                        <div className="min-w-0 flex-1">
+                          <h3 className="textbook-name-line">
+                            {item.title}{' '}
+                            <span className="textbook-subject">
+                              {item.subject}
+                            </span>
+                          </h3>
+                        </div>
+                        <span className="textbook-action">
+                          {item.available ? '선택 →' : '준비 중'}
+                        </span>
+                      </button>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </section>
         ) : (
