@@ -1939,7 +1939,7 @@ export default function Home() {
       void handleRefreshPreviewRef.current(textbook);
     }, 500);
     return () => window.clearTimeout(timer);
-  }, [grade, sessionToken, student, textbook]);
+  }, [grade, numbers, sessionToken, student, textbook]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
