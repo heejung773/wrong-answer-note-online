@@ -1174,6 +1174,7 @@ export default function Home() {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewViewMode, setPreviewViewMode] = useState<'Fit' | 'FitH'>('Fit');
   const [previewExpanded, setPreviewExpanded] = useState(false);
+  const previewRequestRef = useRef<AbortController | null>(null);
   const [optionsCollapsed, setOptionsCollapsed] = useState(true);
   const [olympusQuickInput, setOlympusQuickInput] = useState('1-4');
   const [blacklabelQuickInput, setBlacklabelQuickInput] = useState('1-3');
@@ -1870,6 +1871,13 @@ export default function Home() {
       studentMode === 'batch'
         ? parsedBatchStudentNames[0] || '학생'
         : student || '학생';
+
+    // 교재를 빠르게 바꾸거나 입력값이 연속으로 바뀌면 이전 생성 요청이
+    // 새 미리보기를 가로채지 않도록 항상 최신 요청만 유지한다.
+    previewRequestRef.current?.abort();
+    const controller = new AbortController();
+    previewRequestRef.current = controller;
+    const timeoutId = window.setTimeout(() => controller.abort(), 45_000);
     setPreviewLoading(true);
     setStatus('실시간 미리보기 PDF를 생성하고 있습니다…');
     try {
@@ -1879,6 +1887,7 @@ export default function Home() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${sessionToken}`,
         },
+        signal: controller.signal,
         body: JSON.stringify({
           textbook: activeTb,
           student: activePreviewStudent,
@@ -1955,12 +1964,18 @@ export default function Home() {
       setStatus('미리보기가 최신 상태로 갱신되었습니다.');
     } catch (error) {
       setStatus(
-        error instanceof Error
+        error instanceof DOMException && error.name === 'AbortError'
+          ? '미리보기 생성이 오래 걸려 중단되었습니다. 다시 시도해 주세요.'
+          : error instanceof Error
           ? error.message
           : '미리보기 생성에 실패했습니다.',
       );
     } finally {
-      setPreviewLoading(false);
+      window.clearTimeout(timeoutId);
+      if (previewRequestRef.current === controller) {
+        previewRequestRef.current = null;
+        setPreviewLoading(false);
+      }
     }
   }
 
