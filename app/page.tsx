@@ -1270,6 +1270,11 @@ export default function Home() {
   }, [basicSsenChapter, basicSsenSubunit, basicSsenStage, textbook]);
 
   function selectTextbook(nextTb: TextbookId) {
+    // 교재를 바꾸는 순간 이전 교재의 생성 요청과 로딩 상태를 정리한다.
+    // 이전 요청이 남아 있으면 새 입력을 해도 미리보기 버튼이 계속 비활성화될 수 있다.
+    previewRequestRef.current?.abort();
+    previewRequestRef.current = null;
+    setPreviewLoading(false);
     setTextbook(nextTb);
     const nextDept = textbooks.find((t) => t.id === nextTb)?.department;
     if (nextDept) setDepartment(nextDept);
