@@ -4126,9 +4126,11 @@ export default function Home() {
                 }`}
               >
                 {previewLoading && (
-                  <div className="absolute right-4 top-4 z-10 inline-flex items-center gap-2 rounded-full border border-[#6bcbb5]/35 bg-[#10201d]/90 px-3 py-2 text-xs font-semibold text-[#a7c8c0] shadow-lg backdrop-blur-sm">
-                    <span className="size-3 animate-spin rounded-full border-2 border-[#6bcbb5]/25 border-t-[#6bcbb5]" />
-                    미리보기 갱신 중
+                  <div className="absolute inset-0 bg-[#090A0E]/85 backdrop-blur-xs flex flex-col items-center justify-center z-10 gap-3">
+                    <div className="size-10 rounded-full border-3 border-blue-500/20 border-t-blue-500 animate-spin" />
+                    <p className="text-sm text-slate-300 font-medium">
+                      오답노트 PDF를 실시간 렌더링하고 있습니다…
+                    </p>
                   </div>
                 )}
 
