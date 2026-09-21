@@ -1175,6 +1175,7 @@ export default function Home() {
   const [previewViewMode, setPreviewViewMode] = useState<'Fit' | 'FitH'>('Fit');
   const [previewExpanded, setPreviewExpanded] = useState(false);
   const previewRequestRef = useRef<AbortController | null>(null);
+  const [previewAutoRefreshEnabled, setPreviewAutoRefreshEnabled] = useState(false);
   const [optionsCollapsed, setOptionsCollapsed] = useState(true);
   const [olympusQuickInput, setOlympusQuickInput] = useState('1-4');
   const [blacklabelQuickInput, setBlacklabelQuickInput] = useState('1-3');
@@ -1273,6 +1274,7 @@ export default function Home() {
     const nextDept = textbooks.find((t) => t.id === nextTb)?.department;
     if (nextDept) setDepartment(nextDept);
     setPreviewPdfUrl(null);
+    setPreviewAutoRefreshEnabled(false);
 
     if (nextTb === 'ssen-common-math-1') {
       const nums = parsedProblemNumbers;
@@ -1983,18 +1985,25 @@ export default function Home() {
   handleRefreshPreviewRef.current = handleRefreshPreview;
 
   useEffect(() => {
-    if (sessionToken && textbook) {
-      void handleRefreshPreviewRef.current(textbook);
-    }
-  }, [textbook, sessionToken]);
-
-  useEffect(() => {
-    if (!sessionToken || !textbook) return;
+    if (!sessionToken || !textbook || !previewAutoRefreshEnabled) return;
     const timer = window.setTimeout(() => {
       void handleRefreshPreviewRef.current(textbook);
-    }, 500);
+    }, 700);
     return () => window.clearTimeout(timer);
-  }, [grade, numbers, sessionToken, student, textbook]);
+  }, [
+    academyName,
+    coverSubtitle,
+    coverTitle,
+    grade,
+    includeCharacter,
+    includeCover,
+    numbers,
+    previewAutoRefreshEnabled,
+    sessionToken,
+    student,
+    testDate,
+    textbook,
+  ]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -2724,7 +2733,10 @@ export default function Home() {
                           className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-lg text-slate-100 placeholder-slate-500 text-sm outline-none transition-all"
                           placeholder="예: 홍길동 (또는 여러 명 쉼표 구분)"
                           value={student}
-                          onChange={(e) => setStudent(e.target.value)}
+                          onChange={(e) => {
+                            setStudent(e.target.value);
+                            setPreviewAutoRefreshEnabled(true);
+                          }}
                         />
                         <small className="block mt-1 text-[11px] text-slate-500">
                           ※ 쉼표로 여러 명(예: 김민준, 이서진)을 적거나 우측
@@ -2742,7 +2754,10 @@ export default function Home() {
                           id="hs-student-grade"
                           className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-lg text-slate-100 text-sm outline-none transition-all cursor-pointer"
                           value={grade}
-                          onChange={(e) => setGrade(e.target.value)}
+                          onChange={(e) => {
+                            setGrade(e.target.value);
+                            setPreviewAutoRefreshEnabled(true);
+                          }}
                         >
                           <option value="1학년">1학년</option>
                           <option value="2학년">2학년</option>
@@ -2786,7 +2801,10 @@ export default function Home() {
                             id="hs-batch-grade"
                             className="w-full px-3 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-lg text-slate-100 text-xs outline-none transition-all cursor-pointer"
                             value={grade}
-                            onChange={(e) => setGrade(e.target.value)}
+                            onChange={(e) => {
+                              setGrade(e.target.value);
+                              setPreviewAutoRefreshEnabled(true);
+                            }}
                           >
                             <option value="1학년">1학년</option>
                             <option value="2학년">2학년</option>
@@ -3740,7 +3758,10 @@ export default function Home() {
                                     : '1-8'
                             }
                             value={numbers}
-                            onChange={(e) => setNumbers(e.target.value)}
+                            onChange={(e) => {
+                              setNumbers(e.target.value);
+                              setPreviewAutoRefreshEnabled(true);
+                            }}
                           />
                         </div>
 
@@ -3828,7 +3849,10 @@ export default function Home() {
                           type="text"
                           className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-slate-100 text-sm outline-none"
                           value={currentCoverTitle}
-                          onChange={(e) => setCoverTitle(e.target.value)}
+                            onChange={(e) => {
+                              setCoverTitle(e.target.value);
+                              setPreviewAutoRefreshEnabled(true);
+                            }}
                         />
                       </div>
                       <div>
@@ -3843,7 +3867,10 @@ export default function Home() {
                           type="text"
                           className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-slate-100 text-sm outline-none"
                           value={academyName}
-                          onChange={(e) => setAcademyName(e.target.value)}
+                            onChange={(e) => {
+                              setAcademyName(e.target.value);
+                              setPreviewAutoRefreshEnabled(true);
+                            }}
                         />
                       </div>
                     </div>
@@ -3860,7 +3887,10 @@ export default function Home() {
                           type="text"
                           className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-slate-100 text-sm outline-none"
                           value={coverSubtitle}
-                          onChange={(e) => setCoverSubtitle(e.target.value)}
+                            onChange={(e) => {
+                              setCoverSubtitle(e.target.value);
+                              setPreviewAutoRefreshEnabled(true);
+                            }}
                         />
                       </div>
                       <div>
@@ -3875,7 +3905,10 @@ export default function Home() {
                           type="text"
                           className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-slate-100 text-sm outline-none"
                           value={testDate}
-                          onChange={(e) => setTestDate(e.target.value)}
+                            onChange={(e) => {
+                              setTestDate(e.target.value);
+                              setPreviewAutoRefreshEnabled(true);
+                            }}
                         />
                       </div>
                     </div>
@@ -3886,7 +3919,10 @@ export default function Home() {
                             type="checkbox"
                             className="size-4 rounded accent-blue-600"
                             checked={includeCover}
-                            onChange={(e) => setIncludeCover(e.target.checked)}
+                            onChange={(e) => {
+                              setIncludeCover(e.target.checked);
+                              setPreviewAutoRefreshEnabled(true);
+                            }}
                           />
                           <span className="font-semibold">
                             표지(Cover) 페이지 포함
@@ -3899,9 +3935,10 @@ export default function Home() {
                               type="checkbox"
                               className="size-4 rounded accent-blue-600"
                               checked={includeCharacter}
-                              onChange={(e) =>
-                                setIncludeCharacter(e.target.checked)
-                              }
+                              onChange={(e) => {
+                                setIncludeCharacter(e.target.checked);
+                                setPreviewAutoRefreshEnabled(true);
+                              }}
                             />
                             <span>표지 중앙 로고/마스코트 표시</span>
                           </label>
@@ -4929,7 +4966,10 @@ export default function Home() {
                     <Textarea
                       id="numbers"
                       value={numbers}
-                      onChange={(e) => setNumbers(e.target.value)}
+                            onChange={(e) => {
+                              setNumbers(e.target.value);
+                              setPreviewAutoRefreshEnabled(true);
+                            }}
                       placeholder={
                         textbook === 'blacklabel-middle-2-2' ||
                         textbook === 'blacklabel-middle-3-1' ||
