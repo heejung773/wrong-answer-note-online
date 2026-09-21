@@ -4142,8 +4142,8 @@ export default function Home() {
                   />
                 ) : (
                   <div className="flex min-h-[900px] w-full items-center justify-center bg-[#100904] p-8 text-center">
-                    <div className="flex h-[760px] w-full max-w-[540px] flex-col items-center justify-center rounded-[2rem] border border-[#e8e8e8] bg-[#2d1a12] px-8 shadow-2xl">
-                      <div className="mb-8 flex size-44 items-center justify-center rounded-full border border-[#e8e8e8] bg-[#30483f]">
+                    <div className="flex h-[760px] w-full max-w-[540px] flex-col items-center justify-center rounded-[2rem] border border-[#6bcbb5]/35 bg-gradient-to-b from-[#17332f] via-[#122521] to-[#0d1716] px-8 shadow-2xl">
+                      <div className="mb-8 flex size-44 items-center justify-center rounded-full border border-[#6bcbb5]/45 bg-[#1f594e]/45 shadow-[0_0_45px_rgba(107,203,181,0.18)]">
                         <img
                           src={isMiddleDepartment ? '/middle-logo.png' : '/character.png'}
                           alt="표지 캐릭터"
@@ -4153,11 +4153,11 @@ export default function Home() {
                       <h4 className="text-2xl font-black tracking-tight text-white">
                         {currentTb?.title} 오답노트
                       </h4>
-                      <p className="mt-2 text-sm font-semibold text-[#f4dfd2]">
+                      <p className="mt-2 text-sm font-semibold text-[#a7c8c0]">
                         {coverSubtitle || '학생 맞춤형 오답 클리닉 & 실전 평가'}
                       </p>
-                      <div className="mt-8 w-full rounded-xl border border-[#e8e8e8] bg-[#101514] p-4 text-left text-sm">
-                        <div className="flex justify-between text-[#8bb5a8]">
+                      <div className="mt-8 w-full rounded-xl border border-[#6bcbb5]/25 bg-[#0c1716]/75 p-4 text-left text-sm">
+                        <div className="flex justify-between text-[#789b92]">
                           <span>학생 성명</span>
                           <strong className="text-white">{student || '학생'}</strong>
                         </div>
@@ -4167,14 +4167,14 @@ export default function Home() {
                         </div>
                         <div className="mt-2 flex justify-between text-[#789b92]">
                           <span>선택 문항</span>
-                          <strong className="text-[#63c9ae]">{highSchoolProblemCount}문제</strong>
+                          <strong className="text-[#6bcbb5]">{highSchoolProblemCount}문제</strong>
                         </div>
                         <div className="mt-2 flex justify-between text-[#789b92]">
                           <span>출제 일자</span>
                           <strong className="text-white">{testDate}</strong>
                         </div>
                       </div>
-                      <p className="mt-8 text-xs tracking-[0.2em] text-[#8bb5a8]">
+                      <p className="mt-8 text-xs tracking-[0.2em] text-[#789b92]">
                         {academyName}
                       </p>
                     </div>
