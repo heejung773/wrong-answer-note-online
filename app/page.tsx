@@ -4143,43 +4143,52 @@ export default function Home() {
                     style={{ minHeight: previewExpanded ? '1100px' : '960px' }}
                   />
                 ) : (
-                  <div className="flex min-h-[900px] w-full items-center justify-center bg-[#100904] p-8 text-center">
-                    <div className="flex h-[760px] w-full max-w-[540px] flex-col items-center justify-center rounded-[2rem] border border-[#6bcbb5]/35 bg-gradient-to-b from-[#17332f] via-[#122521] to-[#0d1716] px-8 shadow-2xl">
-                      <div className="mb-8 flex size-44 items-center justify-center rounded-full border border-[#6bcbb5]/45 bg-[#1f594e]/45 shadow-[0_0_45px_rgba(107,203,181,0.18)]">
-                        <img
-                          src={isMiddleDepartment ? '/middle-logo.png' : '/character.png'}
-                          alt="표지 캐릭터"
-                          className="max-h-36 max-w-36 object-contain"
-                        />
-                      </div>
-                      <h4 className="text-2xl font-black tracking-tight text-white">
-                        {currentTb?.title} 오답노트
-                      </h4>
-                      <p className="mt-2 text-sm font-semibold text-[#a7c8c0]">
-                        {coverSubtitle || '학생 맞춤형 오답 클리닉 & 실전 평가'}
-                      </p>
-                      <div className="mt-8 w-full rounded-xl border border-[#6bcbb5]/25 bg-[#0c1716]/75 p-4 text-left text-sm">
-                        <div className="flex justify-between text-[#789b92]">
-                          <span>학생 성명</span>
-                          <strong className="text-white">{student || '학생'}</strong>
-                        </div>
-                        <div className="mt-2 flex justify-between text-[#789b92]">
-                          <span>학년</span>
-                          <strong className="text-white">{grade}</strong>
-                        </div>
-                        <div className="mt-2 flex justify-between text-[#789b92]">
-                          <span>선택 문항</span>
-                          <strong className="text-[#6bcbb5]">{highSchoolProblemCount}문제</strong>
-                        </div>
-                        <div className="mt-2 flex justify-between text-[#789b92]">
-                          <span>출제 일자</span>
-                          <strong className="text-white">{testDate}</strong>
-                        </div>
-                      </div>
-                      <p className="mt-8 text-xs tracking-[0.2em] text-[#789b92]">
-                        {academyName}
-                      </p>
+                  <div className="flex flex-col items-center justify-center p-8 text-center text-slate-400 max-w-md">
+                    <div className="size-16 mb-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                      <FileText className="size-8" />
                     </div>
+                    <h4 className="text-base font-bold text-slate-200 mb-1">
+                      {currentTb?.title} 오답노트
+                    </h4>
+                    <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+                      좌측에서 틀린 문제 번호를 입력하신 후<br />
+                      <strong className="text-blue-400">
+                        [미리보기 갱신]
+                      </strong>{' '}
+                      버튼을 누르면 실제 시험지/오답노트 PDF가 이곳에 고화질로
+                      렌더링됩니다.
+                    </p>
+                    <div className="w-full bg-slate-900/90 border border-slate-800 rounded-lg p-3 text-left space-y-1.5 text-xs">
+                      <div className="flex justify-between text-slate-400">
+                        <span>학생 성명:</span>
+                        <strong className="text-slate-200">
+                          {student} ({grade})
+                        </strong>
+                      </div>
+                      <div className="flex justify-between text-slate-400">
+                        <span>선택 문항:</span>
+                        <strong className="text-blue-400">
+                          {highSchoolProblemCount}문제 ({highSchoolPageCount}장
+                          예상)
+                        </strong>
+                      </div>
+                      <div className="flex justify-between text-slate-400">
+                        <span>출제 일자:</span>
+                        <span className="text-slate-300">{testDate}</span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => void handleRefreshPreview()}
+                      disabled={previewLoading || busy}
+                      className="mt-4 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-500/30 transition-all cursor-pointer flex items-center gap-2"
+                    >
+                      <RefreshCw
+                        className={`size-4 ${previewLoading ? 'animate-spin' : ''}`}
+                      />
+                      지금 실시간 미리보기 생성
+                    </button>
                   </div>
                 )}
               </div>
