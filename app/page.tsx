@@ -1279,9 +1279,7 @@ export default function Home() {
     const nextDept = textbooks.find((t) => t.id === nextTb)?.department;
     if (nextDept) setDepartment(nextDept);
     setPreviewPdfUrl(null);
-    // 교재 선택 직후에는 기본 4문항 표지 미리보기를 먼저 보여준다.
-    // 이후 문제번호·학생정보·표지 설정 변경도 같은 자동 갱신 흐름을 사용한다.
-    setPreviewAutoRefreshEnabled(true);
+    setPreviewAutoRefreshEnabled(false);
 
     if (nextTb === 'ssen-common-math-1') {
       const nums = parsedProblemNumbers;
