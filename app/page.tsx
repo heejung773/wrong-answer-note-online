@@ -1272,6 +1272,8 @@ export default function Home() {
   }, [basicSsenChapter, basicSsenSubunit, basicSsenStage, textbook]);
 
   function selectTextbook(nextTb: TextbookId) {
+    previewRequestRef.current?.abort();
+    previewRequestRef.current = null;
     setTextbook(nextTb);
     const nextDept = textbooks.find((t) => t.id === nextTb)?.department;
     if (nextDept) setDepartment(nextDept);
@@ -1692,54 +1694,113 @@ export default function Home() {
       (typeof overrideTb === 'string' ? (overrideTb as TextbookId) : null) ||
       textbook;
     if (!sessionToken || !activeTb) return;
+    previewRequestRef.current?.abort();
+    previewRequestRef.current = null;
+
     const selectedTextbook = textbooks.find((item) => item.id === activeTb);
     if (!selectedTextbook?.available) {
+      setPreviewPdfUrl(null);
       setStatus(
         `${selectedTextbook?.title ?? '선택한 교재'}는 아직 준비 중입니다.`,
       );
       return;
     }
-    const curOlympus = overrideItems?.olympusItems ?? olympusItems;
+    let curOlympus = overrideItems?.olympusItems ?? olympusItems;
     if (activeTb === 'olympus-calculus' && curOlympus.length === 0) {
-      setPreviewPdfUrl(null);
-      setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
-      return;
-    }
-    let curBlacklabel = overrideItems?.blacklabelItems ?? blacklabelItems;
-    if (activeTb === 'blacklabel-middle-3-1') {
-      curBlacklabel = curBlacklabel.filter(
-        (it) => it.chapter in blacklabel31Hierarchy,
-      );
-      if (curBlacklabel.length === 0) {
+      if (olympusQuickInput.trim()) {
+        try {
+          const count = countProblemNumbers(olympusQuickInput);
+          const newItem: OlympusItem = {
+            id: Date.now(),
+            unit: olympusUnit,
+            problemType: olympusType,
+            numbers: olympusQuickInput.trim(),
+            count,
+          };
+          curOlympus = [newItem];
+          setOlympusItems(curOlympus);
+        } catch {
+          setPreviewPdfUrl(null);
+          setStatus('문항 번호를 확인한 뒤 [+ 문항 추가]를 눌러주세요.');
+          return;
+        }
+      } else {
         setPreviewPdfUrl(null);
         setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
         return;
       }
-    } else if (activeTb === 'blacklabel-middle-2-2') {
-      curBlacklabel = curBlacklabel.filter(
-        (it) => it.chapter in blacklabelHierarchy,
-      );
+    }
+    let curBlacklabel = overrideItems?.blacklabelItems ?? blacklabelItems;
+    if (
+      activeTb === 'blacklabel-middle-3-1' ||
+      activeTb === 'blacklabel-middle-2-2'
+    ) {
+      const hierarchy =
+        activeTb === 'blacklabel-middle-3-1'
+          ? blacklabel31Hierarchy
+          : blacklabelHierarchy;
+      curBlacklabel = curBlacklabel.filter((it) => it.chapter in hierarchy);
       if (curBlacklabel.length === 0) {
-        setPreviewPdfUrl(null);
-        setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
-        return;
+        if (blacklabelQuickInput.trim()) {
+          try {
+            const count = countProblemTokens(blacklabelQuickInput);
+            const newItem: BlacklabelItem = {
+              id: Date.now(),
+              chapter: blacklabelChapter,
+              subunit: blacklabelSubunit,
+              stage: blacklabelStage,
+              numbers: blacklabelQuickInput.trim(),
+              count,
+            };
+            curBlacklabel = [newItem];
+            setBlacklabelItems(curBlacklabel);
+          } catch {
+            setPreviewPdfUrl(null);
+            setStatus('문항 번호를 확인한 뒤 [+ 문항 추가]를 눌러주세요.');
+            return;
+          }
+        } else {
+          setPreviewPdfUrl(null);
+          setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
+          return;
+        }
       }
     }
 
     let curConcept = overrideItems?.conceptItems ?? conceptItems;
-    if (activeTb === 'concept-middle-3-1') {
-      curConcept = curConcept.filter((it) => it.chapter in concept31Hierarchy);
+    if (
+      activeTb === 'concept-middle-3-1' ||
+      activeTb === 'concept-middle-2-2'
+    ) {
+      const hierarchy =
+        activeTb === 'concept-middle-3-1'
+          ? concept31Hierarchy
+          : conceptHierarchy;
+      curConcept = curConcept.filter((it) => it.chapter in hierarchy);
       if (curConcept.length === 0) {
-        setPreviewPdfUrl(null);
-        setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
-        return;
-      }
-    } else if (activeTb === 'concept-middle-2-2') {
-      curConcept = curConcept.filter((it) => it.chapter in conceptHierarchy);
-      if (curConcept.length === 0) {
-        setPreviewPdfUrl(null);
-        setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
-        return;
+        if (conceptQuickInput.trim()) {
+          try {
+            const count = countProblemTokens(conceptQuickInput);
+            const newItem: ConceptItem = {
+              id: Date.now(),
+              chapter: conceptChapter,
+              subunit: conceptSubunit,
+              stage: conceptStage,
+              numbers: conceptQuickInput.trim(),
+              count,
+            };
+            curConcept = [newItem];
+            setConceptItems(curConcept);
+          } catch {
+            setPreviewPdfUrl(null);
+            setStatus('문항 번호를 확인한 뒤 [+ 문항 추가]를 눌러주세요.');
+            return;
+          }
+        } else {
+          setPreviewPdfUrl(null);
+          setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
+          return;
+        }
       }
     }
 
@@ -1749,9 +1810,29 @@ export default function Home() {
         (it) => it.chapter in basicSsenHierarchy,
       );
       if (curBasicSsen.length === 0) {
-        setPreviewPdfUrl(null);
-        setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
-        return;
+        if (basicSsenQuickInput.trim()) {
+          try {
+            const count = countProblemTokens(basicSsenQuickInput);
+            const newItem: BasicSsenItem = {
+              id: Date.now(),
+              chapter: basicSsenChapter,
+              subunit: basicSsenSubunit,
+              stage: basicSsenStage,
+              numbers: basicSsenQuickInput.trim(),
+              count,
+            };
+            curBasicSsen = [newItem];
+            setBasicSsenItems(curBasicSsen);
+          } catch {
+            setPreviewPdfUrl(null);
+            setStatus('문항 번호를 확인한 뒤 [+ 문항 추가]를 눌러주세요.');
+            return;
+          }
+        } else {
+          setPreviewPdfUrl(null);
+          setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
+          return;
+        }
       }
     }
 
@@ -1800,7 +1881,6 @@ export default function Home() {
 
     // 교재를 빠르게 바꾸거나 입력값이 연속으로 바뀌면 이전 생성 요청이
     // 새 미리보기를 가로채지 않도록 항상 최신 요청만 유지한다.
-    previewRequestRef.current?.abort();
     const controller = new AbortController();
     previewRequestRef.current = controller;
     const timeoutId = window.setTimeout(() => controller.abort(), 45_000);
@@ -1869,6 +1949,10 @@ export default function Home() {
           .json()
           .catch(() => ({ error: 'PDF 생성에 실패했습니다.' }));
         throw new Error(message.error);
+      }
+      // 교재 전환 가드: 응답 도착 시 사용자가 다른 교재로 바꿨다면 렌더링을 폐기
+      if (activeTb !== textbook) {
+        return;
       }
       const contentType = response.headers.get('content-type') ?? '';
       if (contentType.includes('application/json')) {
@@ -2490,6 +2574,8 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={() => {
+                        previewRequestRef.current?.abort();
+                        previewRequestRef.current = null;
                         setDepartment(
                           department === 'middle' ? 'high' : 'middle',
                         );
@@ -2874,6 +2960,19 @@ export default function Home() {
                         </button>
                       </div>
 
+                      {olympusItems.length === 0 && (
+                        <div className="mt-2.5 p-2.5 rounded-lg bg-sky-950/40 border border-sky-500/25 text-[11px] text-sky-200 flex items-center gap-2">
+                          <span className="text-base shrink-0">💡</span>
+                          <span>
+                            번호(예: 1-4)를 입력한 뒤 우측 파란색{' '}
+                            <strong className="text-white underline decoration-sky-400">
+                              [+ 문항 추가]
+                            </strong>{' '}
+                            버튼(또는 Enter 키)을 누르시면 오답노트에 등록되어 실시간 미리보기가 생성됩니다.
+                          </span>
+                        </div>
+                      )}
+
                       {olympusItems.length > 0 && (
                         <div className="mt-3 space-y-1.5 max-h-36 overflow-y-auto pr-1">
                           {olympusItems.map((item) => (
@@ -3120,6 +3219,19 @@ export default function Home() {
                         </button>
                       </div>
 
+                      {blacklabelItems.length === 0 && (
+                        <div className="mt-2.5 p-2.5 rounded-lg bg-purple-950/40 border border-purple-500/25 text-[11px] text-purple-200 flex items-center gap-2">
+                          <span className="text-base shrink-0">💡</span>
+                          <span>
+                            단원과 단계를 고르고 번호를 입력한 뒤 우측 보라색{' '}
+                            <strong className="text-white underline decoration-purple-400">
+                              [+ 문항 추가]
+                            </strong>{' '}
+                            버튼(또는 Enter 키)을 누르시면 오답노트에 등록되어 실시간 미리보기가 생성됩니다.
+                          </span>
+                        </div>
+                      )}
+
                       {blacklabelItems.length > 0 && (
                         <div className="mt-3 space-y-1.5 max-h-36 overflow-y-auto pr-1">
                           {blacklabelItems.map((item) => (
@@ -3363,6 +3475,19 @@ export default function Home() {
                         </button>
                       </div>
 
+                      {conceptItems.length === 0 && (
+                        <div className="mt-2.5 p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-500/25 text-[11px] text-emerald-200 flex items-center gap-2">
+                          <span className="text-base shrink-0">💡</span>
+                          <span>
+                            단원과 유형을 고르고 번호를 입력한 뒤 우측 녹색{' '}
+                            <strong className="text-white underline decoration-emerald-400">
+                              [+ 문항 추가]
+                            </strong>{' '}
+                            버튼(또는 Enter 키)을 누르시면 오답노트에 등록되어 실시간 미리보기가 생성됩니다.
+                          </span>
+                        </div>
+                      )}
+
                       {conceptItems.length > 0 && (
                         <div className="mt-3 space-y-1.5 max-h-36 overflow-y-auto pr-1">
                           {conceptItems.map((item) => (
@@ -3564,6 +3689,19 @@ export default function Home() {
                           </button>
                         </div>
                       </div>
+
+                      {basicSsenItems.length === 0 && (
+                        <div className="mt-2.5 p-2.5 rounded-lg bg-sky-950/40 border border-sky-500/25 text-[11px] text-sky-200 flex items-center gap-2">
+                          <span className="text-base shrink-0">💡</span>
+                          <span>
+                            번호(예: 1-4)를 입력한 뒤 우측 파란색{' '}
+                            <strong className="text-white underline decoration-sky-400">
+                              [+ 문항 추가]
+                            </strong>{' '}
+                            버튼(또는 Enter 키)을 누르시면 오답노트에 등록되어 실시간 미리보기가 생성됩니다.
+                          </span>
+                        </div>
+                      )}
 
                       {basicSsenItems.length > 0 && (
                         <div className="mt-3 space-y-1.5 max-h-48 overflow-y-auto pr-1">
