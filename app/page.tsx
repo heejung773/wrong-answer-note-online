@@ -1050,21 +1050,13 @@ export default function Home() {
   const [studentNamesText, setStudentNamesText] = useState(
     '김민준\n이서진\n박도윤\n정시우',
   );
-  const [numbers, setNumbers] = useState('1, 2, 3, 4');
+  const [numbers, setNumbers] = useState('');
   const [department, setDepartment] = useState<Department | null>(null);
   const [textbook, setTextbook] = useState<TextbookId | null>(null);
 
   const [olympusUnit, setOlympusUnit] = useState(olympusUnits[0]);
   const [olympusType, setOlympusType] = useState('유형완성하기');
-  const [olympusItems, setOlympusItems] = useState<OlympusItem[]>([
-    {
-      id: 1,
-      unit: olympusUnits[0],
-      problemType: '유형완성하기',
-      numbers: '1-4',
-      count: 4,
-    },
-  ]);
+  const [olympusItems, setOlympusItems] = useState<OlympusItem[]>([]);
   const [blacklabelChapter, setBlacklabelChapter] =
     useState('I. 삼각형의 성질');
   const [blacklabelSubunit, setBlacklabelSubunit] =
@@ -1073,26 +1065,8 @@ export default function Home() {
     '시험에 꼭 나오는 문제',
   );
 
-  const [blacklabel22Items, setBlacklabel22Items] = useState<BlacklabelItem[]>([
-    {
-      id: 1,
-      chapter: 'I. 삼각형의 성질',
-      subunit: '01 삼각형의 성질',
-      stage: '시험에 꼭 나오는 문제',
-      numbers: '1-3',
-      count: 3,
-    },
-  ]);
-  const [blacklabel31Items, setBlacklabel31Items] = useState<BlacklabelItem[]>([
-    {
-      id: 1,
-      chapter: '01_제곱근과_실수',
-      subunit: '01_제곱근과_실수',
-      stage: 'Step1',
-      numbers: '1-3',
-      count: 3,
-    },
-  ]);
+  const [blacklabel22Items, setBlacklabel22Items] = useState<BlacklabelItem[]>([]);
+  const [blacklabel31Items, setBlacklabel31Items] = useState<BlacklabelItem[]>([]);
 
   const blacklabelItems =
     textbook === 'blacklabel-middle-3-1'
@@ -1114,26 +1088,8 @@ export default function Home() {
   );
   const [conceptStage, setConceptStage] = useState('01_개념익히기');
 
-  const [concept22Items, setConcept22Items] = useState<ConceptItem[]>([
-    {
-      id: 1,
-      chapter: '01_삼각형의_성질',
-      subunit: '01_이등변삼각형의_성질',
-      stage: '01_개념익히기',
-      numbers: '1-3',
-      count: 3,
-    },
-  ]);
-  const [concept31Items, setConcept31Items] = useState<ConceptItem[]>([
-    {
-      id: 1,
-      chapter: '01_제곱근과_실수',
-      subunit: '01_제곱근과_실수',
-      stage: '유형별',
-      numbers: '1-3',
-      count: 3,
-    },
-  ]);
+  const [concept22Items, setConcept22Items] = useState<ConceptItem[]>([]);
+  const [concept31Items, setConcept31Items] = useState<ConceptItem[]>([]);
 
   const conceptItems =
     textbook === 'concept-middle-3-1' ? concept31Items : concept22Items;
@@ -1153,16 +1109,7 @@ export default function Home() {
   const [basicSsenStage, setBasicSsenStage] = useState(
     '기본&핵심유형 1 (11~15쪽)',
   );
-  const [basicSsenItems, setBasicSsenItems] = useState<BasicSsenItem[]>([
-    {
-      id: 1,
-      chapter: 'I. 도형의 성질',
-      subunit: '01 삼각형의 성질 (1)',
-      stage: '기본&핵심유형 1 (11~15쪽)',
-      numbers: '1-4',
-      count: 4,
-    },
-  ]);
+  const [basicSsenItems, setBasicSsenItems] = useState<BasicSsenItem[]>([]);
 
   const [status, setStatus] = useState(
     configured ? '로그인이 필요합니다.' : 'Supabase 연결 설정 전입니다.',
@@ -1273,26 +1220,13 @@ export default function Home() {
     const nextDept = textbooks.find((t) => t.id === nextTb)?.department;
     if (nextDept) setDepartment(nextDept);
     setPreviewPdfUrl(null);
+    setNumbers('');
 
-    if (nextTb === 'ssen-common-math-1') {
-      const nums = parsedProblemNumbers;
-      if (nums.length === 0 || nums.some((n) => n < 40 || n > 1316)) {
-        setNumbers('40, 41, 42, 43');
-      }
-    } else if (nextTb === 'ssen-middle-2-2') {
-      const nums = parsedProblemNumbers;
-      if (nums.length === 0 || nums.some((n) => n < 21 || n > 1142)) {
-        setNumbers('21, 22, 23, 24');
-      }
-    } else if (nextTb === 'ssen-middle-3-1') {
-      const nums = parsedProblemNumbers;
-      if (nums.length === 0 || nums.some((n) => n < 50 || n > 1398)) {
-        setNumbers('50, 51, 52, 53');
-      }
-    } else if (nextTb === 'blacklabel-middle-2-2') {
+    if (nextTb === 'blacklabel-middle-2-2') {
       setBlacklabelChapter('I. 삼각형의 성질');
       setBlacklabelSubunit('01 삼각형의 성질');
       setBlacklabelStage('시험에 꼭 나오는 문제');
+      setBlacklabelItems([]);
     } else if (nextTb === 'blacklabel-middle-3-1') {
       const firstCh = Object.keys(blacklabel31Hierarchy)[0];
       const firstStg =
@@ -1300,37 +1234,26 @@ export default function Home() {
       setBlacklabelChapter(firstCh);
       setBlacklabelSubunit(firstCh);
       setBlacklabelStage(firstStg);
+      setBlacklabelItems([]);
     } else if (nextTb === 'concept-middle-2-2') {
       setConceptChapter('01_삼각형의_성질');
       setConceptSubunit('01_이등변삼각형의_성질');
       setConceptStage('01_개념익히기');
+      setConceptItems([]);
     } else if (nextTb === 'concept-middle-3-1') {
       const firstCh = Object.keys(concept31Hierarchy)[0];
       const firstStg = concept31Hierarchy[firstCh]?.[firstCh]?.[0] || '유형별';
       setConceptChapter(firstCh);
       setConceptSubunit(firstCh);
       setConceptStage(firstStg);
+      setConceptItems([]);
     } else if (nextTb === 'basic-ssen-middle-2-2') {
       setBasicSsenChapter('I. 도형의 성질');
       setBasicSsenSubunit('01 삼각형의 성질 (1)');
       setBasicSsenStage('기본&핵심유형 1 (11~15쪽)');
+      setBasicSsenItems([]);
     } else if (nextTb === 'olympus-calculus') {
-      if (olympusItems.length === 0) {
-        setOlympusItems([
-          {
-            id: Date.now(),
-            unit: '1. 함수의 극한',
-            problemType: '유형완성하기',
-            numbers: '1-4',
-            count: 4,
-          },
-        ]);
-      }
-    } else {
-      const nums = parsedProblemNumbers;
-      if (nums.length === 0 || nums.some((n) => n < 1)) {
-        setNumbers('1, 2, 3, 4');
-      }
+      setOlympusItems([]);
     }
   }
 
@@ -1720,22 +1643,11 @@ export default function Home() {
       );
       return;
     }
-    let curOlympus = overrideItems?.olympusItems ?? olympusItems;
-    if (
-      activeTb === 'olympus-calculus' &&
-      curOlympus.length === 0 &&
-      !overrideItems?.olympusItems
-    ) {
-      curOlympus = [
-        {
-          id: Date.now(),
-          unit: olympusUnit,
-          problemType: olympusType,
-          numbers: '1-4',
-          count: 4,
-        },
-      ];
-      setOlympusItems(curOlympus);
+    const curOlympus = overrideItems?.olympusItems ?? olympusItems;
+    if (activeTb === 'olympus-calculus' && curOlympus.length === 0) {
+      setPreviewPdfUrl(null);
+      setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
+      return;
     }
     let curBlacklabel = overrideItems?.blacklabelItems ?? blacklabelItems;
     if (activeTb === 'blacklabel-middle-3-1') {
@@ -1785,12 +1697,6 @@ export default function Home() {
         setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
         return;
       }
-    }
-
-    if (activeTb === 'olympus-calculus' && curOlympus.length === 0) {
-      setPreviewPdfUrl(null);
-      setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
-      return;
     }
 
     const curNumbers = overrideItems?.numbers ?? numbers;
@@ -4121,11 +4027,8 @@ export default function Home() {
                       {currentTb?.title} 오답노트
                     </h4>
                     <p className="text-xs text-slate-400 mb-4 leading-relaxed">
-                      좌측에서 틀린 문제 번호를 입력하신 후<br />
-                      <strong className="text-blue-400">
-                        [미리보기 갱신]
-                      </strong>{' '}
-                      버튼을 누르면 실제 시험지/오답노트 PDF가 이곳에 고화질로
+                      좌측에서 틀린 문제 번호를 입력하시면<br />
+                      실제 시험지/오답노트 PDF가 이곳에 고화질로 즉시
                       렌더링됩니다.
                     </p>
                     <div className="w-full bg-slate-900/90 border border-slate-800 rounded-lg p-3 text-left space-y-1.5 text-xs">
