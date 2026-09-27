@@ -12,6 +12,9 @@ import urllib.parse
 import urllib.request
 import uuid
 import zipfile
+from collections import OrderedDict
+from concurrent.futures import ThreadPoolExecutor
+import threading
 from typing import Any
 
 from PIL import Image
@@ -22,6 +25,45 @@ from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 from reportlab.pdfgen import canvas
+
+
+class ThreadSafeLRUCache:
+    def __init__(self, maxsize: int = 3000):
+        self.cache: OrderedDict[str, bytes] = OrderedDict()
+        self.maxsize = maxsize
+        self.lock = threading.Lock()
+
+    def get(self, key: str) -> bytes | None:
+        with self.lock:
+            if key in self.cache:
+                self.cache.move_to_end(key)
+                return self.cache[key]
+            return None
+
+    def set(self, key: str, value: bytes) -> None:
+        with self.lock:
+            if key in self.cache:
+                self.cache.move_to_end(key)
+            else:
+                if len(self.cache) >= self.maxsize:
+                    self.cache.popitem(last=False)
+            self.cache[key] = value
+
+    def clear(self) -> None:
+        with self.lock:
+            self.cache.clear()
+
+
+IMAGE_CACHE = ThreadSafeLRUCache(maxsize=3000)
+ANSWER_CACHE: dict[str, Any] = {}
+ANSWER_CACHE_LOCK = threading.Lock()
+
+
+def clear_caches() -> None:
+    IMAGE_CACHE.clear()
+    with ANSWER_CACHE_LOCK:
+        ANSWER_CACHE.clear()
+
 
 
 TEXTBOOKS = {
@@ -252,68 +294,103 @@ def log_usage_event(
     )
 
 
-def load_images(supabase_url: str, secret_key: str, bucket: str, textbook: str, numbers: list[int]) -> list[tuple[int, bytes]]:
-    images = []
-    # Modern sb_secret_ keys are API keys, not JWTs. Send them only as apikey.
-    headers = {"apikey": secret_key}
-    for number in numbers:
-        if textbook == "synergy-algebra":
-            local_cand = Path(r"D:\시너지_대수\문제모음") / f"{number:04d}.png"
-            if local_cand.is_file():
+def _load_single_image(supabase_url: str, secret_key: str, bucket: str, textbook: str, number: int) -> tuple[int, bytes]:
+    cache_key = f"{textbook}:{number:04d}"
+    cached = IMAGE_CACHE.get(cache_key)
+    if cached is not None:
+        return (number, cached)
+
+    if textbook == "synergy-algebra":
+        local_cand = Path(r"D:\시너지_대수\문제모음") / f"{number:04d}.png"
+        if local_cand.is_file():
+            try:
+                data = local_cand.read_bytes()
+                Image.open(BytesIO(data)).verify()
+                IMAGE_CACHE.set(cache_key, data)
+                return (number, data)
+            except Exception:
+                pass
+    elif textbook == "ssen-common-math-1":
+        local_root = Path(r"D:\공통수학1_쎈\문제모음")
+        if local_root.is_dir():
+            found_cand = next(local_root.glob(f"*/{number:04d}.png"), None)
+            if found_cand and found_cand.is_file():
                 try:
-                    data = local_cand.read_bytes()
+                    data = found_cand.read_bytes()
                     Image.open(BytesIO(data)).verify()
-                    images.append((number, data))
-                    continue
+                    IMAGE_CACHE.set(cache_key, data)
+                    return (number, data)
                 except Exception:
                     pass
-        elif textbook == "ssen-common-math-1":
-            local_root = Path(r"D:\공통수학1_쎈\문제모음")
-            if local_root.is_dir():
-                found_cand = next(local_root.glob(f"*/{number:04d}.png"), None)
-                if found_cand and found_cand.is_file():
-                    try:
-                        data = found_cand.read_bytes()
-                        Image.open(BytesIO(data)).verify()
-                        images.append((number, data))
-                        continue
-                    except Exception:
-                        pass
-        object_path = urllib.parse.quote(f"{bucket}/{textbook}/{number:04d}.png", safe="/")
-        url = f"{supabase_url}/storage/v1/object/authenticated/{object_path}"
-        try:
-            data = request_bytes(url, headers)
-            Image.open(BytesIO(data)).verify()
-            images.append((number, data))
-        except urllib.error.HTTPError as error:
-            if error.code in (400, 404):
-                raise ValueError(f"{number:04d}번 문제가 서버에 없습니다.") from error
-            raise
-    return images
+
+    headers = {"apikey": secret_key}
+    object_path = urllib.parse.quote(f"{bucket}/{textbook}/{number:04d}.png", safe="/")
+    url = f"{supabase_url}/storage/v1/object/authenticated/{object_path}"
+    try:
+        data = request_bytes(url, headers)
+        Image.open(BytesIO(data)).verify()
+        IMAGE_CACHE.set(cache_key, data)
+        return (number, data)
+    except urllib.error.HTTPError as error:
+        if error.code in (400, 404):
+            raise ValueError(f"{number:04d}번 문제가 서버에 없습니다.") from error
+        raise
+
+
+def load_images(supabase_url: str, secret_key: str, bucket: str, textbook: str, numbers: list[int]) -> list[tuple[int, bytes]]:
+    if not numbers:
+        return []
+    max_workers = min(12, max(len(numbers), 1))
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        results = list(executor.map(
+            lambda num: _load_single_image(supabase_url, secret_key, bucket, textbook, num),
+            numbers,
+        ))
+    return results
+
+
+def _load_single_olympus_image(supabase_url: str, secret_key: str, bucket: str, unit_slug: str, type_slug: str, number: int, unit: str, problem_type: str) -> tuple[int, bytes]:
+    cache_key = f"olympus:{unit_slug}:{type_slug}:{number:04d}"
+    cached = IMAGE_CACHE.get(cache_key)
+    if cached is not None:
+        return (number, cached)
+
+    headers = {"apikey": secret_key}
+    object_path = urllib.parse.quote(
+        f"{bucket}/olympus-calculus/{unit_slug}/{type_slug}/{number:04d}.png",
+        safe="/",
+    )
+    try:
+        data = request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
+        Image.open(BytesIO(data)).verify()
+        IMAGE_CACHE.set(cache_key, data)
+        return (number, data)
+    except urllib.error.HTTPError as error:
+        if error.code in (400, 404):
+            raise ValueError(f"{unit} / {problem_type}에 {number}번 문제가 없습니다.") from error
+        raise
 
 
 def load_olympus_images(supabase_url: str, secret_key: str, bucket: str, unit: str, problem_type: str, numbers: list[int]) -> list[tuple[int, bytes]]:
+    if not numbers:
+        return []
     unit_slug = OLYMPUS_UNITS[unit]
     type_slug = OLYMPUS_TYPES[problem_type]
-    images = []
-    headers = {"apikey": secret_key}
-    for number in numbers:
-        object_path = urllib.parse.quote(
-            f"{bucket}/olympus-calculus/{unit_slug}/{type_slug}/{number:04d}.png",
-            safe="/",
-        )
-        try:
-            data = request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
-            Image.open(BytesIO(data)).verify()
-            images.append((number, data))
-        except urllib.error.HTTPError as error:
-            if error.code in (400, 404):
-                raise ValueError(f"{unit} / {problem_type}에 {number}번 문제가 없습니다.") from error
-            raise
-    return images
+    max_workers = min(12, max(len(numbers), 1))
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        results = list(executor.map(
+            lambda num: _load_single_olympus_image(supabase_url, secret_key, bucket, unit_slug, type_slug, num, unit, problem_type),
+            numbers,
+        ))
+    return results
 
 
 def load_quick_answers(supabase_url: str, secret_key: str, bucket: str, textbook: str) -> dict[int, str]:
+    cache_key = f"quick-answers:{textbook}"
+    with ANSWER_CACHE_LOCK:
+        if cache_key in ANSWER_CACHE:
+            return dict(ANSWER_CACHE[cache_key])
+
     config = TEXTBOOKS[textbook]
     headers = {"apikey": secret_key}
     object_path = urllib.parse.quote(f"{bucket}/{textbook}/quick-answer.pdf", safe="/")
@@ -330,7 +407,10 @@ def load_quick_answers(supabase_url: str, secret_key: str, bucket: str, textbook
     answers = {int(number): answer for number, answer in pattern.findall(text)}
     if len(answers) < config["minimum_answers"]:
         raise ValueError("빠른정답 PDF에서 정답을 완전히 읽지 못했습니다.")
-    return answers
+
+    with ANSWER_CACHE_LOCK:
+        ANSWER_CACHE[cache_key] = answers
+    return dict(answers)
 
 
 def crop_synergy_algebra_answer(img_bytes: bytes) -> bytes:
@@ -369,32 +449,51 @@ def crop_synergy_algebra_answer(img_bytes: bytes) -> bytes:
         return buf.getvalue()
 
 
+def _load_single_algebra_answer(supabase_url: str, secret_key: str, bucket: str, number: int) -> tuple[int, bytes | None]:
+    cache_key = f"synergy-algebra-ans:{number:04d}"
+    cached = IMAGE_CACHE.get(cache_key)
+    if cached is not None:
+        return (number, cached)
+
+    img_bytes = None
+    local_cand = Path(r"D:\시너지_대수\빠른정답모음") / f"{number:04d}.png"
+    if local_cand.is_file():
+        try:
+            img_bytes = local_cand.read_bytes()
+        except Exception:
+            pass
+    if not img_bytes:
+        object_path = urllib.parse.quote(f"{bucket}/synergy-algebra/answers/{number:04d}.png", safe="/")
+        url = f"{supabase_url}/storage/v1/object/authenticated/{object_path}"
+        headers = {"apikey": secret_key}
+        try:
+            img_bytes = request_bytes(url, headers)
+        except Exception as e:
+            print(f"[-] Supabase answer fetch error (synergy-algebra/{number:04d}):", e)
+
+    if img_bytes:
+        try:
+            cropped = crop_synergy_algebra_answer(img_bytes)
+            IMAGE_CACHE.set(cache_key, cropped)
+            return (number, cropped)
+        except Exception as e:
+            print(f"[-] Error cropping answer for {number}:", e)
+            IMAGE_CACHE.set(cache_key, img_bytes)
+            return (number, img_bytes)
+    return (number, None)
+
+
 def load_synergy_algebra_answers(supabase_url: str, secret_key: str, bucket: str, numbers: list[int]) -> dict[int, bytes]:
     """Loads and returns cropped answer image bytes for synergy-algebra."""
-    answers: dict[int, bytes] = {}
-    headers = {"apikey": secret_key}
-    for number in numbers:
-        img_bytes = None
-        local_cand = Path(r"D:\시너지_대수\빠른정답모음") / f"{number:04d}.png"
-        if local_cand.is_file():
-            try:
-                img_bytes = local_cand.read_bytes()
-            except Exception:
-                pass
-        if not img_bytes:
-            object_path = urllib.parse.quote(f"{bucket}/synergy-algebra/answers/{number:04d}.png", safe="/")
-            url = f"{supabase_url}/storage/v1/object/authenticated/{object_path}"
-            try:
-                img_bytes = request_bytes(url, headers)
-            except Exception as e:
-                print(f"[-] Supabase answer fetch error (synergy-algebra/{number:04d}):", e)
-        if img_bytes:
-            try:
-                answers[number] = crop_synergy_algebra_answer(img_bytes)
-            except Exception as e:
-                print(f"[-] Error cropping answer for {number}:", e)
-                answers[number] = img_bytes
-    return answers
+    if not numbers:
+        return {}
+    max_workers = min(12, max(len(numbers), 1))
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        pairs = list(executor.map(
+            lambda num: _load_single_algebra_answer(supabase_url, secret_key, bucket, num),
+            numbers,
+        ))
+    return {num: data for num, data in pairs if data is not None}
 
 
 def append_ssen_selected_answers(pdf_data: bytes, numbers: list[int]) -> bytes:
@@ -899,6 +998,11 @@ def parse_olympus_answer_block(block: str) -> dict[int, str]:
 
 
 def load_olympus_answers(supabase_url: str, secret_key: str, bucket: str) -> dict[tuple[int, str, int], str]:
+    cache_key = "olympus-answers"
+    with ANSWER_CACHE_LOCK:
+        if cache_key in ANSWER_CACHE:
+            return dict(ANSWER_CACHE[cache_key])
+
     headers = {"apikey": secret_key}
     object_path = urllib.parse.quote(f"{bucket}/olympus-calculus/answers.pdf", safe="/")
     data = request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
@@ -926,7 +1030,9 @@ def load_olympus_answers(supabase_url: str, secret_key: str, bucket: str) -> dic
                         for number, answer in parsed.items():
                             result[(unit_index, problem_type, number)] = answer
                 start = answer_start
-    return result
+    with ANSWER_CACHE_LOCK:
+        ANSWER_CACHE[cache_key] = result
+    return dict(result)
 
 
 def create_olympus_pdf(student: str, grade: str, items: list[tuple[str, str, int, bytes]], answers: dict[tuple[int, str, int], str], cover_options: dict | None = None) -> bytes:
@@ -1049,6 +1155,11 @@ BLACKLABEL_STAGE_SLUGS = {
 
 
 def load_blacklabel_image(supabase_url: str, secret_key: str, bucket: str, chapter: str, subunit: str, stage: str, number_str: str, textbook: str = "blacklabel-middle-2-2") -> bytes:
+    cache_key = f"blacklabel:{textbook}:{chapter}:{subunit}:{stage}:{number_str}"
+    cached = IMAGE_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+
     headers = {"apikey": secret_key}
     num = int(number_str) if number_str.isdigit() else None
     candidates: list[str] = []
@@ -1066,7 +1177,9 @@ def load_blacklabel_image(supabase_url: str, secret_key: str, bucket: str, chapt
         for filename in candidates:
             object_path = urllib.parse.quote(f"{bucket}/blacklabel-middle-3-1/{c_slug}/{s_slug}/{filename}", safe="/")
             try:
-                return request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
+                data = request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
+                IMAGE_CACHE.set(cache_key, data)
+                return data
             except urllib.error.HTTPError as err:
                 if err.code in (400, 404):
                     continue
@@ -1081,7 +1194,9 @@ def load_blacklabel_image(supabase_url: str, secret_key: str, bucket: str, chapt
     for filename in candidates:
         object_path = urllib.parse.quote(f"{bucket}/blacklabel-middle-2-2/{c_slug}/{sub_slug}/{s_slug}/{filename}", safe="/")
         try:
-            return request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
+            data = request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
+            IMAGE_CACHE.set(cache_key, data)
+            return data
         except urllib.error.HTTPError as err:
             if err.code in (400, 404):
                 continue
@@ -1090,13 +1205,24 @@ def load_blacklabel_image(supabase_url: str, secret_key: str, bucket: str, chapt
 
 
 def load_blacklabel_answers(supabase_url: str, secret_key: str, bucket: str) -> dict[str, str]:
+    cache_key = "blacklabel-answers:2-2"
+    with ANSWER_CACHE_LOCK:
+        if cache_key in ANSWER_CACHE:
+            return dict(ANSWER_CACHE[cache_key])
+
     local_path = Path(__file__).resolve().parent / "blacklabel_answers.json"
     if local_path.is_file():
-        return json.loads(local_path.read_text(encoding="utf-8"))
+        ans = json.loads(local_path.read_text(encoding="utf-8"))
+        with ANSWER_CACHE_LOCK:
+            ANSWER_CACHE[cache_key] = ans
+        return dict(ans)
     headers = {"apikey": secret_key}
     object_path = urllib.parse.quote(f"{bucket}/blacklabel-middle-2-2/blacklabel_answers.json", safe="/")
     data = request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
-    return json.loads(data.decode("utf-8"))
+    ans = json.loads(data.decode("utf-8"))
+    with ANSWER_CACHE_LOCK:
+        ANSWER_CACHE[cache_key] = ans
+    return dict(ans)
 
 
 def draw_blacklabel_answer_page(
@@ -1242,6 +1368,11 @@ CONCEPT_STAGE_SLUGS = {
 
 
 def load_concept_image(supabase_url: str, secret_key: str, bucket: str, chapter: str, subunit: str, stage: str, number_str: str, textbook: str = "concept-middle-2-2") -> bytes:
+    cache_key = f"concept:{textbook}:{chapter}:{subunit}:{stage}:{number_str}"
+    cached = IMAGE_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+
     headers = {"apikey": secret_key}
     num = int(number_str) if number_str.isdigit() else None
     candidates: list[str] = []
@@ -1258,7 +1389,9 @@ def load_concept_image(supabase_url: str, secret_key: str, bucket: str, chapter:
         for filename in candidates:
             object_path = urllib.parse.quote(f"{bucket}/concept-middle-3-1/{c_slug}/{s_slug}/{filename}", safe="/")
             try:
-                return request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
+                data = request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
+                IMAGE_CACHE.set(cache_key, data)
+                return data
             except urllib.error.HTTPError as err:
                 if err.code in (400, 404):
                     continue
@@ -1274,7 +1407,9 @@ def load_concept_image(supabase_url: str, secret_key: str, bucket: str, chapter:
     for filename in candidates:
         object_path = urllib.parse.quote(f"{bucket}/concept-middle-2-2/{c_slug}/{sub_slug}/{s_slug}/{filename}", safe="/")
         try:
-            return request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
+            data = request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
+            IMAGE_CACHE.set(cache_key, data)
+            return data
         except urllib.error.HTTPError as err:
             if err.code in (400, 404):
                 continue
@@ -1394,6 +1529,11 @@ def load_basic_ssen_image(
     stage: str,
     number_str: str,
 ) -> bytes:
+    cache_key = f"basic-ssen:{chapter}:{subunit}:{stage}:{number_str}"
+    cached = IMAGE_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+
     num = int(number_str) if number_str.isdigit() else None
     filename = f"{num:04d}.png" if num is not None else f"{number_str}.png"
 
@@ -1402,7 +1542,9 @@ def load_basic_ssen_image(
         local_source = Path(r"D:\중등부교재작업\중2학년2학기\베이직쎈\문제모음_인쇄용") / chapter / subunit / stg_cand / filename
         if local_source.is_file():
             try:
-                return local_source.read_bytes()
+                data = local_source.read_bytes()
+                IMAGE_CACHE.set(cache_key, data)
+                return data
             except Exception:
                 pass
 
@@ -1418,7 +1560,9 @@ def load_basic_ssen_image(
     for cand in candidates:
         object_path = urllib.parse.quote(f"{bucket}/basic-ssen-middle-2-2/{c_slug}/{sub_slug}/{s_slug}/{cand}", safe="/")
         try:
-            return request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
+            data = request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
+            IMAGE_CACHE.set(cache_key, data)
+            return data
         except urllib.error.HTTPError as err:
             if err.code in (400, 404):
                 continue
@@ -1499,16 +1643,25 @@ def get_basic_ssen_answer_page(subunit: str, stage: str) -> int:
 
 
 def load_basic_ssen_answers_pdf(supabase_url: str = "", secret_key: str = "", bucket: str = "textbook-problems") -> bytes | None:
+    cache_key = "basic-ssen-answers-pdf"
+    cached = IMAGE_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+
     api_cand = Path(__file__).resolve().parent / "basic_ssen_answers.pdf"
     if api_cand.is_file():
         try:
-            return api_cand.read_bytes()
+            data = api_cand.read_bytes()
+            IMAGE_CACHE.set(cache_key, data)
+            return data
         except Exception:
             pass
     local_cand = Path(r"D:\중등부교재작업\중2학년2학기\베이직쎈\중2-2 베이직쎈 빠른정답.pdf")
     if local_cand.is_file():
         try:
-            return local_cand.read_bytes()
+            data = local_cand.read_bytes()
+            IMAGE_CACHE.set(cache_key, data)
+            return data
         except Exception:
             pass
     if supabase_url and secret_key:
@@ -1516,17 +1669,27 @@ def load_basic_ssen_answers_pdf(supabase_url: str = "", secret_key: str = "", bu
         url = f"{supabase_url}/storage/v1/object/authenticated/{object_path}"
         headers = {"apikey": secret_key, "Authorization": f"Bearer {secret_key}"}
         try:
-            return request_bytes(url, headers)
+            data = request_bytes(url, headers)
+            IMAGE_CACHE.set(cache_key, data)
+            return data
         except Exception as e:
             print("[-] Error loading basic_ssen_answers from Supabase:", e)
     return None
 
 
 def load_basic_ssen_answers(supabase_url: str = "", secret_key: str = "", bucket: str = "textbook-problems") -> dict[str, str]:
+    cache_key = "basic-ssen-answers"
+    with ANSWER_CACHE_LOCK:
+        if cache_key in ANSWER_CACHE:
+            return dict(ANSWER_CACHE[cache_key])
+
     api_cand = Path(__file__).resolve().parent / "basic_ssen_answers.json"
     if api_cand.is_file():
         try:
-            return json.loads(api_cand.read_text(encoding="utf-8"))
+            ans = json.loads(api_cand.read_text(encoding="utf-8"))
+            with ANSWER_CACHE_LOCK:
+                ANSWER_CACHE[cache_key] = ans
+            return dict(ans)
         except Exception:
             pass
     return {}
@@ -1872,9 +2035,13 @@ class handler(BaseHTTPRequestHandler):
                     total += len(tokens)
                     if total > 100:
                         raise ValueError("전체 목록에서 최대 100문제까지 만들 수 있습니다.")
-                    for num_str in tokens:
-                        data = load_blacklabel_image(supabase_url, secret_key, bucket, chapter, subunit, stage, num_str, textbook=textbook)
-                        blacklabel_items.append((chapter, subunit, stage, num_str, data))
+                    max_workers = min(12, max(len(tokens), 1))
+                    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                        fetched = list(executor.map(
+                            lambda n_str: (chapter, subunit, stage, n_str, load_blacklabel_image(supabase_url, secret_key, bucket, chapter, subunit, stage, n_str, textbook=textbook)),
+                            tokens,
+                        ))
+                    blacklabel_items.extend(fetched)
                 blacklabel_answers = load_blacklabel_answers(supabase_url, secret_key, bucket) if textbook == "blacklabel-middle-2-2" else {}
 
                 def make_pdf(st: str) -> bytes:
@@ -1896,9 +2063,13 @@ class handler(BaseHTTPRequestHandler):
                     total += len(tokens)
                     if total > 100:
                         raise ValueError("전체 목록에서 최대 100문제까지 만들 수 있습니다.")
-                    for num_str in tokens:
-                        data = load_concept_image(supabase_url, secret_key, bucket, chapter, subunit, stage, num_str, textbook=textbook)
-                        concept_items.append((chapter, subunit, stage, num_str, data))
+                    max_workers = min(12, max(len(tokens), 1))
+                    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                        fetched = list(executor.map(
+                            lambda n_str: (chapter, subunit, stage, n_str, load_concept_image(supabase_url, secret_key, bucket, chapter, subunit, stage, n_str, textbook=textbook)),
+                            tokens,
+                        ))
+                    concept_items.extend(fetched)
 
                 def make_pdf(st: str) -> bytes:
                     return create_concept_pdf(st, grade, concept_items, cover_options, textbook=textbook)
@@ -1919,9 +2090,13 @@ class handler(BaseHTTPRequestHandler):
                     total += len(tokens)
                     if total > 100:
                         raise ValueError("전체 목록에서 최대 100문제까지 만들 수 있습니다.")
-                    for num_str in tokens:
-                        data = load_basic_ssen_image(supabase_url, secret_key, bucket, chapter, subunit, stage, num_str)
-                        basic_ssen_items.append((chapter, subunit, stage, num_str, data))
+                    max_workers = min(12, max(len(tokens), 1))
+                    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                        fetched = list(executor.map(
+                            lambda n_str: (chapter, subunit, stage, n_str, load_basic_ssen_image(supabase_url, secret_key, bucket, chapter, subunit, stage, n_str)),
+                            tokens,
+                        ))
+                    basic_ssen_items.extend(fetched)
 
                 def make_pdf(st: str) -> bytes:
                     return create_basic_ssen_pdf(
