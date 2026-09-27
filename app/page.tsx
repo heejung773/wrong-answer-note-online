@@ -1743,34 +1743,18 @@ export default function Home() {
         (it) => it.chapter in blacklabel31Hierarchy,
       );
       if (curBlacklabel.length === 0) {
-        curBlacklabel = [
-          {
-            id: Date.now(),
-            chapter: '01_제곱근과_실수',
-            subunit: '01_제곱근과_실수',
-            stage: 'Step1',
-            numbers: '1-3',
-            count: 3,
-          },
-        ];
-        setBlacklabel31Items(curBlacklabel);
+        setPreviewPdfUrl(null);
+        setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
+        return;
       }
     } else if (activeTb === 'blacklabel-middle-2-2') {
       curBlacklabel = curBlacklabel.filter(
         (it) => it.chapter in blacklabelHierarchy,
       );
       if (curBlacklabel.length === 0) {
-        curBlacklabel = [
-          {
-            id: Date.now(),
-            chapter: 'I. 삼각형의 성질',
-            subunit: '01 삼각형의 성질',
-            stage: '시험에 꼭 나오는 문제',
-            numbers: '1-3',
-            count: 3,
-          },
-        ];
-        setBlacklabel22Items(curBlacklabel);
+        setPreviewPdfUrl(null);
+        setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
+        return;
       }
     }
 
@@ -1778,32 +1762,16 @@ export default function Home() {
     if (activeTb === 'concept-middle-3-1') {
       curConcept = curConcept.filter((it) => it.chapter in concept31Hierarchy);
       if (curConcept.length === 0) {
-        curConcept = [
-          {
-            id: Date.now(),
-            chapter: '01_제곱근과_실수',
-            subunit: '01_제곱근과_실수',
-            stage: '유형별',
-            numbers: '1-3',
-            count: 3,
-          },
-        ];
-        setConcept31Items(curConcept);
+        setPreviewPdfUrl(null);
+        setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
+        return;
       }
     } else if (activeTb === 'concept-middle-2-2') {
       curConcept = curConcept.filter((it) => it.chapter in conceptHierarchy);
       if (curConcept.length === 0) {
-        curConcept = [
-          {
-            id: Date.now(),
-            chapter: '01_삼각형의_성질',
-            subunit: '01_이등변삼각형의_성질',
-            stage: '01_개념익히기',
-            numbers: '1-3',
-            count: 3,
-          },
-        ];
-        setConcept22Items(curConcept);
+        setPreviewPdfUrl(null);
+        setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
+        return;
       }
     }
 
@@ -1813,17 +1781,9 @@ export default function Home() {
         (it) => it.chapter in basicSsenHierarchy,
       );
       if (curBasicSsen.length === 0) {
-        curBasicSsen = [
-          {
-            id: Date.now(),
-            chapter: 'I. 도형의 성질',
-            subunit: '01 삼각형의 성질 (1)',
-            stage: '기본&핵심유형 1 (11~15쪽)',
-            numbers: '1-4',
-            count: 4,
-          },
-        ];
-        setBasicSsenItems(curBasicSsen);
+        setPreviewPdfUrl(null);
+        setStatus('문항을 목록에 추가한 뒤 미리보기를 확인해 주세요.');
+        return;
       }
     }
 
@@ -1833,37 +1793,21 @@ export default function Home() {
       return;
     }
 
-    let curNumbers = overrideItems?.numbers ?? numbers;
-    if (activeTb === 'ssen-common-math-1') {
-      const parsed = parsedProblemNumbers;
-      if (parsed.length === 0 || parsed.some((n) => n < 40 || n > 1316)) {
-        curNumbers = '40, 41, 42, 43';
-        setNumbers(curNumbers);
-      }
-    } else if (activeTb === 'ssen-middle-2-2') {
-      const parsed = parsedProblemNumbers;
-      if (parsed.length === 0 || parsed.some((n) => n < 21 || n > 1142)) {
-        curNumbers = '21, 22, 23, 24';
-        setNumbers(curNumbers);
-      }
-    } else if (activeTb === 'ssen-middle-3-1') {
-      const parsed = parsedProblemNumbers;
-      if (parsed.length === 0 || parsed.some((n) => n < 50 || n > 1398)) {
-        curNumbers = '50, 51, 52, 53';
-        setNumbers(curNumbers);
-      }
-    } else if (
+    const curNumbers = overrideItems?.numbers ?? numbers;
+    const isSequentialTb =
       activeTb !== 'blacklabel-middle-2-2' &&
       activeTb !== 'blacklabel-middle-3-1' &&
       activeTb !== 'concept-middle-2-2' &&
       activeTb !== 'concept-middle-3-1' &&
       activeTb !== 'basic-ssen-middle-2-2' &&
-      activeTb !== 'olympus-calculus'
-    ) {
+      activeTb !== 'olympus-calculus';
+
+    if (isSequentialTb) {
       const parsed = parsedProblemNumbers;
-      if (parsed.length === 0 || parsed.some((n) => n < 1)) {
-        curNumbers = '1, 2, 3, 4';
-        setNumbers(curNumbers);
+      if (parsed.length === 0 || !curNumbers.trim()) {
+        setPreviewPdfUrl(null);
+        setStatus('문제 번호를 입력해 주세요.');
+        return;
       }
     }
 
@@ -3769,7 +3713,11 @@ export default function Home() {
                           <button
                             type="button"
                             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#2a1912] hover:bg-[#4d2c20] border border-[#8b563d] hover:border-[#e08a5b] rounded-lg text-[11px] font-semibold text-[#e08a5b] hover:text-[#f0c1a6] transition-all cursor-pointer"
-                            onClick={() => setNumbers('')}
+                            onClick={() => {
+                              setNumbers('');
+                              setPreviewPdfUrl(null);
+                              setStatus('문제 번호를 입력해 주세요.');
+                            }}
                           >
                             <Trash2 className="size-3.5" /> 번호 전체 비우기
                           </button>
@@ -5025,6 +4973,7 @@ export default function Home() {
                               variant="outline"
                               onClick={() => {
                                 setOlympusItems([]);
+                                setPreviewPdfUrl(null);
                                 setStatus('입력 목록을 모두 비웠습니다.');
                               }}
                             >
@@ -5101,6 +5050,7 @@ export default function Home() {
                               variant="outline"
                               onClick={() => {
                                 setBlacklabelItems([]);
+                                setPreviewPdfUrl(null);
                                 setStatus('입력 목록을 모두 비웠습니다.');
                               }}
                             >
@@ -5180,6 +5130,7 @@ export default function Home() {
                               variant="outline"
                               onClick={() => {
                                 setConceptItems([]);
+                                setPreviewPdfUrl(null);
                                 setStatus('입력 목록을 모두 비웠습니다.');
                               }}
                             >
@@ -5259,6 +5210,7 @@ export default function Home() {
                               variant="outline"
                               onClick={() => {
                                 setBasicSsenItems([]);
+                                setPreviewPdfUrl(null);
                                 setStatus('입력 목록을 모두 비웠습니다.');
                               }}
                             >
