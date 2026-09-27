@@ -1992,7 +1992,7 @@ export default function Home() {
     if (!sessionToken || !textbook) return;
     const timer = window.setTimeout(() => {
       void handleRefreshPreviewRef.current(textbook);
-    }, 500);
+    }, 800);
     return () => window.clearTimeout(timer);
   }, [grade, numbers, sessionToken, student, textbook]);
 
@@ -3741,6 +3741,19 @@ export default function Home() {
                             }
                             value={numbers}
                             onChange={(e) => setNumbers(e.target.value)}
+                            onBlur={() => {
+                              if (sessionToken && textbook) {
+                                void handleRefreshPreview(textbook);
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                if (sessionToken && textbook) {
+                                  void handleRefreshPreview(textbook);
+                                }
+                              }
+                            }}
                           />
                         </div>
 
@@ -4125,12 +4138,21 @@ export default function Home() {
                     : 'min-h-[900px] xl:min-h-[960px]'
                 }`}
               >
-                {previewLoading && (
+                {/* 최초 로딩 시: 전체 화면 중앙 스피너 */}
+                {previewLoading && !previewPdfUrl && (
                   <div className="absolute inset-0 bg-[#090A0E]/85 backdrop-blur-xs flex flex-col items-center justify-center z-10 gap-3">
                     <div className="size-10 rounded-full border-3 border-blue-500/20 border-t-blue-500 animate-spin" />
                     <p className="text-sm text-slate-300 font-medium">
                       오답노트 PDF를 실시간 렌더링하고 있습니다…
                     </p>
+                  </div>
+                )}
+
+                {/* 백그라운드 갱신 시 (무깜빡임): 기존 시험지를 유지하고 우측 상단 플로팅 인디케이터만 표시 */}
+                {previewLoading && previewPdfUrl && (
+                  <div className="absolute top-4 right-4 z-20 flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0F121C]/90 border border-blue-500/40 text-blue-300 text-xs font-semibold shadow-2xl backdrop-blur-md animate-pulse pointer-events-none">
+                    <span className="size-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                    <span>실시간 갱신 중…</span>
                   </div>
                 )}
 
@@ -4930,6 +4952,19 @@ export default function Home() {
                       id="numbers"
                       value={numbers}
                       onChange={(e) => setNumbers(e.target.value)}
+                      onBlur={() => {
+                        if (sessionToken && textbook) {
+                          void handleRefreshPreview(textbook);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (sessionToken && textbook) {
+                            void handleRefreshPreview(textbook);
+                          }
+                        }
+                      }}
                       placeholder={
                         textbook === 'blacklabel-middle-2-2' ||
                         textbook === 'blacklabel-middle-3-1' ||
