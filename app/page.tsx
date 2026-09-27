@@ -4,6 +4,7 @@ import { SyntheticEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
 import {
+  AlertTriangle,
   ArrowDownAZ,
   BookOpen,
   ChevronLeft,
@@ -924,73 +925,102 @@ const basicSsenRanges: Record<string, { min: number; max: number; count: number 
 };
 
 
-const allTextbookInfo: Record<
-  string,
-  { name: string; max_num: number; desc: string }
-> = {
+interface TextbookInfoDetail {
+  name: string;
+  min_num?: number;
+  max_num: number;
+  range_text?: string;
+  note?: string;
+  desc: string;
+}
+
+const allTextbookInfo: Record<string, TextbookInfoDetail> = {
   'synergy-calculus': {
     name: '마플시너지 미적분',
+    min_num: 1,
     max_num: 1200,
+    range_text: '1 ~ 1200번',
     desc: '총 1200문항 데이터베이스 연동',
   },
   'synergy-algebra': {
     name: '마플시너지 대수',
+    min_num: 1,
     max_num: 1968,
+    range_text: '1 ~ 1968번',
     desc: '총 1968문항 데이터베이스 연동',
   },
   'synergy-common-math-2': {
     name: '마플시너지 공통수학2',
+    min_num: 1,
     max_num: 1895,
+    range_text: '1 ~ 1895번',
     desc: '총 1895문항 데이터베이스 연동',
   },
   'olympus-calculus': {
     name: 'EBS 올림포스 미적분',
-    max_num: 348,
-    desc: '4개 대단원 · 소단원별 총 348문항 데이터베이스 연동',
+    max_num: 513,
+    range_text: '6개 대단원 · 소단원별 문항 선택',
+    desc: '총 6개 대단원 513문항 데이터베이스 연동',
   },
   'gojaengi-common-math-2': {
     name: '고쟁이 공통수학2',
+    min_num: 1,
     max_num: 380,
+    range_text: '1 ~ 380번',
     desc: '총 380문항 데이터베이스 연동',
   },
   'ssen-common-math-1': {
     name: '신사고 쎈 공통수학1',
+    min_num: 40,
     max_num: 1316,
+    range_text: '40 ~ 1316번',
+    note: 'A단계(1~39번 기본 연산) 제외, B·C단계 전 문항 제공',
     desc: '10개 단원 총 927문항 데이터베이스 연동',
   },
   'ssen-middle-2-2': {
     name: '신사고 쎈 중2-2',
-    max_num: 1154,
-    desc: '총 1154문항 데이터베이스 연동',
+    min_num: 21,
+    max_num: 1142,
+    range_text: '21 ~ 1142번',
+    note: 'A단계(1~20번 기본 연산) 제외, B·C단계 전 문항 제공',
+    desc: '총 1142문항 데이터베이스 연동',
   },
   'blacklabel-middle-2-2': {
     name: '블랙라벨 중2-2',
     max_num: 100,
+    range_text: '대단원 · 소단원 · 단계별 문항 선택',
     desc: '대단원·소단원·단계별 문항 데이터베이스 연동',
   },
   'concept-middle-2-2': {
     name: '개념유형파워 중2-2',
     max_num: 100,
+    range_text: '대단원 · 소단원 · 유형별 문항 선택',
     desc: '대단원·소단원·유형별 문항 데이터베이스 연동',
   },
   'basic-ssen-middle-2-2': {
     name: '신사고 베이직쎈 중2-2',
     max_num: 35,
+    range_text: '10개 소단원 · 33개 단계 문항 선택',
     desc: '10개 소단원 · 33개 단계 (총 609문항) 데이터베이스 연동',
   },
   'ssen-middle-3-1': {
     name: '신사고 쎈 중3-1',
+    min_num: 50,
     max_num: 1398,
+    range_text: '50 ~ 1398번',
+    note: 'A단계(1~49번 기본 연산) 제외, B·C단계 전 문항 제공',
     desc: '총 989문항 데이터베이스 연동',
   },
   'blacklabel-middle-3-1': {
     name: '블랙라벨 중3-1',
     max_num: 100,
+    range_text: '8개 대단원 · 4개 Step 문항 선택',
     desc: '8개 대단원 · 4개 Step 문항 데이터베이스 연동',
   },
   'concept-middle-3-1': {
     name: '개념유형파워 중3-1',
     max_num: 100,
+    range_text: '6개 대단원 · 유형별 문항 선택',
     desc: '6개 대단원 · 유형별/단원마무리 문항 데이터베이스 연동',
   },
 };
@@ -1161,6 +1191,32 @@ export default function Home() {
     }
     return result;
   }, [numbers]);
+
+  const currentTb = textbook ? textbooks.find((t) => t.id === textbook) : null;
+  const currentTbInfo = (textbook ? allTextbookInfo[textbook] : null) || {
+    name: currentTb?.title || '수학 교재',
+    max_num: 1000,
+    desc: '데이터베이스 연동',
+  };
+
+  const invalidProblemNumbers = useMemo(() => {
+    if (!textbook) return [];
+    const info = allTextbookInfo[textbook];
+    if (!info) return [];
+    const isSequentialTb =
+      textbook !== 'olympus-calculus' &&
+      textbook !== 'blacklabel-middle-2-2' &&
+      textbook !== 'blacklabel-middle-3-1' &&
+      textbook !== 'concept-middle-2-2' &&
+      textbook !== 'concept-middle-3-1' &&
+      textbook !== 'basic-ssen-middle-2-2';
+    if (!isSequentialTb) return [];
+    return parsedProblemNumbers.filter((n) => {
+      if (info.min_num !== undefined && n < info.min_num) return true;
+      if (info.max_num !== undefined && n > info.max_num) return true;
+      return false;
+    });
+  }, [textbook, parsedProblemNumbers]);
 
   const parsedBatchStudentNames = useMemo(() => {
     return Array.from(
@@ -1709,11 +1765,31 @@ export default function Home() {
       activeTb !== 'olympus-calculus';
 
     if (isSequentialTb) {
-      const parsed = parsedProblemNumbers;
-      if (parsed.length === 0 || !curNumbers.trim()) {
+      if (!curNumbers.trim()) {
         setPreviewPdfUrl(null);
         setStatus('문제 번호를 입력해 주세요.');
         return;
+      }
+      const parsed = parsedProblemNumbers;
+      if (parsed.length === 0) {
+        setPreviewPdfUrl(null);
+        setStatus('문제 번호를 입력해 주세요.');
+        return;
+      }
+      const info = allTextbookInfo[activeTb];
+      if (info) {
+        const outOfRange = parsed.filter((n) => {
+          if (info.min_num !== undefined && n < info.min_num) return true;
+          if (info.max_num !== undefined && n > info.max_num) return true;
+          return false;
+        });
+        if (outOfRange.length > 0) {
+          setPreviewPdfUrl(null);
+          setStatus(
+            `제공되지 않는 번호(${outOfRange.slice(0, 3).join(', ')}번 등)가 있습니다. (${info.range_text || `${info.max_num}번까지`}만 입력 가능)`,
+          );
+          return;
+        }
       }
     }
 
@@ -1859,6 +1935,12 @@ export default function Home() {
     if (!selectedTextbook?.available) return;
     if (highSchoolProblemCount === 0) {
       setStatus('문제 번호를 입력해 주세요.');
+      return;
+    }
+    if (invalidProblemNumbers.length > 0) {
+      setStatus(
+        `제공되지 않는 번호(${invalidProblemNumbers.slice(0, 3).join(', ')}번 등)가 포함되어 있습니다. (${currentTbInfo.range_text || `${currentTbInfo.max_num}번까지`}만 입력 가능)`,
+      );
       return;
     }
     const isBatch =
@@ -2515,9 +2597,25 @@ export default function Home() {
                         ))
                       )}
                     </select>
-                    <small className="block mt-1.5 text-xs text-slate-400">
-                      {currentTbInfo.name} ({currentTbInfo.desc})
-                    </small>
+                    <div className="mt-2.5 p-2.5 rounded-lg bg-[#0F1422] border border-cyan-500/30 text-xs flex flex-col gap-1.5 shadow-inner">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="inline-flex items-center gap-1 font-bold text-cyan-400">
+                          📌 지원 문항:
+                        </span>
+                        <strong className="text-white font-mono bg-cyan-500/20 px-2 py-0.5 rounded border border-cyan-400/40 text-xs">
+                          {currentTbInfo.range_text || `1 ~ ${currentTbInfo.max_num}번`}
+                        </strong>
+                        <span className="text-slate-400 text-[11px]">
+                          ({currentTbInfo.desc})
+                        </span>
+                      </div>
+                      {currentTbInfo.note && (
+                        <div className="text-[11px] text-amber-300/95 flex items-center gap-1.5 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/20">
+                          <span className="font-bold shrink-0">ℹ️ 참고:</span>
+                          <span>{currentTbInfo.note}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -3521,16 +3619,17 @@ export default function Home() {
                     textbook !== 'basic-ssen-middle-2-2' && (
                       <>
                         <div>
-                          <div className="flex items-center justify-between mb-1.5">
+                          <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1.5">
                             <label
                               htmlFor="hs-problem-numbers"
-                              className="text-xs font-semibold text-slate-300"
+                              className="text-xs font-semibold text-slate-200 flex items-center gap-2"
                             >
-                              {textbook === 'ssen-middle-3-1'
-                                ? '문제 번호 입력 (쎈 3-1: 50 ~ 1398번 문항 제공)'
-                                : textbook === 'ssen-middle-2-2'
-                                  ? '문제 번호 입력 (쎈 2-2: 21 ~ 1142번 문항 제공)'
-                                  : '문제 번호 입력 (쉼표, 범위 지원)'}
+                              <span>문제 번호 입력</span>
+                              {currentTbInfo.range_text && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-500/15 text-sky-300 border border-sky-500/30 font-mono">
+                                  지원: {currentTbInfo.range_text}
+                                </span>
+                              )}
                             </label>
                             <span className="text-xs text-slate-400">
                               {textbook === 'ssen-common-math-1' ? (
@@ -3605,6 +3704,30 @@ export default function Home() {
                               }
                             }}
                           />
+                          {invalidProblemNumbers.length > 0 && (
+                            <div className="mt-2 p-2.5 rounded-lg bg-red-950/70 border border-red-500/40 text-xs text-red-200 flex items-start gap-2 shadow-lg">
+                              <AlertTriangle className="size-4 text-red-400 shrink-0 mt-0.5" />
+                              <div className="flex-1">
+                                <div className="font-semibold text-red-300">
+                                  지원되지 않는 번호가 입력되었습니다:{' '}
+                                  <span className="text-white underline decoration-red-400 font-mono font-bold">
+                                    {invalidProblemNumbers.slice(0, 6).join(', ')}번
+                                    {invalidProblemNumbers.length > 6
+                                      ? ` 외 ${invalidProblemNumbers.length - 6}개`
+                                      : ''}
+                                  </span>
+                                </div>
+                                <div className="mt-1 text-[11px] text-red-300/80 leading-normal">
+                                  👉 <strong>{currentTbInfo.name}</strong>의 입력 가능 범위는{' '}
+                                  <strong className="text-white font-mono">
+                                    {currentTbInfo.range_text}
+                                  </strong>
+                                  입니다.
+                                  {currentTbInfo.note && ` (${currentTbInfo.note})`}
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         <div className="mt-2.5 flex gap-2 flex-wrap">
@@ -4043,6 +4166,12 @@ export default function Home() {
                         <strong className="text-blue-400">
                           {highSchoolProblemCount}문제 ({highSchoolPageCount}장
                           예상)
+                        </strong>
+                      </div>
+                      <div className="flex justify-between text-slate-400">
+                        <span>지원 문항:</span>
+                        <strong className="text-amber-300 font-mono">
+                          {currentTbInfo.range_text || `${currentTbInfo.max_num}번까지`}
                         </strong>
                       </div>
                       <div className="flex justify-between text-slate-400">
