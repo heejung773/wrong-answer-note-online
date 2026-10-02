@@ -31,9 +31,11 @@ def main() -> None:
             "blacklabel-middle-3-1",
             "concept-middle-3-1",
             "ssen-common-math-1",
+            "synergy-common-math-1",
         ),
     )
     parser.add_argument("--manifest", type=Path, help="사용할 매니페스트 파일 경로")
+    parser.add_argument("--workers", type=int, default=8, help="병렬 업로드 스레드 수 (기본 8)")
     parser.add_argument("--source-dir", type=Path, help="번호형 PNG가 있는 별도 폴더")
     parser.add_argument("--object-prefix", help="별도 폴더 파일의 Storage 경로 접두사")
     parser.add_argument("--start", type=int, help="별도 폴더 업로드 시작 번호")
@@ -92,8 +94,14 @@ def main() -> None:
         files = manifest["files"]
         if args.textbook:
             files = [item for item in files if str(item["object"]).startswith(args.textbook + "/")]
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    import threading
+
     total = len(files)
-    for index, item in enumerate(files, 1):
+    completed = 0
+    lock = threading.Lock()
+
+    def upload_one(item: dict) -> None:
         source = Path(item["source"])
         object_path = urllib.parse.quote(f"{bucket}/{item['object']}", safe="/")
         request = urllib.request.Request(
@@ -113,9 +121,24 @@ def main() -> None:
         except urllib.error.HTTPError as error:
             detail = error.read().decode("utf-8", errors="replace")
             raise RuntimeError(f"업로드 실패 ({error.code}): {item['object']} {detail}") from error
-        if index == total or index % 50 == 0:
-            print(f"uploaded={index}/{total}")
-            sys.stdout.flush()
+
+    print(f"업로드 시작: 총 {total}개 파일 (병렬 스레드: {args.workers})")
+    with ThreadPoolExecutor(max_workers=args.workers) as executor:
+        futures = {executor.submit(upload_one, item): item for item in files}
+        for future in as_completed(futures):
+            item = futures[future]
+            try:
+                future.result()
+            except Exception as e:
+                print(f"[오류 발생] {item['object']}: {e}")
+                raise
+            with lock:
+                completed += 1
+                if completed == total or completed % 50 == 0:
+                    print(f"uploaded={completed}/{total} ({completed/total*100:.1f}%)")
+                    sys.stdout.flush()
+
+    print(f"업로드 완결! 총 {total}개 파일 Supabase 스토리지 업로드 성공.")
 
 
 if __name__ == "__main__":

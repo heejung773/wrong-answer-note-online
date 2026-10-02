@@ -42,6 +42,7 @@ import { Textarea } from '@/components/ui/textarea';
 type TextbookId =
   | 'synergy-calculus'
   | 'synergy-algebra'
+  | 'synergy-common-math-1'
   | 'synergy-common-math-2'
   | 'olympus-calculus'
   | 'gojaengi-common-math-2'
@@ -75,6 +76,13 @@ type TextbookItem = {
 
 const textbooks: TextbookItem[] = [
   // 고등부: 1학년 (공통수학1, 공통수학2)
+  {
+    id: 'synergy-common-math-1',
+    title: '시너지 공통수학1',
+    subject: '공통수학1',
+    available: true,
+    department: 'high',
+  },
   {
     id: 'ssen-common-math-1',
     title: '쎈 공통수학1',
@@ -948,6 +956,13 @@ const allTextbookInfo: Record<string, TextbookInfoDetail> = {
     max_num: 1968,
     range_text: '1 ~ 1968번',
     desc: '총 1968문항 데이터베이스 연동',
+  },
+  'synergy-common-math-1': {
+    name: '마플시너지 공통수학1',
+    min_num: 1,
+    max_num: 1883,
+    range_text: '1 ~ 1883번',
+    desc: '총 13개 단원 1883문항 데이터베이스 연동',
   },
   'synergy-common-math-2': {
     name: '마플시너지 공통수학2',

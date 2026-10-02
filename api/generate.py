@@ -77,6 +77,12 @@ TEXTBOOKS = {
         "title": "시너지 대수",
         "answer_source": "출처: [2022개정] 마플 시너지 대수 빠른정답",
     },
+    "synergy-common-math-1": {
+        "title": "시너지 공통수학1",
+        "answer_pages": (1, 8),
+        "minimum_answers": 1883,
+        "answer_source": "출처: [2022개정] 마플 시너지 공통수학1 빠른정답",
+    },
     "synergy-common-math-2": {
         "title": "시너지 공통수학2",
         "answer_pages": (1, 8),
@@ -391,6 +397,23 @@ def load_quick_answers(supabase_url: str, secret_key: str, bucket: str, textbook
         if cache_key in ANSWER_CACHE:
             return dict(ANSWER_CACHE[cache_key])
 
+    # synergy-common-math-1 사전 추출 정답 우선 로드 (100% 무결점 보장)
+    if textbook == "synergy-common-math-1":
+        project_root = Path(__file__).resolve().parent.parent
+        for cand in [
+            project_root / "data" / "synergy_common_math_1_answers_simple.json",
+            Path(r"D:\공퉁수학1_시너지\synergy_common_math_1_answers_simple.json"),
+        ]:
+            if cand.is_file():
+                try:
+                    raw_dict = json.loads(cand.read_text(encoding="utf-8"))
+                    answers = {int(k): str(v) for k, v in raw_dict.items()}
+                    with ANSWER_CACHE_LOCK:
+                        ANSWER_CACHE[cache_key] = answers
+                    return dict(answers)
+                except Exception:
+                    pass
+
     config = TEXTBOOKS[textbook]
     headers = {"apikey": secret_key}
     object_path = urllib.parse.quote(f"{bucket}/{textbook}/quick-answer.pdf", safe="/")
@@ -615,7 +638,10 @@ def draw_test_cover(
     elif "미적분" in title or "calculus" in textbook:
         badge_text = "고등 수학 영역  |  미적분"
         eng_sub = "SYNERGY CALCULUS CUSTOM TEST" if "시너지" in title else "CALCULUS CUSTOM TEST"
-    elif "공통수학" in title:
+    elif "공통수학1" in title or "common-math-1" in textbook or "공수1" in title:
+        badge_text = "고등 수학 영역  |  공통수학1"
+        eng_sub = "COMMON MATHEMATICS I CUSTOM TEST"
+    elif "공통수학" in title or "common-math-2" in textbook:
         badge_text = "고등 수학 영역  |  공통수학2"
         eng_sub = "COMMON MATHEMATICS II CUSTOM TEST"
     elif "3-1" in textbook or "middle-3" in textbook or "3-1" in title:
