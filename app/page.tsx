@@ -1173,7 +1173,7 @@ export default function Home() {
   const [previewViewMode, setPreviewViewMode] = useState<'Fit' | 'FitH'>('Fit');
   const [previewExpanded, setPreviewExpanded] = useState(false);
   const previewRequestRef = useRef<AbortController | null>(null);
-  const [optionsCollapsed, setOptionsCollapsed] = useState(true);
+  const [optionsCollapsed, setOptionsCollapsed] = useState(false);
   const [olympusQuickInput, setOlympusQuickInput] = useState('1-4');
   const [blacklabelQuickInput, setBlacklabelQuickInput] = useState('1-3');
   const [conceptQuickInput, setConceptQuickInput] = useState('1-3');
@@ -2563,21 +2563,38 @@ export default function Home() {
     };
 
     return (
-      <div className="generator-canvas min-h-screen bg-[#0f172a] text-[#e2e8f0] p-3 sm:p-6 font-sans">
-        <div className="max-w-[1680px] mx-auto flex flex-col gap-4">
-          {/* Main 2-Column Workspace Grid */}
-          <main className="grid grid-cols-1 xl:grid-cols-[480px_1fr] gap-5 items-start">
+      <div className="generator-canvas min-h-screen">
+        <div className="generator-shell">
+          <header className="generator-topbar">
+            <div>
+              <p className="generator-eyebrow">다산미래학원 · 오답노트</p>
+              <h1>나만의 오답노트 만들기</h1>
+              <p className="generator-subtitle">교재와 문제를 선택하면 인쇄할 수 있는 PDF로 정리해 드려요.</p>
+            </div>
+            <span className="generator-topbar-context">{department === 'middle' ? '중등부' : '고등부'}<span />{currentTb?.title}</span>
+          </header>
+          <div className="generator-body">
+          <nav className="generator-nav" aria-label="오답노트 작업 단계">
+            <div className="generator-nav-brand"><BookOpen className="size-5" /><span>오답노트 작업실</span></div>
+            <p>작업 단계</p>
+            <a href="#generator-textbook"><span>01</span>교재 선택</a>
+            <a href="#generator-student"><span>02</span>학생 정보</a>
+            <a href="#generator-problems"><span>03</span>문항 선택</a>
+            <a href="#generator-cover" onClick={() => setOptionsCollapsed(true)}><span>04</span>표지 및 서식</a>
+            <div className="generator-nav-note">선택한 문제만 모아<br />학생별 오답노트를 만드세요.</div>
+          </nav>
+          <main className="generator-grid">
             {/* Left Config Panel */}
-            <section className="flex flex-col gap-4">
+            <section className="generator-settings" aria-label="오답노트 설정">
               {/* Step 1: 교재 선택/정보 */}
-              <div className="bg-[#1e293b] border border-[#334155] border-l-4 border-l-teal-500 rounded-xl shadow-md overflow-hidden">
+              <div className="generator-step" id="generator-textbook">
                 <div className="generator-step-header px-4 py-3 flex items-center justify-between border-b border-[#334155] bg-slate-800/70">
                   <div className="flex items-center gap-2.5">
-                    <span className="size-5.5 rounded-full flex items-center justify-center text-xs font-extrabold bg-teal-500/20 text-teal-300 border border-teal-500/30">
+                    <span className="generator-step-number">
                       1
                     </span>
                     <h3 className="text-sm font-bold text-slate-100">
-                      교재 선택 (Textbook)
+                      교재 선택
                     </h3>
                   </div>
                   <button
@@ -2591,10 +2608,10 @@ export default function Home() {
                 </div>
                 <div className="p-4 space-y-3">
                   {/* Selected Department Indicator */}
-                  <div className="flex items-center justify-between px-3.5 py-2.5 bg-[#111c30] rounded-lg border border-[#334155]">
+                  <div className="generator-department">
                     <div className="flex items-center gap-2">
                       <span className="inline-flex items-center rounded-lg border border-[#475569] bg-[#253349] px-3 py-2 text-xs font-extrabold text-[#b6c3d5] shadow-sm">
-                        현재 위치:{' '}
+                        선택 부서:{' '}
                         {department === 'middle' ? '중등부' : '고등부'}
                       </span>
                     </div>
@@ -2644,9 +2661,7 @@ export default function Home() {
                               )
                               .map((tb) => (
                                 <option key={tb.id} value={tb.id}>
-                                  {tb.title} (
-                                  {allTextbookInfo[tb.id]?.name || tb.title} -{' '}
-                                  {tb.subject})
+                                  {tb.title} · {tb.subject}
                                 </option>
                               ))}
                           </optgroup>
@@ -2660,9 +2675,7 @@ export default function Home() {
                               )
                               .map((tb) => (
                                 <option key={tb.id} value={tb.id}>
-                                  {tb.title} (
-                                  {allTextbookInfo[tb.id]?.name || tb.title} -{' '}
-                                  {tb.subject})
+                                  {tb.title} · {tb.subject}
                                 </option>
                               ))}
                           </optgroup>
@@ -2678,9 +2691,7 @@ export default function Home() {
                               )
                               .map((tb) => (
                                 <option key={tb.id} value={tb.id}>
-                                  {tb.title} (
-                                  {allTextbookInfo[tb.id]?.name || tb.title} -{' '}
-                                  {tb.subject})
+                                  {tb.title} · {tb.subject}
                                 </option>
                               ))}
                           </optgroup>
@@ -2693,9 +2704,7 @@ export default function Home() {
                               )
                               .map((tb) => (
                                 <option key={tb.id} value={tb.id}>
-                                  {tb.title} (
-                                  {allTextbookInfo[tb.id]?.name || tb.title} -{' '}
-                                  {tb.subject})
+                                  {tb.title} · {tb.subject}
                                 </option>
                               ))}
                           </optgroup>
@@ -2703,17 +2712,15 @@ export default function Home() {
                       ) : (
                         textbooks.map((tb) => (
                           <option key={tb.id} value={tb.id}>
-                            {tb.title} (
-                            {allTextbookInfo[tb.id]?.name || tb.title} -{' '}
-                            {tb.subject})
+                            {tb.title} · {tb.subject}
                           </option>
                         ))
                       )}
                     </select>
-                    <div className="mt-2.5 p-2.5 rounded-lg bg-[#253349] border border-teal-500/30 text-xs flex flex-col gap-1.5 shadow-inner">
+                    <div className="generator-range">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="inline-flex items-center gap-1 font-bold text-teal-300">
-                          📌 지원 문항:
+                          지원 문항
                         </span>
                         <strong className="text-slate-100 font-mono bg-teal-500/20 px-2 py-0.5 rounded border border-teal-400/40 text-xs">
                           {currentTbInfo.range_text || `1 ~ ${currentTbInfo.max_num}번`}
@@ -2734,20 +2741,21 @@ export default function Home() {
               </div>
 
               {/* Step 2: 학생 정보 */}
-              <div className="bg-[#1e293b] border border-[#334155] border-l-4 border-l-teal-500 rounded-xl shadow-md overflow-hidden">
+              <div className="generator-step" id="generator-student">
                 <div className="generator-step-header px-4 py-3 flex items-center justify-between border-b border-[#334155] bg-slate-800/70">
                   <div className="flex items-center gap-2.5">
-                    <span className="size-5.5 rounded-full flex items-center justify-center text-xs font-extrabold bg-teal-500/20 text-teal-300 border border-teal-500/30">
+                    <span className="generator-step-number">
                       2
                     </span>
                     <h3 className="text-sm font-bold text-slate-100">
-                      학생 정보 입력
+                      학생 정보
                     </h3>
                   </div>
-                  <div className="flex items-center bg-[#111c30] p-0.5 rounded-lg border border-[#334155]">
+                  <div className="generator-student-mode flex items-center bg-[#111c30] p-0.5 rounded-lg border border-[#334155]">
                     <button
                       type="button"
                       onClick={() => setStudentMode('single')}
+                      aria-pressed={studentMode === 'single'}
                       className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
                         studentMode === 'single'
                           ? 'bg-teal-600 text-slate-100 shadow-sm'
@@ -2759,13 +2767,14 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={() => setStudentMode('batch')}
+                      aria-pressed={studentMode === 'batch'}
                       className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
                         studentMode === 'batch'
                           ? 'bg-teal-600 text-slate-100 shadow-sm'
                           : 'text-slate-300 hover:text-slate-200'
                       }`}
                     >
-                      다중 일괄(반 전체)
+                      여러 학생
                     </button>
                   </div>
                 </div>
@@ -2789,7 +2798,7 @@ export default function Home() {
                         />
                         <small className="block mt-1 text-[11px] text-slate-400">
                           ※ 쉼표로 여러 명(예: 김민준, 이서진)을 적거나 우측
-                          [다중 일괄] 탭을 선택하세요.
+                          [여러 학생] 탭을 선택하세요.
                         </small>
                       </div>
                       <div>
@@ -2866,20 +2875,17 @@ export default function Home() {
               </div>
 
               {/* Step 3: 문항 번호 선택 */}
-              <div className="bg-[#1e293b] border border-[#334155] border-l-4 border-l-teal-500 rounded-xl shadow-md overflow-hidden">
+              <div className="generator-step" id="generator-problems">
                 <div className="generator-step-header px-4 py-3 flex items-center justify-between border-b border-[#334155] bg-slate-800/70">
                   <div className="flex items-center gap-2.5">
-                    <span className="size-5.5 rounded-full flex items-center justify-center text-xs font-extrabold bg-teal-500/20 text-teal-300 border border-teal-500/30">
+                    <span className="generator-step-number">
                       3
                     </span>
                     <h3 className="text-sm font-bold text-slate-100">
-                      문제 번호 선택{' '}
-                      <span className="text-xs font-normal text-teal-300">
-                        ({currentTbInfo.range_text || `1~${currentTbInfo.max_num}번`})
-                      </span>
+                      문항 선택
                     </h3>
                   </div>
-                  <div className="text-xs text-slate-300 bg-teal-500/15 border border-teal-500/30 px-3 py-1 rounded-full font-medium">
+                  <div className="generator-count">
                     총{' '}
                     <strong className="text-teal-300 font-bold">
                       {highSchoolProblemCount}
@@ -3943,28 +3949,29 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Step 4: 상세 양식 & 표지 설정 (아코디언) */}
-              <div className="bg-[#1e293b] border border-[#334155] border-l-4 border-l-amber-500 rounded-xl shadow-md overflow-hidden">
+              {/* Step 4: 표지 및 서식 (아코디언) */}
+              <div className="generator-step" id="generator-cover">
                 <button
                   type="button"
                   className="w-full generator-step-header px-4 py-3 flex items-center justify-between border-b border-[#334155] bg-slate-800/70 text-left cursor-pointer select-none"
                   onClick={() => setOptionsCollapsed(!optionsCollapsed)}
                   aria-label="상세 양식 및 표지 설정 토글"
+                  aria-expanded={optionsCollapsed}
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className="size-5.5 rounded-full flex items-center justify-center text-xs font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    <span className="generator-step-number">
                       4
                     </span>
                     <h3 className="text-sm font-bold text-slate-100">
-                      상세 양식 & 표지 설정
+                      표지 및 서식
                     </h3>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300">
-                      서식·표지 옵션
+                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-700/30 border border-slate-600/40 text-slate-300">
+                      선택 설정
                     </span>
-                    <span className="text-xs text-amber-300 font-bold">
-                      {optionsCollapsed ? '▼ 접기' : '▲ 펼치기'}
+                    <span className="text-xs text-slate-400 font-medium">
+                      {optionsCollapsed ? '접기 −' : '펼치기 +'}
                     </span>
                   </div>
                 </button>
@@ -4131,7 +4138,7 @@ export default function Home() {
               </div>
 
               {/* Action Buttons */}
-              <div className="generator-actions flex flex-wrap items-center gap-2.5 pt-1">
+              <div className="generator-actions">
                 <button
                   type="button"
                   className="flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-semibold bg-[#1e293b] hover:bg-[#193b3b] border border-[#334155] hover:border-[#408d7b] text-[#b6c3d5] hover:text-slate-100 transition-all cursor-pointer disabled:opacity-50"
@@ -4182,16 +4189,12 @@ export default function Home() {
 
             {/* Right Preview Panel */}
             <section
-              className={`bg-[#1e293b] border border-[#334155] rounded-xl shadow-md flex flex-col p-4 sm:p-5 sticky top-6 transition-all duration-200 ${
-                previewExpanded
-                  ? 'min-h-[1180px]'
-                  : 'min-h-[960px] xl:min-h-[1020px]'
-              }`}
+              className={`generator-preview ${previewExpanded ? 'is-expanded' : ''}`}
             >
               <div className="generator-preview-header flex flex-wrap items-center justify-between pb-3.5 mb-3.5 border-b border-[#334155] gap-2.5">
                 <div className="flex items-center gap-2.5 flex-wrap">
                   <h3 className="text-sm font-bold text-slate-100">
-                    실시간 오답노트 미리보기
+                    미리보기
                   </h3>
                   {studentMode === 'batch' &&
                     parsedBatchStudentNames.length > 0 && (
@@ -4274,11 +4277,7 @@ export default function Home() {
               </div>
 
               <div
-                className={`flex-1 bg-[#0b1220] border border-[#334155] rounded-lg overflow-hidden flex flex-col items-center justify-center relative transition-all duration-200 ${
-                  previewExpanded
-                    ? 'min-h-[1100px]'
-                    : 'min-h-[900px] xl:min-h-[960px]'
-                }`}
+                className={`generator-preview-surface ${previewExpanded ? 'is-expanded' : ''}`}
               >
                 {/* 최초 로딩 시: 전체 화면 중앙 스피너 */}
                 {previewLoading && !previewPdfUrl && (
@@ -4304,22 +4303,20 @@ export default function Home() {
                     src={`${previewPdfUrl}#toolbar=0&navpanes=0&view=${previewViewMode}&page=${previewPage}`}
                     title="오답노트 실시간 미리보기"
                     className="w-full h-full rounded-lg border-0 bg-white shadow-md transition-all"
-                    style={{ minHeight: previewExpanded ? '1100px' : '960px' }}
+                    style={{ minHeight: previewExpanded ? '1000px' : '720px' }}
                   />
                 ) : (
-                  <div className="flex flex-col items-center justify-center p-8 text-center text-slate-300 max-w-md">
-                    <div className="size-16 mb-4 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-300">
+                  <div className="generator-empty">
+                    <div className="generator-empty-icon">
                       <FileText className="size-8" />
                     </div>
                     <h4 className="text-base font-bold text-slate-200 mb-1">
                       {currentTb?.title} 오답노트
                     </h4>
                     <p className="text-xs text-slate-300 mb-4 leading-relaxed">
-                      좌측에서 틀린 문제 번호를 입력하시면<br />
-                      실제 시험지/오답노트 PDF가 이곳에 고화질로 즉시
-                      렌더링됩니다.
+                      문제 번호를 입력하면 완성된 오답노트가 여기에 표시됩니다.
                     </p>
-                    <div className="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-left space-y-1.5 text-xs">
+                    <div className="generator-summary">
                       <div className="flex justify-between text-slate-300">
                         <span>학생 성명:</span>
                         <strong className="text-slate-200">
@@ -4335,7 +4332,7 @@ export default function Home() {
                       </div>
                       <div className="flex justify-between text-slate-300">
                         <span>지원 문항:</span>
-                        <strong className="text-amber-300 font-mono">
+                        <strong className="text-slate-200 font-mono">
                           {currentTbInfo.range_text || `${currentTbInfo.max_num}번까지`}
                         </strong>
                       </div>
@@ -4354,13 +4351,14 @@ export default function Home() {
                       <RefreshCw
                         className={`size-4 ${previewLoading ? 'animate-spin' : ''}`}
                       />
-                      지금 실시간 미리보기 생성
+                      미리보기 만들기
                     </button>
                   </div>
                 )}
               </div>
             </section>
           </main>
+          </div>
         </div>
       </div>
     );
