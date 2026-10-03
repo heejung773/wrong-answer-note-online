@@ -316,6 +316,20 @@ def _load_single_image(supabase_url: str, secret_key: str, bucket: str, textbook
                 return (number, data)
             except Exception:
                 pass
+    elif textbook == "synergy-calculus":
+        local_cand = Path(r"D:\시너지_미적분\문제모음") / f"{number:04d}.png"
+        if not local_cand.is_file():
+            local_cand = Path(r"D:\시너지_미적분\905번부터이미지") / f"{number:04d}.png"
+        if not local_cand.is_file():
+            local_cand = Path(r"D:\시너지_미적분\문제모음_개선본") / f"{number:04d}.png"
+        if local_cand.is_file():
+            try:
+                data = local_cand.read_bytes()
+                Image.open(BytesIO(data)).verify()
+                IMAGE_CACHE.set(cache_key, data)
+                return (number, data)
+            except Exception:
+                pass
     elif textbook == "ssen-common-math-1":
         local_root = Path(r"D:\공통수학1_쎈\문제모음")
         if local_root.is_dir():

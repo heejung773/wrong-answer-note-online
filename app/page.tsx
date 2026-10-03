@@ -940,15 +940,16 @@ interface TextbookInfoDetail {
   range_text?: string;
   note?: string;
   desc: string;
+  valid_ranges?: [number, number][];
 }
 
 const allTextbookInfo: Record<string, TextbookInfoDetail> = {
   'synergy-calculus': {
     name: '마플시너지 미적분',
     min_num: 1,
-    max_num: 1200,
-    range_text: '1 ~ 1200번',
-    desc: '총 1200문항 데이터베이스 연동',
+    max_num: 1568,
+    range_text: '1 ~ 1568번',
+    desc: '총 1568문항 데이터베이스 연동',
   },
   'synergy-algebra': {
     name: '마플시너지 대수',
@@ -980,9 +981,14 @@ const allTextbookInfo: Record<string, TextbookInfoDetail> = {
   'gojaengi-common-math-2': {
     name: '고쟁이 공통수학2',
     min_num: 1,
-    max_num: 380,
-    range_text: '1 ~ 380번',
+    max_num: 724,
+    range_text: '1 ~ 360번 · 705 ~ 724번',
+    note: '1~360번 및 705~724번 수록 (총 380문항)',
     desc: '총 380문항 데이터베이스 연동',
+    valid_ranges: [
+      [1, 360],
+      [705, 724],
+    ],
   },
   'ssen-common-math-1': {
     name: '신사고 쎈 공통수학1',
@@ -998,19 +1004,19 @@ const allTextbookInfo: Record<string, TextbookInfoDetail> = {
     max_num: 1142,
     range_text: '21 ~ 1142번',
     note: 'A단계(1~20번 기본 연산) 제외, B·C단계 전 문항 제공',
-    desc: '총 1142문항 데이터베이스 연동',
+    desc: '총 882문항 데이터베이스 연동',
   },
   'blacklabel-middle-2-2': {
     name: '블랙라벨 중2-2',
     max_num: 100,
     range_text: '대단원 · 소단원 · 단계별 문항 선택',
-    desc: '대단원·소단원·단계별 문항 데이터베이스 연동',
+    desc: '총 511문항 (대단원·소단원·단계별) 데이터베이스 연동',
   },
   'concept-middle-2-2': {
     name: '개념유형파워 중2-2',
     max_num: 100,
     range_text: '대단원 · 소단원 · 유형별 문항 선택',
-    desc: '대단원·소단원·유형별 문항 데이터베이스 연동',
+    desc: '총 751문항 (대단원·소단원·유형별) 데이터베이스 연동',
   },
   'basic-ssen-middle-2-2': {
     name: '신사고 베이직쎈 중2-2',
@@ -1030,13 +1036,13 @@ const allTextbookInfo: Record<string, TextbookInfoDetail> = {
     name: '블랙라벨 중3-1',
     max_num: 100,
     range_text: '8개 대단원 · 4개 Step 문항 선택',
-    desc: '8개 대단원 · 4개 Step 문항 데이터베이스 연동',
+    desc: '총 352문항 (8개 대단원 · 4개 Step) 데이터베이스 연동',
   },
   'concept-middle-3-1': {
     name: '개념유형파워 중3-1',
     max_num: 100,
     range_text: '6개 대단원 · 유형별 문항 선택',
-    desc: '6개 대단원 · 유형별/단원마무리 문항 데이터베이스 연동',
+    desc: '총 760문항 (6개 대단원 · 유형별/단원마무리) 데이터베이스 연동',
   },
 };
 
@@ -1227,6 +1233,9 @@ export default function Home() {
       textbook !== 'basic-ssen-middle-2-2';
     if (!isSequentialTb) return [];
     return parsedProblemNumbers.filter((n) => {
+      if (info.valid_ranges && info.valid_ranges.length > 0) {
+        return !info.valid_ranges.some(([start, end]) => n >= start && n <= end);
+      }
       if (info.min_num !== undefined && n < info.min_num) return true;
       if (info.max_num !== undefined && n > info.max_num) return true;
       return false;
@@ -1875,6 +1884,9 @@ export default function Home() {
       const info = allTextbookInfo[activeTb];
       if (info) {
         const outOfRange = parsed.filter((n) => {
+          if (info.valid_ranges && info.valid_ranges.length > 0) {
+            return !info.valid_ranges.some(([start, end]) => n >= start && n <= end);
+          }
           if (info.min_num !== undefined && n < info.min_num) return true;
           if (info.max_num !== undefined && n > info.max_num) return true;
           return false;
@@ -2863,7 +2875,7 @@ export default function Home() {
                     <h3 className="text-sm font-bold text-slate-100">
                       문제 번호 선택{' '}
                       <span className="text-xs font-normal text-blue-400">
-                        (1~{currentTbInfo.max_num}번)
+                        ({currentTbInfo.range_text || `1~${currentTbInfo.max_num}번`})
                       </span>
                     </h3>
                   </div>
