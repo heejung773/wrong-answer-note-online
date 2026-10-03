@@ -2573,16 +2573,6 @@ export default function Home() {
             </div>
             <span className="generator-topbar-context">{department === 'middle' ? '중등부' : '고등부'}<span />{currentTb?.title}</span>
           </header>
-          <div className="generator-body">
-          <nav className="generator-nav" aria-label="오답노트 작업 단계">
-            <div className="generator-nav-brand"><BookOpen className="size-5" /><span>오답노트 작업실</span></div>
-            <p>작업 단계</p>
-            <a href="#generator-textbook"><span>01</span>교재 선택</a>
-            <a href="#generator-student"><span>02</span>학생 정보</a>
-            <a href="#generator-problems"><span>03</span>문항 선택</a>
-            <a href="#generator-cover" onClick={() => setOptionsCollapsed(true)}><span>04</span>표지 및 서식</a>
-            <div className="generator-nav-note">선택한 문제만 모아<br />학생별 오답노트를 만드세요.</div>
-          </nav>
           <main className="generator-grid">
             {/* Left Config Panel */}
             <section className="generator-settings" aria-label="오답노트 설정">
@@ -4358,7 +4348,6 @@ export default function Home() {
               </div>
             </section>
           </main>
-          </div>
         </div>
       </div>
     );

@@ -577,15 +577,6 @@ html:has(.selection-canvas) {
 .generator-subtitle { color: #91a0b5; font-size: 14px; margin-top: 8px; line-height: 1.6; }
 .generator-topbar-context { display: inline-flex; align-items: center; gap: 12px; color: #aebbcf; font-size: 13px; }
 .generator-topbar-context > span { width: 3px; height: 3px; background: #63758b; border-radius: 50%; }
-.generator-body { display: grid; grid-template-columns: 172px minmax(0, 1fr); gap: 24px; align-items: start; }
-.generator-nav { position: sticky; top: 24px; border-radius: 14px; background: #172538; padding: 20px 14px; min-height: 720px; }
-.generator-nav-brand { display: flex; align-items: center; gap: 10px; color: #d3e0ee; font-size: 13px; font-weight: 650; padding: 4px 2px 26px; }
-.generator-nav-brand svg { color: #49c8cd; flex-shrink: 0; }
-.generator-nav > p { color: #8397b0; font-size: 11px; margin: 0 10px 12px; }
-.generator-nav a { display: flex; align-items: center; gap: 12px; border-radius: 8px; color: #adbed3; padding: 13px 10px; font-size: 13px; margin-bottom: 6px; }
-.generator-nav a span { color: #6e87a3; font-size: 11px; }
-.generator-nav a:hover, .generator-nav a:focus-visible { background: #214355; color: #7de5e6; }
-.generator-nav-note { border-top: 1px solid #2c3a4f; margin: 28px 10px 0; padding-top: 18px; color: #8397b0; font-size: 11px; line-height: 1.9; }
 .generator-grid { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: 24px; align-items: start; }
 .generator-settings { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .generator-step { border: 1px solid var(--workspace-border); border-radius: 12px; background: #172538; overflow: hidden; scroll-margin-top: 24px; }
@@ -643,7 +634,6 @@ html:has(.selection-canvas) {
 .generator-actions button { min-width: 0; min-height: 44px; border-radius: 10px; font-size: 13px; }
 .generator-actions button:nth-child(2) { grid-row: 1; grid-column: 1 / -1; min-height: 48px; background: #35c3ca; border-color: #35c3ca; color: #09252c; font-weight: 700; }
 .generator-actions button:nth-child(2):hover { background: #78e1e4; transform: none; }
-@media (max-width: 1399px) { .generator-body { grid-template-columns: 1fr; } .generator-nav { display: none; } }
 @media (max-width: 1199px) { .generator-grid { grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 18px; } .generator-topbar-context { display: none; } }
 @media (max-width: 959px) { .generator-grid { grid-template-columns: 1fr; } .generator-preview { position: static; } .generator-preview-surface { min-height: 560px; } }
 @media (max-width: 639px) { .generator-canvas { padding: 24px 14px 32px; } .generator-topbar { margin-bottom: 22px; } .generator-topbar h1 { font-size: 23px; } .generator-subtitle { font-size: 13px; } .generator-step > .p-4 { padding: 16px; } .generator-canvas .generator-step-header { padding: 16px; } .generator-preview-header { padding: 18px; } .generator-department { flex-wrap: wrap; } }
