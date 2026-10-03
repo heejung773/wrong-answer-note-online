@@ -2566,8 +2566,16 @@ export default function Home() {
       <div className="generator-canvas min-h-screen">
         <div className="generator-shell">
           <header className="generator-topbar">
-            <h1>나만의 오답노트 만들기</h1>
-            <span className="generator-topbar-context">{department === 'middle' ? '중등부' : '고등부'}<span />{currentTb?.title}</span>
+            <div className="generator-topbar-brand">
+              <span className="generator-academy"><BookOpen className="size-4" />다산미래학원</span>
+              <h1>맞춤 오답노트 생성기</h1>
+            </div>
+            <div className="generator-topbar-tools">
+              <span className="generator-topbar-context">{department === 'middle' ? '중등부' : '고등부'}<span />{currentTb?.title}</span>
+              <button type="button" onClick={logout} disabled={busy} className="generator-logout">
+                <LogOut className="size-3.5" /> 로그아웃
+              </button>
+            </div>
           </header>
           <main className="generator-grid">
             {/* Left Config Panel */}
@@ -2583,14 +2591,6 @@ export default function Home() {
                       교재 선택
                     </h3>
                   </div>
-                  <button
-                    type="button"
-                    onClick={logout}
-                    disabled={busy}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-[#475569] bg-[#253349] px-3 py-2 text-xs font-extrabold text-[#b6c3d5] shadow-sm transition-all hover:bg-[#334155] hover:text-slate-100 cursor-pointer disabled:opacity-50"
-                  >
-                    <LogOut className="size-3.5" /> 로그아웃
-                  </button>
                 </div>
                 <div className="p-4 space-y-3">
                   {/* Selected Department Indicator */}
