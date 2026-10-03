@@ -2566,11 +2566,7 @@ export default function Home() {
       <div className="generator-canvas min-h-screen">
         <div className="generator-shell">
           <header className="generator-topbar">
-            <div>
-              <p className="generator-eyebrow">다산미래학원 · 오답노트</p>
-              <h1>나만의 오답노트 만들기</h1>
-              <p className="generator-subtitle">교재와 문제를 선택하면 인쇄할 수 있는 PDF로 정리해 드려요.</p>
-            </div>
+            <h1>나만의 오답노트 만들기</h1>
             <span className="generator-topbar-context">{department === 'middle' ? '중등부' : '고등부'}<span />{currentTb?.title}</span>
           </header>
           <main className="generator-grid">
