@@ -149,37 +149,37 @@ export default function AdminUsagePage() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-background px-5 text-foreground">
         <form
-          className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-7"
+          className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-800 p-7"
           onSubmit={handleAdminLogin}
         >
           <p className="text-xs uppercase tracking-[0.25em] text-primary">
             Admin
           </p>
           <h1 className="mt-3 text-2xl font-semibold">관리자 로그인</h1>
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-slate-300">
             관리자 Supabase 계정으로 로그인해 주세요.
           </p>
-          <label className="mt-6 block text-sm text-slate-600">
+          <label className="mt-6 block text-sm text-slate-300">
             이메일
             <input
-              className="mt-2 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-foreground"
+              className="mt-2 w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-foreground"
               type="email"
               value={loginEmail}
               onChange={(event) => setLoginEmail(event.target.value)}
               required
             />
           </label>
-          <label className="mt-4 block text-sm text-slate-600">
+          <label className="mt-4 block text-sm text-slate-300">
             비밀번호
             <input
-              className="mt-2 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-foreground"
+              className="mt-2 w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-foreground"
               type="password"
               value={loginPassword}
               onChange={(event) => setLoginPassword(event.target.value)}
               required
             />
           </label>
-          {error && <p className="mt-4 text-sm text-red-700">{error}</p>}
+          {error && <p className="mt-4 text-sm text-red-300">{error}</p>}
           <button
             className="mt-6 w-full rounded-md bg-primary px-4 py-2.5 font-medium text-white disabled:opacity-50"
             disabled={loginBusy}
@@ -199,24 +199,24 @@ export default function AdminUsagePage() {
           Admin
         </p>
         <h1 className="mt-2 text-3xl font-semibold">사용량 관리</h1>
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="mt-2 text-sm text-slate-300">
           PDF 생성과 바로 인쇄 실행 기록입니다.
         </p>
-        {loading && <p className="mt-8 text-sm text-slate-600">불러오는 중…</p>}
+        {loading && <p className="mt-8 text-sm text-slate-300">불러오는 중…</p>}
         {error && (
-          <p className="mt-8 rounded-lg border border-red-400/30 bg-red-400/10 p-4 text-sm text-red-700">
+          <p className="mt-8 rounded-lg border border-red-400/30 bg-red-400/10 p-4 text-sm text-red-300">
             {error}
           </p>
         )}
         {!loading && !error && (
           <>
-            <section className="mt-8 flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-white p-4">
-              <label className="text-sm text-slate-600">
+            <section className="mt-8 flex flex-wrap items-end gap-3 rounded-xl border border-slate-700 bg-slate-800 p-4">
+              <label className="text-sm text-slate-300">
                 시작일
                 <span className="relative mt-1 block">
                   <CalendarDays className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-primary" />
                   <input
-                    className="block rounded-md border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-foreground [color-scheme:dark]"
+                    className="block rounded-md border border-slate-700 bg-slate-800 py-2 pl-9 pr-3 text-foreground [color-scheme:dark]"
                     type="date"
                     value={draftFromDate}
                     onChange={(event) => {
@@ -225,12 +225,12 @@ export default function AdminUsagePage() {
                   />
                 </span>
               </label>
-              <label className="text-sm text-slate-600">
+              <label className="text-sm text-slate-300">
                 종료일
                 <span className="relative mt-1 block">
                   <CalendarDays className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-primary" />
                   <input
-                    className="block rounded-md border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-foreground [color-scheme:dark]"
+                    className="block rounded-md border border-slate-700 bg-slate-800 py-2 pl-9 pr-3 text-foreground [color-scheme:dark]"
                     type="date"
                     value={draftToDate}
                     onChange={(event) => {
@@ -240,7 +240,7 @@ export default function AdminUsagePage() {
                 </span>
               </label>
               <button
-                className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-[#066454]"
+                className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-[#115e59]"
                 onClick={() => {
                   setFromDate(draftFromDate);
                   setToDate(draftToDate);
@@ -251,7 +251,7 @@ export default function AdminUsagePage() {
                 <Search className="size-4" /> 검색
               </button>
               <button
-                className="rounded-md border border-slate-200 px-3 py-2 text-sm text-primary hover:bg-slate-100"
+                className="rounded-md border border-slate-700 px-3 py-2 text-sm text-primary hover:bg-slate-800"
                 onClick={() => {
                   setFromDate('');
                   setToDate('');
@@ -263,17 +263,17 @@ export default function AdminUsagePage() {
               >
                 전체 기간
               </button>
-              <span className="pb-2 text-sm text-slate-600">
+              <span className="pb-2 text-sm text-slate-300">
                 {filteredEvents.length}건 조회
               </span>
             </section>
             <section className="mt-8 grid gap-4 sm:grid-cols-3">
-              <div className="rounded-xl border border-slate-200 bg-white p-5">
-                <div className="text-sm text-slate-600">사용자 수</div>
+              <div className="rounded-xl border border-slate-700 bg-slate-800 p-5">
+                <div className="text-sm text-slate-300">사용자 수</div>
                 <div className="mt-2 text-3xl">{summary.length}</div>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-white p-5">
-                <div className="text-sm text-slate-600">PDF 생성</div>
+              <div className="rounded-xl border border-slate-700 bg-slate-800 p-5">
+                <div className="text-sm text-slate-300">PDF 생성</div>
                 <div className="mt-2 text-3xl">
                   {
                     filteredEvents.filter(
@@ -282,8 +282,8 @@ export default function AdminUsagePage() {
                   }
                 </div>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-white p-5">
-                <div className="text-sm text-slate-600">바로 인쇄</div>
+              <div className="rounded-xl border border-slate-700 bg-slate-800 p-5">
+                <div className="text-sm text-slate-300">바로 인쇄</div>
                 <div className="mt-2 text-3xl">
                   {
                     filteredEvents.filter(
@@ -293,12 +293,12 @@ export default function AdminUsagePage() {
                 </div>
               </div>
             </section>
-            <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-white">
-              <h2 className="border-b border-slate-200 p-4 text-lg font-medium">
+            <div className="mt-8 overflow-x-auto rounded-xl border border-slate-700 bg-slate-800">
+              <h2 className="border-b border-slate-700 p-4 text-lg font-medium">
                 사용자별 총 실행 횟수
               </h2>
               <table className="w-full min-w-[680px] text-left text-sm">
-                <thead className="border-b border-slate-200 text-slate-600">
+                <thead className="border-b border-slate-700 text-slate-300">
                   <tr>
                     <th className="p-4">사용자 이메일</th>
                     <th className="p-4">총 실행</th>
@@ -309,7 +309,7 @@ export default function AdminUsagePage() {
                 </thead>
                 <tbody>
                   {summary.map(([userId, item]) => (
-                    <tr key={userId} className="border-b border-slate-200">
+                    <tr key={userId} className="border-b border-slate-700">
                       <td className="p-4">
                         <button
                           className="text-left text-primary underline-offset-4 hover:underline"
@@ -325,7 +325,7 @@ export default function AdminUsagePage() {
                       <td className="p-4 font-semibold">{item.total}회</td>
                       <td className="p-4">{item.generated}회</td>
                       <td className="p-4">{item.printed}회</td>
-                      <td className="p-4 text-slate-600">
+                      <td className="p-4 text-slate-300">
                         {new Date(item.last).toLocaleString('ko-KR')}
                       </td>
                     </tr>
@@ -333,13 +333,13 @@ export default function AdminUsagePage() {
                 </tbody>
               </table>
               {!summary.length && (
-                <p className="p-8 text-center text-sm text-slate-600">
+                <p className="p-8 text-center text-sm text-slate-300">
                   아직 기록이 없습니다.
                 </p>
               )}
             </div>
-            <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-white">
-              <div className="flex items-center justify-between border-b border-slate-200 p-4">
+            <div className="mt-8 overflow-x-auto rounded-xl border border-slate-700 bg-slate-800">
+              <div className="flex items-center justify-between border-b border-slate-700 p-4">
                 <h2 className="text-lg font-medium">
                   {selectedEmail
                     ? `${selectedEmail} 상세 실행 내역`
@@ -359,7 +359,7 @@ export default function AdminUsagePage() {
                 )}
               </div>
               <table className="w-full min-w-[760px] text-left text-sm">
-                <thead className="border-b border-slate-200 text-slate-600">
+                <thead className="border-b border-slate-700 text-slate-300">
                   <tr>
                     <th className="p-4">사용자 이메일</th>
                     <th className="p-4">실행</th>
@@ -370,14 +370,14 @@ export default function AdminUsagePage() {
                 </thead>
                 <tbody>
                   {pagedEvents.map((event) => (
-                    <tr key={event.id} className="border-b border-slate-200">
+                    <tr key={event.id} className="border-b border-slate-700">
                       <td className="p-4">{event.user_email}</td>
                       <td className="p-4">
                         {labels[event.event_type] ?? event.event_type}
                       </td>
                       <td className="p-4">{event.textbook ?? '-'}</td>
                       <td className="p-4">{event.problem_count ?? '-'}</td>
-                      <td className="p-4 text-slate-600">
+                      <td className="p-4 text-slate-300">
                         {new Date(event.created_at).toLocaleString('ko-KR')}
                       </td>
                     </tr>
@@ -385,14 +385,14 @@ export default function AdminUsagePage() {
                 </tbody>
               </table>
               {!visibleEvents.length && (
-                <p className="p-8 text-center text-sm text-slate-600">
+                <p className="p-8 text-center text-sm text-slate-300">
                   아직 기록이 없습니다.
                 </p>
               )}
               {pageCount > 1 && (
                 <div className="flex items-center justify-center gap-4 p-4 text-sm">
                   <button
-                    className="rounded-md border border-slate-200 px-3 py-2 disabled:opacity-40"
+                    className="rounded-md border border-slate-700 px-3 py-2 disabled:opacity-40"
                     disabled={detailPage === 1}
                     onClick={() => setDetailPage((page) => page - 1)}
                     type="button"
@@ -403,7 +403,7 @@ export default function AdminUsagePage() {
                     {detailPage} / {pageCount} 페이지
                   </span>
                   <button
-                    className="rounded-md border border-slate-200 px-3 py-2 disabled:opacity-40"
+                    className="rounded-md border border-slate-700 px-3 py-2 disabled:opacity-40"
                     disabled={detailPage === pageCount}
                     onClick={() => setDetailPage((page) => page + 1)}
                     type="button"
