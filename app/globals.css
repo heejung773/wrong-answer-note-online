@@ -567,6 +567,10 @@ html:has(.selection-canvas) {
 /* The workspace uses quiet surfaces; mint is reserved for actions and focus. */
 .generator-canvas {
   --workspace-border: #293548;
+  --workspace-heading-size: 17px;
+  --workspace-input-size: 14px;
+  --workspace-body-size: 13px;
+  --workspace-caption-size: 12px;
   background: #0d1421; color: #e6edf5;
   padding: 14px 28px 48px; font-family: inherit;
 }
@@ -583,42 +587,45 @@ html:has(.selection-canvas) {
 .generator-topbar-context > span { width: 3px; height: 3px; background: #63758b; border-radius: 50%; }
 .generator-grid { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: 24px; align-items: start; }
 .generator-settings { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-.generator-step { border: 1px solid var(--workspace-border); border-radius: 12px; background: #172538; overflow: hidden; scroll-margin-top: 24px; }
+.generator-step { border: 1px solid #3a536b; border-radius: 12px; background: #172538; overflow: hidden; scroll-margin-top: 24px; font-size: var(--workspace-body-size); line-height: 1.6; }
 .generator-canvas .generator-step-header {
-  background: transparent; border-bottom: 1px solid var(--workspace-border); box-shadow: none;
+  background: #203b4d; border-bottom: 1px solid #3c6577; box-shadow: inset 3px 0 0 #52d5d4;
   padding: 18px 20px; min-height: 68px; gap: 12px; flex-wrap: wrap;
 }
-.generator-step-header h3 { color: #e6edf5; font-size: 15px; font-weight: 650; letter-spacing: -.02em; }
-.generator-step-number { display: grid; place-items: center; width: 28px; height: 28px; flex-shrink: 0; border-radius: 8px; background: #253246; color: #b7c7da; font-size: 12px; font-weight: 700; border: 0; }
+.generator-canvas .generator-step-header h3 { color: #f1f8ff; font-size: var(--workspace-heading-size); font-weight: 750; line-height: 1.4; letter-spacing: -.02em; }
+.generator-step-number { display: grid; place-items: center; width: 32px; height: 32px; flex-shrink: 0; border-radius: 9px; background: #52d5d4; color: #0b2b35; font-size: 15px; font-weight: 800; border: 1px solid #84e6e4; }
 .generator-count { color: #92a6be; font-size: 12px; font-weight: 500; }
 .generator-count strong { color: #d3e0ee; font-weight: 600; }
 .generator-student-mode button { min-height: 32px; font-size: 12px; }
 .generator-student-mode button[aria-pressed='true'] { background: #294f60; color: #99e3e5; }
-.generator-preview-header > div:first-child > span { background: #223447; color: #97b8c9; border-color: #32475c; font-size: 11px; }
+.generator-preview-header > div:first-child > span { background: #223447; color: #97b8c9; border-color: #32475c; font-size: var(--workspace-caption-size); }
 .generator-step > .p-4 { padding: 20px; }
-.generator-step label { color: #b8c5d7; font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+.generator-step label { color: #b8c5d7; font-size: var(--workspace-body-size); font-weight: 600; line-height: 1.5; margin-bottom: 8px; }
 .generator-canvas input:not([type='checkbox']):not([type='file']), .generator-canvas select, .generator-canvas textarea {
   background: #0f1826; border: 1px solid #304057; border-radius: 10px;
-  color: #e6edf5; font-size: 14px; line-height: 1.5; min-height: 44px;
+  color: #e6edf5; font-size: var(--workspace-input-size); font-weight: 500; line-height: 1.5; min-height: 44px;
   padding: 11px 13px; box-shadow: none; color-scheme: dark;
 }
 .generator-canvas input::placeholder, .generator-canvas textarea::placeholder { color: #7e90a8; }
 .generator-canvas textarea { min-height: 100px; }
 .generator-canvas input[type='checkbox'] { accent-color: #2dd4bf; }
-.generator-canvas button { font-weight: 550; box-shadow: none; }
+.generator-canvas button { font-size: var(--workspace-body-size); font-weight: 600; box-shadow: none; }
+.generator-step .rounded-full { font-size: var(--workspace-caption-size); font-weight: 600; }
+.generator-step strong { font-weight: 600; }
+.generator-step code { font-family: inherit; font-size: inherit; }
 .generator-canvas button:focus-visible, .generator-canvas input:focus-visible,
 .generator-canvas select:focus-visible, .generator-canvas textarea:focus-visible { outline-color: #5eead4; }
-.generator-canvas small { font-size: 12px; line-height: 1.7; color: #8fa1b9; }
+.generator-canvas small { font-size: var(--workspace-caption-size); font-weight: 400; line-height: 1.7; color: #8fa1b9; }
 .generator-department { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 16px; }
 .generator-department span { padding: 0; background: none; border: 0; color: #9aacc3; font-weight: 500; box-shadow: none; }
 .generator-department button { background: none; border: 0; padding: 6px 0; color: #7dd3c5; font-size: 12px; }
 .generator-range { margin-top: 12px; color: #8fa1b9; font-size: 12px; line-height: 1.7; }
 .generator-range > div > span:first-child { color: #8fa1b9; font-weight: 500; }
 .generator-range strong { background: none; border: 0; padding: 0; color: #c2d1e3; font-family: inherit; font-weight: 600; }
-.generator-range > div > span:last-child { display: block; width: 100%; font-size: 11px; color: #8fa1b9; }
-.generator-preview { background: #172538; border: 1px solid var(--workspace-border); border-radius: 12px; padding: 0; overflow: hidden; min-width: 0; position: sticky; top: 24px; }
-.generator-preview-header { background: transparent; border: 0; border-bottom: 1px solid var(--workspace-border); border-radius: 0; margin: 0; padding: 21px 24px; gap: 16px; }
-.generator-preview-header h3 { color: #e6edf5; font-size: 16px; font-weight: 650; }
+.generator-range > div > span:last-child { display: block; width: 100%; font-size: var(--workspace-caption-size); color: #8fa1b9; }
+.generator-preview { background: #172538; border: 1px solid #3a536b; border-radius: 12px; padding: 0; overflow: hidden; min-width: 0; position: sticky; top: 24px; }
+.generator-preview-header { background: #203b4d; border: 0; border-bottom: 1px solid #3c6577; box-shadow: inset 3px 0 0 #52d5d4; border-radius: 0; margin: 0; padding: 21px 24px; gap: 16px; }
+.generator-preview-header h3 { color: #f1f8ff; font-size: var(--workspace-heading-size); font-weight: 750; line-height: 1.4; }
 .generator-preview-header span { font-weight: 500; }
 .generator-preview-header button { min-height: 36px; font-size: 12px; background: #202d40; color: #c2d1e3; border-color: #35445a; border-radius: 8px; }
 .generator-preview-header button:hover:not(:disabled) { background: #2b3b52; }
