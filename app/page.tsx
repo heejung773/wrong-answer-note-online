@@ -2571,7 +2571,7 @@ export default function Home() {
             <section className="flex flex-col gap-4">
               {/* Step 1: 교재 선택/정보 */}
               <div className="bg-[#ffffff] border border-[#dce4ed] border-l-4 border-l-teal-500 rounded-xl shadow-md overflow-hidden">
-                <div className="px-4 py-3 flex items-center justify-between border-b border-[#dce4ed] bg-slate-50/70">
+                <div className="generator-step-header px-4 py-3 flex items-center justify-between border-b border-[#dce4ed] bg-slate-50/70">
                   <div className="flex items-center gap-2.5">
                     <span className="size-5.5 rounded-full flex items-center justify-center text-xs font-extrabold bg-teal-500/20 text-teal-700 border border-teal-500/30">
                       1
@@ -2735,7 +2735,7 @@ export default function Home() {
 
               {/* Step 2: 학생 정보 */}
               <div className="bg-[#ffffff] border border-[#dce4ed] border-l-4 border-l-teal-500 rounded-xl shadow-md overflow-hidden">
-                <div className="px-4 py-3 flex items-center justify-between border-b border-[#dce4ed] bg-slate-50/70">
+                <div className="generator-step-header px-4 py-3 flex items-center justify-between border-b border-[#dce4ed] bg-slate-50/70">
                   <div className="flex items-center gap-2.5">
                     <span className="size-5.5 rounded-full flex items-center justify-center text-xs font-extrabold bg-teal-500/20 text-teal-700 border border-teal-500/30">
                       2
@@ -2867,7 +2867,7 @@ export default function Home() {
 
               {/* Step 3: 문항 번호 선택 */}
               <div className="bg-[#ffffff] border border-[#dce4ed] border-l-4 border-l-teal-500 rounded-xl shadow-md overflow-hidden">
-                <div className="px-4 py-3 flex items-center justify-between border-b border-[#dce4ed] bg-slate-50/70">
+                <div className="generator-step-header px-4 py-3 flex items-center justify-between border-b border-[#dce4ed] bg-slate-50/70">
                   <div className="flex items-center gap-2.5">
                     <span className="size-5.5 rounded-full flex items-center justify-center text-xs font-extrabold bg-teal-500/20 text-teal-700 border border-teal-500/30">
                       3
@@ -3947,7 +3947,7 @@ export default function Home() {
               <div className="bg-[#ffffff] border border-[#dce4ed] border-l-4 border-l-amber-500 rounded-xl shadow-md overflow-hidden">
                 <button
                   type="button"
-                  className="w-full px-4 py-3 flex items-center justify-between border-b border-[#dce4ed] bg-slate-50/70 text-left cursor-pointer select-none"
+                  className="w-full generator-step-header px-4 py-3 flex items-center justify-between border-b border-[#dce4ed] bg-slate-50/70 text-left cursor-pointer select-none"
                   onClick={() => setOptionsCollapsed(!optionsCollapsed)}
                   aria-label="상세 양식 및 표지 설정 토글"
                 >
@@ -4188,7 +4188,7 @@ export default function Home() {
                   : 'min-h-[960px] xl:min-h-[1020px]'
               }`}
             >
-              <div className="flex flex-wrap items-center justify-between pb-3.5 mb-3.5 border-b border-[#dce4ed] gap-2.5">
+              <div className="generator-preview-header flex flex-wrap items-center justify-between pb-3.5 mb-3.5 border-b border-[#dce4ed] gap-2.5">
                 <div className="flex items-center gap-2.5 flex-wrap">
                   <h3 className="text-sm font-bold text-slate-900">
                     실시간 오답노트 미리보기

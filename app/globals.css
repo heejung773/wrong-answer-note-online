@@ -329,8 +329,8 @@ html:has(.selection-canvas) {
   outline: 2px solid var(--primary); outline-offset: 3px;
 }
 .generator-canvas button { line-height: 1.4; }
-.generator-canvas button[class*="bg-teal-600"],
-.generator-canvas button[class*="bg-emerald-600"] { color: white; }
+.generator-canvas button[class~="bg-teal-600"],
+.generator-canvas button[class~="bg-emerald-600"] { color: white; }
 
 /* Login: a bright welcome screen with a compact form. */
 .login-stage {
@@ -558,3 +558,37 @@ html:has(.selection-canvas) {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* Give each step a clear visual entry point using the shared mint palette. */
+.generator-canvas .generator-step-header {
+  background: #e4f2ee;
+  border-bottom: 1px solid #b5d7cc;
+  box-shadow: inset 4px 0 0 #087f6c;
+  min-height: 3.75rem;
+  gap: .75rem;
+  flex-wrap: wrap;
+}
+.generator-step-header h3 { font-size: .95rem; font-weight: 800; color: #20334d; }
+.generator-step-header [class*="size-5.5"] {
+  width: 1.8rem; height: 1.8rem; flex-shrink: 0;
+  background: #087f6c; color: #fff; border-color: #087f6c;
+  font-size: .85rem; box-shadow: none;
+}
+.generator-step-header > div:first-child { gap: .7rem; }
+
+.generator-preview-header {
+  background: #e4f2ee; border: 1px solid #b5d7cc;
+  border-left: 4px solid #087f6c; border-radius: .75rem;
+  padding: 1rem; gap: .85rem;
+}
+.generator-preview-header h3 { font-size: 1rem; font-weight: 800; color: #20334d; }
+.generator-preview-header span { font-weight: 700; }
+.generator-preview-header button {
+  min-height: 2.5rem; font-size: .85rem; font-weight: 700;
+  background: #fff; color: #20334d; border-color: #8aa99f;
+}
+.generator-preview-header button:hover:not(:disabled) { background: #d4eae2; }
+.generator-preview-header button[title="새 창에서 원본 크기로 전체화면 보기"] {
+  background: #087f6c; color: #fff; border-color: #087f6c;
+}
+.generator-preview-header button[title="새 창에서 원본 크기로 전체화면 보기"]:hover { background: #066454; }
