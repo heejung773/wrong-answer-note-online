@@ -2563,20 +2563,20 @@ export default function Home() {
     };
 
     return (
-      <div className="generator-canvas min-h-screen bg-[#0B0C10] text-[#E2E8F0] p-3 sm:p-6 font-sans">
+      <div className="generator-canvas min-h-screen bg-[#f7f9fc] text-[#20334d] p-3 sm:p-6 font-sans">
         <div className="max-w-[1680px] mx-auto flex flex-col gap-4">
           {/* Main 2-Column Workspace Grid */}
           <main className="grid grid-cols-1 xl:grid-cols-[480px_1fr] gap-5 items-start">
             {/* Left Config Panel */}
             <section className="flex flex-col gap-4">
               {/* Step 1: 교재 선택/정보 */}
-              <div className="bg-[#151822] border border-[#242938] border-l-4 border-l-cyan-500 rounded-xl shadow-md overflow-hidden">
-                <div className="px-4 py-3 flex items-center justify-between border-b border-[#242938] bg-white/[0.015]">
+              <div className="bg-[#ffffff] border border-[#dce4ed] border-l-4 border-l-teal-500 rounded-xl shadow-md overflow-hidden">
+                <div className="px-4 py-3 flex items-center justify-between border-b border-[#dce4ed] bg-slate-50/70">
                   <div className="flex items-center gap-2.5">
-                    <span className="size-5.5 rounded-full flex items-center justify-center text-xs font-extrabold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                    <span className="size-5.5 rounded-full flex items-center justify-center text-xs font-extrabold bg-teal-500/20 text-teal-700 border border-teal-500/30">
                       1
                     </span>
-                    <h3 className="text-sm font-bold text-slate-100">
+                    <h3 className="text-sm font-bold text-slate-900">
                       교재 선택 (Textbook)
                     </h3>
                   </div>
@@ -2584,16 +2584,16 @@ export default function Home() {
                     type="button"
                     onClick={logout}
                     disabled={busy}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-[#e0aa4f] bg-[#5a3b1b] px-3 py-2 text-xs font-extrabold text-[#f7d58a] shadow-sm transition-all hover:bg-[#7a5125] hover:text-white cursor-pointer disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-[#cad7e5] bg-[#f1f5f9] px-3 py-2 text-xs font-extrabold text-[#52647a] shadow-sm transition-all hover:bg-[#e2e8f0] hover:text-slate-900 cursor-pointer disabled:opacity-50"
                   >
                     <LogOut className="size-3.5" /> 로그아웃
                   </button>
                 </div>
                 <div className="p-4 space-y-3">
                   {/* Selected Department Indicator */}
-                  <div className="flex items-center justify-between px-3.5 py-2.5 bg-[#0F1118] rounded-lg border border-[#242938]">
+                  <div className="flex items-center justify-between px-3.5 py-2.5 bg-[#f8fafc] rounded-lg border border-[#dce4ed]">
                     <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center rounded-lg border border-[#e0aa4f] bg-[#5a3b1b] px-3 py-2 text-xs font-extrabold text-[#f7d58a] shadow-sm">
+                      <span className="inline-flex items-center rounded-lg border border-[#cad7e5] bg-[#f1f5f9] px-3 py-2 text-xs font-extrabold text-[#52647a] shadow-sm">
                         현재 위치:{' '}
                         {department === 'middle' ? '중등부' : '고등부'}
                       </span>
@@ -2609,7 +2609,7 @@ export default function Home() {
                         setTextbook(null);
                         setPreviewPdfUrl(null);
                       }}
-                      className="inline-flex items-center rounded-lg border border-[#63c5ae] bg-[#26483f] px-3 py-2 text-xs font-extrabold text-[#f7eadf] shadow-sm transition-all hover:bg-[#356b5b] hover:text-white cursor-pointer"
+                      className="inline-flex items-center rounded-lg border border-[#8dc8b6] bg-[#e8f5f0] px-3 py-2 text-xs font-extrabold text-[#066454] shadow-sm transition-all hover:bg-[#d8eee6] hover:text-slate-900 cursor-pointer"
                     >
                       {department === 'middle' ? (
                         <>
@@ -2626,7 +2626,7 @@ export default function Home() {
 
                   <div>
                     <select
-                      className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-lg text-slate-100 text-sm outline-none transition-all cursor-pointer"
+                      className="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-[#dce4ed] focus:border-teal-500 focus:ring-1 focus:ring-teal-500 rounded-lg text-slate-900 text-sm outline-none transition-all cursor-pointer"
                       value={textbook}
                       onChange={(e) => {
                         selectTextbook(e.target.value as TextbookId);
@@ -2710,20 +2710,20 @@ export default function Home() {
                         ))
                       )}
                     </select>
-                    <div className="mt-2.5 p-2.5 rounded-lg bg-[#0F1422] border border-cyan-500/30 text-xs flex flex-col gap-1.5 shadow-inner">
+                    <div className="mt-2.5 p-2.5 rounded-lg bg-[#f1f5f9] border border-teal-500/30 text-xs flex flex-col gap-1.5 shadow-inner">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="inline-flex items-center gap-1 font-bold text-cyan-400">
+                        <span className="inline-flex items-center gap-1 font-bold text-teal-700">
                           📌 지원 문항:
                         </span>
-                        <strong className="text-white font-mono bg-cyan-500/20 px-2 py-0.5 rounded border border-cyan-400/40 text-xs">
+                        <strong className="text-slate-900 font-mono bg-teal-500/20 px-2 py-0.5 rounded border border-teal-400/40 text-xs">
                           {currentTbInfo.range_text || `1 ~ ${currentTbInfo.max_num}번`}
                         </strong>
-                        <span className="text-slate-400 text-[11px]">
+                        <span className="text-slate-600 text-[11px]">
                           ({currentTbInfo.desc})
                         </span>
                       </div>
                       {currentTbInfo.note && (
-                        <div className="text-[11px] text-amber-300/95 flex items-center gap-1.5 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/20">
+                        <div className="text-[11px] text-amber-700 flex items-center gap-1.5 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/20">
                           <span className="font-bold shrink-0">ℹ️ 참고:</span>
                           <span>{currentTbInfo.note}</span>
                         </div>
@@ -2734,24 +2734,24 @@ export default function Home() {
               </div>
 
               {/* Step 2: 학생 정보 */}
-              <div className="bg-[#151822] border border-[#242938] border-l-4 border-l-purple-500 rounded-xl shadow-md overflow-hidden">
-                <div className="px-4 py-3 flex items-center justify-between border-b border-[#242938] bg-white/[0.015]">
+              <div className="bg-[#ffffff] border border-[#dce4ed] border-l-4 border-l-teal-500 rounded-xl shadow-md overflow-hidden">
+                <div className="px-4 py-3 flex items-center justify-between border-b border-[#dce4ed] bg-slate-50/70">
                   <div className="flex items-center gap-2.5">
-                    <span className="size-5.5 rounded-full flex items-center justify-center text-xs font-extrabold bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                    <span className="size-5.5 rounded-full flex items-center justify-center text-xs font-extrabold bg-teal-500/20 text-teal-700 border border-teal-500/30">
                       2
                     </span>
-                    <h3 className="text-sm font-bold text-slate-100">
+                    <h3 className="text-sm font-bold text-slate-900">
                       학생 정보 입력
                     </h3>
                   </div>
-                  <div className="flex items-center bg-[#0F1118] p-0.5 rounded-lg border border-[#242938]">
+                  <div className="flex items-center bg-[#f8fafc] p-0.5 rounded-lg border border-[#dce4ed]">
                     <button
                       type="button"
                       onClick={() => setStudentMode('single')}
                       className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
                         studentMode === 'single'
-                          ? 'bg-purple-600 text-white shadow-sm'
-                          : 'text-slate-400 hover:text-slate-200'
+                          ? 'bg-teal-600 text-slate-900 shadow-sm'
+                          : 'text-slate-600 hover:text-slate-800'
                       }`}
                     >
                       개별 학생
@@ -2761,8 +2761,8 @@ export default function Home() {
                       onClick={() => setStudentMode('batch')}
                       className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
                         studentMode === 'batch'
-                          ? 'bg-purple-600 text-white shadow-sm'
-                          : 'text-slate-400 hover:text-slate-200'
+                          ? 'bg-teal-600 text-slate-900 shadow-sm'
+                          : 'text-slate-600 hover:text-slate-800'
                       }`}
                     >
                       다중 일괄(반 전체)
@@ -2775,14 +2775,14 @@ export default function Home() {
                       <div>
                         <label
                           htmlFor="hs-student-name"
-                          className="block text-xs font-semibold text-slate-400 mb-1.5"
+                          className="block text-xs font-semibold text-slate-600 mb-1.5"
                         >
                           학생 성명
                         </label>
                         <input
                           id="hs-student-name"
                           type="text"
-                          className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-lg text-slate-100 placeholder-slate-500 text-sm outline-none transition-all"
+                          className="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-[#dce4ed] focus:border-teal-500 focus:ring-1 focus:ring-teal-500 rounded-lg text-slate-900 placeholder-slate-500 text-sm outline-none transition-all"
                           placeholder="예: 홍길동 (또는 여러 명 쉼표 구분)"
                           value={student}
                           onChange={(e) => setStudent(e.target.value)}
@@ -2795,13 +2795,13 @@ export default function Home() {
                       <div>
                         <label
                           htmlFor="hs-student-grade"
-                          className="block text-xs font-semibold text-slate-400 mb-1.5"
+                          className="block text-xs font-semibold text-slate-600 mb-1.5"
                         >
                           학년 구분
                         </label>
                         <select
                           id="hs-student-grade"
-                          className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-lg text-slate-100 text-sm outline-none transition-all cursor-pointer"
+                          className="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-[#dce4ed] focus:border-teal-500 focus:ring-1 focus:ring-teal-500 rounded-lg text-slate-900 text-sm outline-none transition-all cursor-pointer"
                           value={grade}
                           onChange={(e) => setGrade(e.target.value)}
                         >
@@ -2816,21 +2816,21 @@ export default function Home() {
                       <div className="flex items-center justify-between">
                         <label
                           htmlFor="hs-batch-names"
-                          className="block text-xs font-semibold text-slate-300"
+                          className="block text-xs font-semibold text-slate-700"
                         >
                           학생 성명 목록{' '}
                           <span className="text-slate-500 font-normal">
                             (줄바꿈 또는 쉼표 구분)
                           </span>
                         </label>
-                        <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300">
+                        <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-teal-500/15 border border-teal-500/30 text-teal-700">
                           총 {parsedBatchStudentNames.length}명 입력됨
                         </span>
                       </div>
                       <textarea
                         id="hs-batch-names"
                         rows={3}
-                        className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-lg text-slate-100 placeholder-slate-500 text-sm outline-none font-mono transition-all resize-y"
+                        className="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-[#dce4ed] focus:border-teal-500 focus:ring-1 focus:ring-teal-500 rounded-lg text-slate-900 placeholder-slate-500 text-sm outline-none font-mono transition-all resize-y"
                         placeholder={'김민준\n이서진\n박도윤\n정시우'}
                         value={studentNamesText}
                         onChange={(e) => setStudentNamesText(e.target.value)}
@@ -2839,13 +2839,13 @@ export default function Home() {
                         <div>
                           <label
                             htmlFor="hs-batch-grade"
-                            className="block text-xs font-semibold text-slate-400 mb-1"
+                            className="block text-xs font-semibold text-slate-600 mb-1"
                           >
                             공통 학년 구분
                           </label>
                           <select
                             id="hs-batch-grade"
-                            className="w-full px-3 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-lg text-slate-100 text-xs outline-none transition-all cursor-pointer"
+                            className="w-full px-3 py-2 bg-[#f8fafc] border border-[#dce4ed] focus:border-teal-500 focus:ring-1 focus:ring-teal-500 rounded-lg text-slate-900 text-xs outline-none transition-all cursor-pointer"
                             value={grade}
                             onChange={(e) => setGrade(e.target.value)}
                           >
@@ -2854,7 +2854,7 @@ export default function Home() {
                             <option value="3학년">3학년</option>
                           </select>
                         </div>
-                        <p className="text-[11px] text-purple-300/80 leading-relaxed bg-purple-950/20 border border-purple-800/30 p-2.5 rounded-lg">
+                        <p className="text-[11px] text-teal-700 leading-relaxed bg-teal-50 border border-teal-200 p-2.5 rounded-lg">
                           💡 <strong>일괄 생성 안내:</strong> 각 학생 이름이
                           표지에 개별 인쇄된 시험지가 한 번에 생성되어{' '}
                           <strong>ZIP 압축파일</strong>로 자동 다운로드됩니다.
@@ -2866,22 +2866,22 @@ export default function Home() {
               </div>
 
               {/* Step 3: 문항 번호 선택 */}
-              <div className="bg-[#151822] border border-[#242938] border-l-4 border-l-blue-500 bg-gradient-to-b from-blue-500/5 to-transparent rounded-xl shadow-md overflow-hidden">
-                <div className="px-4 py-3 flex items-center justify-between border-b border-[#242938] bg-white/[0.015]">
+              <div className="bg-[#ffffff] border border-[#dce4ed] border-l-4 border-l-teal-500 rounded-xl shadow-md overflow-hidden">
+                <div className="px-4 py-3 flex items-center justify-between border-b border-[#dce4ed] bg-slate-50/70">
                   <div className="flex items-center gap-2.5">
-                    <span className="size-5.5 rounded-full flex items-center justify-center text-xs font-extrabold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                    <span className="size-5.5 rounded-full flex items-center justify-center text-xs font-extrabold bg-teal-500/20 text-teal-700 border border-teal-500/30">
                       3
                     </span>
-                    <h3 className="text-sm font-bold text-slate-100">
+                    <h3 className="text-sm font-bold text-slate-900">
                       문제 번호 선택{' '}
-                      <span className="text-xs font-normal text-blue-400">
+                      <span className="text-xs font-normal text-teal-700">
                         ({currentTbInfo.range_text || `1~${currentTbInfo.max_num}번`})
                       </span>
                     </h3>
                   </div>
-                  <div className="text-xs text-slate-300 bg-blue-500/15 border border-blue-500/30 px-3 py-1 rounded-full font-medium">
+                  <div className="text-xs text-slate-700 bg-teal-500/15 border border-teal-500/30 px-3 py-1 rounded-full font-medium">
                     총{' '}
-                    <strong className="text-blue-400 font-bold">
+                    <strong className="text-teal-700 font-bold">
                       {highSchoolProblemCount}
                     </strong>
                     문항 ({highSchoolPageCount}장)
@@ -2890,12 +2890,12 @@ export default function Home() {
                 <div className="p-4">
                   {/* Olympus picker if textbook === 'olympus-calculus' */}
                   {textbook === 'olympus-calculus' && (
-                    <div className="bg-slate-900/90 border border-sky-500/30 rounded-xl p-3.5 mb-3.5 shadow-lg">
+                    <div className="bg-slate-50 border border-teal-500/30 rounded-xl p-3.5 mb-3.5 shadow-sm">
                       <div className="flex items-center justify-between flex-wrap gap-2 pb-2.5 mb-3 border-b border-white/10">
-                        <span className="text-xs font-bold text-sky-400 flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-teal-700 flex items-center gap-1.5">
                           🏛️ 올림포스 단원·소단원 선택기
                         </span>
-                        <span className="text-xs text-slate-400">
+                        <span className="text-xs text-slate-600">
                           단원과 유형을 고르고 번호를 추가하세요
                         </span>
                       </div>
@@ -2904,13 +2904,13 @@ export default function Home() {
                         <div>
                           <label
                             htmlFor="olympus-unit-select"
-                            className="block text-xs font-semibold text-slate-400 mb-1"
+                            className="block text-xs font-semibold text-slate-600 mb-1"
                           >
                             대단원 선택
                           </label>
                           <select
                             id="olympus-unit-select"
-                            className="w-full px-3 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                            className="w-full px-3 py-2 bg-[#f8fafc] border border-[#dce4ed] focus:border-teal-500 rounded-lg text-slate-900 text-xs outline-none cursor-pointer"
                             value={olympusUnit}
                             onChange={(e) => setOlympusUnit(e.target.value)}
                           >
@@ -2922,7 +2922,7 @@ export default function Home() {
                           </select>
                         </div>
                         <div>
-                          <span className="block text-xs font-semibold text-slate-400 mb-1">
+                          <span className="block text-xs font-semibold text-slate-600 mb-1">
                             소단원 구분
                           </span>
                           <div className="flex gap-1.5 flex-wrap">
@@ -2936,8 +2936,8 @@ export default function Home() {
                                 type="button"
                                 className={`flex-1 min-w-[85px] py-1.5 px-2 rounded-lg text-xs font-semibold border transition-all text-center cursor-pointer ${
                                   olympusType === t
-                                    ? 'bg-sky-500/25 border-sky-400 text-white shadow-md shadow-sky-500/20'
-                                    : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:text-slate-200'
+                                    ? 'bg-teal-500/25 border-teal-400 text-slate-900 shadow-md shadow-teal-500/20'
+                                    : 'bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-800'
                                 }`}
                                 onClick={() => setOlympusType(t)}
                               >
@@ -2946,7 +2946,7 @@ export default function Home() {
                             ))}
                           </div>
                           {olympusRanges[olympusUnit]?.[olympusType] && (
-                            <p className="mt-1.5 text-[11px] text-emerald-300">
+                            <p className="mt-1.5 text-[11px] text-emerald-700">
                               제공 문항:{' '}
                               {olympusRanges[olympusUnit][olympusType].min}~
                               {olympusRanges[olympusUnit][olympusType].max}번 (
@@ -2957,14 +2957,14 @@ export default function Home() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 p-2.5 bg-slate-950/60 rounded-lg border border-white/5">
+                      <div className="flex items-center gap-2 p-2.5 bg-slate-100 rounded-lg border border-slate-200">
                         <div className="flex-1">
-                          <span className="block text-xs font-bold text-sky-400 mb-1">
+                          <span className="block text-xs font-bold text-teal-700 mb-1">
                             {olympusUnit.split('.')[0]}단원 · {olympusType}
                           </span>
                           <input
                             type="text"
-                            className="w-full px-3 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 placeholder-slate-500 text-xs outline-none"
+                            className="w-full px-3 py-2 bg-[#f8fafc] border border-[#dce4ed] focus:border-teal-500 rounded-lg text-slate-900 placeholder-slate-500 text-xs outline-none"
                             placeholder={`번호 입력 (예: 1-5 또는 1, 3, 7) · ${olympusRanges[olympusUnit]?.[olympusType]?.min}~${olympusRanges[olympusUnit]?.[olympusType]?.max}번`}
                             value={olympusQuickInput}
                             onChange={(e) =>
@@ -2980,7 +2980,7 @@ export default function Home() {
                         </div>
                         <button
                           type="button"
-                          className="px-3.5 py-2 text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white rounded-lg shadow shrink-0 self-end transition-all cursor-pointer"
+                          className="px-3.5 py-2 text-xs font-bold bg-teal-600 hover:bg-teal-500 text-slate-900 rounded-lg shadow shrink-0 self-end transition-all cursor-pointer"
                           onClick={handleAddOlympusQuick}
                         >
                           + 문항 추가
@@ -2988,11 +2988,11 @@ export default function Home() {
                       </div>
 
                       {olympusItems.length === 0 && (
-                        <div className="mt-2.5 p-2.5 rounded-lg bg-sky-950/40 border border-sky-500/25 text-[11px] text-sky-200 flex items-center gap-2">
+                        <div className="mt-2.5 p-2.5 rounded-lg bg-teal-50 border border-teal-500/25 text-[11px] text-teal-700 flex items-center gap-2">
                           <span className="text-base shrink-0">💡</span>
                           <span>
                             번호(예: 1-4)를 입력한 뒤 우측 파란색{' '}
-                            <strong className="text-white underline decoration-sky-400">
+                            <strong className="text-slate-900 underline decoration-teal-400">
                               [+ 문항 추가]
                             </strong>{' '}
                             버튼(또는 Enter 키)을 누르시면 오답노트에 등록되어 실시간 미리보기가 생성됩니다.
@@ -3005,21 +3005,21 @@ export default function Home() {
                           {olympusItems.map((item) => (
                             <div
                               key={item.id}
-                              className="flex items-center justify-between text-xs bg-slate-900/90 border border-slate-800 rounded px-3 py-2"
+                              className="flex items-center justify-between text-xs bg-slate-50 border border-slate-200 rounded px-3 py-2"
                             >
-                              <span className="text-slate-200">
-                                <span className="text-sky-400 font-semibold">
+                              <span className="text-slate-800">
+                                <span className="text-teal-700 font-semibold">
                                   [{item.unit.split('.')[0]}단원]
                                 </span>{' '}
                                 {item.problemType} :{' '}
-                                <span className="font-mono text-emerald-400 font-bold">
+                                <span className="font-mono text-emerald-700 font-bold">
                                   {item.numbers}
                                 </span>{' '}
                                 ({item.count}제)
                               </span>
                               <button
                                 type="button"
-                                className="text-slate-400 hover:text-red-400 font-bold ml-2 px-1 cursor-pointer"
+                                className="text-slate-600 hover:text-red-700 font-bold ml-2 px-1 cursor-pointer"
                                 onClick={() => {
                                   const next = olympusItems.filter(
                                     (it) => it.id !== item.id,
@@ -3042,12 +3042,12 @@ export default function Home() {
                   {/* Blacklabel picker if textbook === 'blacklabel-middle-2-2' || textbook === 'blacklabel-middle-3-1' */}
                   {(textbook === 'blacklabel-middle-2-2' ||
                     textbook === 'blacklabel-middle-3-1') && (
-                    <div className="bg-slate-900/90 border border-purple-500/30 rounded-xl p-3.5 mb-3.5 shadow-lg">
+                    <div className="bg-slate-50 border border-teal-500/30 rounded-xl p-3.5 mb-3.5 shadow-sm">
                       <div className="flex items-center justify-between flex-wrap gap-2 pb-2.5 mb-3 border-b border-white/10">
-                        <span className="text-xs font-bold text-purple-400 flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-teal-700 flex items-center gap-1.5">
                           🏷️ 블랙라벨 단원·단계 선택기
                         </span>
-                        <span className="text-xs text-slate-400">
+                        <span className="text-xs text-slate-600">
                           {textbook === 'blacklabel-middle-3-1'
                             ? '단원과 단계를 고르고 번호를 추가하세요'
                             : '대단원/소단원/단계를 고르고 번호를 추가하세요'}
@@ -3059,13 +3059,13 @@ export default function Home() {
                           <div className="sm:col-span-2">
                             <label
                               htmlFor="bl-chapter-select"
-                              className="block text-xs font-semibold text-slate-400 mb-1"
+                              className="block text-xs font-semibold text-slate-600 mb-1"
                             >
                               단원
                             </label>
                             <select
                               id="bl-chapter-select"
-                              className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                              className="w-full px-2.5 py-2 bg-[#f8fafc] border border-[#dce4ed] focus:border-teal-500 rounded-lg text-slate-900 text-xs outline-none cursor-pointer"
                               value={blacklabelChapter}
                               onChange={(e) => {
                                 const newCh = e.target.value;
@@ -3087,13 +3087,13 @@ export default function Home() {
                           <div>
                             <label
                               htmlFor="bl-stage-select"
-                              className="block text-xs font-semibold text-slate-400 mb-1"
+                              className="block text-xs font-semibold text-slate-600 mb-1"
                             >
                               단계(난이도)
                             </label>
                             <select
                               id="bl-stage-select"
-                              className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                              className="w-full px-2.5 py-2 bg-[#f8fafc] border border-[#dce4ed] focus:border-teal-500 rounded-lg text-slate-900 text-xs outline-none cursor-pointer"
                               value={blacklabelStage}
                               onChange={(e) =>
                                 setBlacklabelStage(e.target.value)
@@ -3114,13 +3114,13 @@ export default function Home() {
                           <div>
                             <label
                               htmlFor="bl-chapter-select"
-                              className="block text-xs font-semibold text-slate-400 mb-1"
+                              className="block text-xs font-semibold text-slate-600 mb-1"
                             >
                               대단원
                             </label>
                             <select
                               id="bl-chapter-select"
-                              className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                              className="w-full px-2.5 py-2 bg-[#f8fafc] border border-[#dce4ed] focus:border-teal-500 rounded-lg text-slate-900 text-xs outline-none cursor-pointer"
                               value={blacklabelChapter}
                               onChange={(e) => {
                                 const newCh = e.target.value;
@@ -3145,13 +3145,13 @@ export default function Home() {
                           <div>
                             <label
                               htmlFor="bl-subunit-select"
-                              className="block text-xs font-semibold text-slate-400 mb-1"
+                              className="block text-xs font-semibold text-slate-600 mb-1"
                             >
                               소단원
                             </label>
                             <select
                               id="bl-subunit-select"
-                              className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                              className="w-full px-2.5 py-2 bg-[#f8fafc] border border-[#dce4ed] focus:border-teal-500 rounded-lg text-slate-900 text-xs outline-none cursor-pointer"
                               value={blacklabelSubunit}
                               onChange={(e) => {
                                 const newSub = e.target.value;
@@ -3175,13 +3175,13 @@ export default function Home() {
                           <div>
                             <label
                               htmlFor="bl-stage-select"
-                              className="block text-xs font-semibold text-slate-400 mb-1"
+                              className="block text-xs font-semibold text-slate-600 mb-1"
                             >
                               단계(난이도)
                             </label>
                             <select
                               id="bl-stage-select"
-                              className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                              className="w-full px-2.5 py-2 bg-[#f8fafc] border border-[#dce4ed] focus:border-teal-500 rounded-lg text-slate-900 text-xs outline-none cursor-pointer"
                               value={blacklabelStage}
                               onChange={(e) =>
                                 setBlacklabelStage(e.target.value)
@@ -3201,16 +3201,16 @@ export default function Home() {
                         </div>
                       )}
 
-                      <div className="flex items-center gap-2 p-2.5 bg-slate-950/60 rounded-lg border border-white/5">
+                      <div className="flex items-center gap-2 p-2.5 bg-slate-100 rounded-lg border border-slate-200">
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="block text-xs font-bold text-purple-400">
+                            <span className="block text-xs font-bold text-teal-700">
                               {textbook === 'blacklabel-middle-3-1'
                                 ? `${blacklabelChapter.replace(/_/g, ' ')} · ${blacklabelStage}`
                                 : `${blacklabelSubunit} · ${blacklabelStage}`}
                             </span>
                             {currentBlacklabelRange && (
-                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-teal-500/20 text-teal-700 border border-teal-500/30">
                                 💡 제공 문항: {currentBlacklabelRange.min} ~{' '}
                                 {currentBlacklabelRange.max}번 (
                                 {currentBlacklabelRange.count}문제)
@@ -3219,7 +3219,7 @@ export default function Home() {
                           </div>
                           <input
                             type="text"
-                            className="w-full px-3 py-2 bg-[#0F1118] border border-[#242938] focus:border-purple-500 rounded-lg text-slate-100 placeholder-slate-500 text-xs outline-none"
+                            className="w-full px-3 py-2 bg-[#f8fafc] border border-[#dce4ed] focus:border-teal-500 rounded-lg text-slate-900 placeholder-slate-500 text-xs outline-none"
                             placeholder={
                               currentBlacklabelRange
                                 ? `번호 입력 (제공: ${currentBlacklabelRange.min}~${currentBlacklabelRange.max}번, 예: ${currentBlacklabelRange.min}-${Math.min(currentBlacklabelRange.min + 2, currentBlacklabelRange.max)})`
@@ -3239,7 +3239,7 @@ export default function Home() {
                         </div>
                         <button
                           type="button"
-                          className="px-3.5 py-2 text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white rounded-lg shadow shrink-0 self-end transition-all cursor-pointer"
+                          className="px-3.5 py-2 text-xs font-bold bg-teal-600 hover:bg-teal-500 text-slate-900 rounded-lg shadow shrink-0 self-end transition-all cursor-pointer"
                           onClick={handleAddBlacklabelQuick}
                         >
                           + 문항 추가
@@ -3247,11 +3247,11 @@ export default function Home() {
                       </div>
 
                       {blacklabelItems.length === 0 && (
-                        <div className="mt-2.5 p-2.5 rounded-lg bg-purple-950/40 border border-purple-500/25 text-[11px] text-purple-200 flex items-center gap-2">
+                        <div className="mt-2.5 p-2.5 rounded-lg bg-teal-50 border border-teal-500/25 text-[11px] text-teal-700 flex items-center gap-2">
                           <span className="text-base shrink-0">💡</span>
                           <span>
                             단원과 단계를 고르고 번호를 입력한 뒤 우측 보라색{' '}
-                            <strong className="text-white underline decoration-purple-400">
+                            <strong className="text-slate-900 underline decoration-teal-400">
                               [+ 문항 추가]
                             </strong>{' '}
                             버튼(또는 Enter 키)을 누르시면 오답노트에 등록되어 실시간 미리보기가 생성됩니다.
@@ -3264,10 +3264,10 @@ export default function Home() {
                           {blacklabelItems.map((item) => (
                             <div
                               key={item.id}
-                              className="flex items-center justify-between text-xs bg-slate-900/90 border border-slate-800 rounded px-3 py-2"
+                              className="flex items-center justify-between text-xs bg-slate-50 border border-slate-200 rounded px-3 py-2"
                             >
-                              <span className="text-slate-200">
-                                <span className="text-purple-400 font-semibold">
+                              <span className="text-slate-800">
+                                <span className="text-teal-700 font-semibold">
                                   [
                                   {textbook === 'blacklabel-middle-3-1'
                                     ? item.chapter.replace(/_/g, ' ')
@@ -3275,14 +3275,14 @@ export default function Home() {
                                   ]
                                 </span>{' '}
                                 {item.stage} :{' '}
-                                <span className="font-mono text-emerald-400 font-bold">
+                                <span className="font-mono text-emerald-700 font-bold">
                                   {item.numbers}
                                 </span>{' '}
                                 ({item.count}제)
                               </span>
                               <button
                                 type="button"
-                                className="text-slate-400 hover:text-red-400 font-bold ml-2 px-1 cursor-pointer"
+                                className="text-slate-600 hover:text-red-700 font-bold ml-2 px-1 cursor-pointer"
                                 onClick={() => {
                                   const next = blacklabelItems.filter(
                                     (it) => it.id !== item.id,
@@ -3305,12 +3305,12 @@ export default function Home() {
                   {/* Concept picker if textbook === 'concept-middle-2-2' || textbook === 'concept-middle-3-1' */}
                   {(textbook === 'concept-middle-2-2' ||
                     textbook === 'concept-middle-3-1') && (
-                    <div className="bg-slate-900/90 border border-emerald-500/30 rounded-xl p-3.5 mb-3.5 shadow-lg">
+                    <div className="bg-slate-50 border border-emerald-500/30 rounded-xl p-3.5 mb-3.5 shadow-sm">
                       <div className="flex items-center justify-between flex-wrap gap-2 pb-2.5 mb-3 border-b border-white/10">
-                        <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-emerald-700 flex items-center gap-1.5">
                           ▲ 개념유형파워 단원·단계 선택기
                         </span>
-                        <span className="text-xs text-slate-400">
+                        <span className="text-xs text-slate-600">
                           {textbook === 'concept-middle-3-1'
                             ? '단원과 단계를 고르고 번호를 추가하세요'
                             : '대단원/소단원/단계를 고르고 번호를 추가하세요'}
@@ -3322,13 +3322,13 @@ export default function Home() {
                           <div className="sm:col-span-2">
                             <label
                               htmlFor="cp-chapter-select"
-                              className="block text-xs font-semibold text-slate-400 mb-1"
+                              className="block text-xs font-semibold text-slate-600 mb-1"
                             >
                               단원
                             </label>
                             <select
                               id="cp-chapter-select"
-                              className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-emerald-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                              className="w-full px-2.5 py-2 bg-[#f8fafc] border border-[#dce4ed] focus:border-emerald-500 rounded-lg text-slate-900 text-xs outline-none cursor-pointer"
                               value={conceptChapter}
                               onChange={(e) => {
                                 const newCh = e.target.value;
@@ -3350,13 +3350,13 @@ export default function Home() {
                           <div>
                             <label
                               htmlFor="cp-stage-select"
-                              className="block text-xs font-semibold text-slate-400 mb-1"
+                              className="block text-xs font-semibold text-slate-600 mb-1"
                             >
                               단계(유형)
                             </label>
                             <select
                               id="cp-stage-select"
-                              className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-emerald-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                              className="w-full px-2.5 py-2 bg-[#f8fafc] border border-[#dce4ed] focus:border-emerald-500 rounded-lg text-slate-900 text-xs outline-none cursor-pointer"
                               value={conceptStage}
                               onChange={(e) => setConceptStage(e.target.value)}
                             >
@@ -3373,13 +3373,13 @@ export default function Home() {
                           <div>
                             <label
                               htmlFor="cp-chapter-select"
-                              className="block text-xs font-semibold text-slate-400 mb-1"
+                              className="block text-xs font-semibold text-slate-600 mb-1"
                             >
                               대단원
                             </label>
                             <select
                               id="cp-chapter-select"
-                              className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-emerald-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                              className="w-full px-2.5 py-2 bg-[#f8fafc] border border-[#dce4ed] focus:border-emerald-500 rounded-lg text-slate-900 text-xs outline-none cursor-pointer"
                               value={conceptChapter}
                               onChange={(e) => {
                                 const newCh = e.target.value;
@@ -3404,13 +3404,13 @@ export default function Home() {
                           <div>
                             <label
                               htmlFor="cp-subunit-select"
-                              className="block text-xs font-semibold text-slate-400 mb-1"
+                              className="block text-xs font-semibold text-slate-600 mb-1"
                             >
                               소단원
                             </label>
                             <select
                               id="cp-subunit-select"
-                              className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-emerald-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                              className="w-full px-2.5 py-2 bg-[#f8fafc] border border-[#dce4ed] focus:border-emerald-500 rounded-lg text-slate-900 text-xs outline-none cursor-pointer"
                               value={conceptSubunit}
                               onChange={(e) => {
                                 const newSub = e.target.value;
@@ -3433,13 +3433,13 @@ export default function Home() {
                           <div>
                             <label
                               htmlFor="cp-stage-select"
-                              className="block text-xs font-semibold text-slate-400 mb-1"
+                              className="block text-xs font-semibold text-slate-600 mb-1"
                             >
                               단계(유형)
                             </label>
                             <select
                               id="cp-stage-select"
-                              className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-emerald-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer"
+                              className="w-full px-2.5 py-2 bg-[#f8fafc] border border-[#dce4ed] focus:border-emerald-500 rounded-lg text-slate-900 text-xs outline-none cursor-pointer"
                               value={conceptStage}
                               onChange={(e) => setConceptStage(e.target.value)}
                             >
@@ -3457,16 +3457,16 @@ export default function Home() {
                         </div>
                       )}
 
-                      <div className="flex items-center gap-2 p-2.5 bg-slate-950/60 rounded-lg border border-white/5">
+                      <div className="flex items-center gap-2 p-2.5 bg-slate-100 rounded-lg border border-slate-200">
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="block text-xs font-bold text-emerald-400">
+                            <span className="block text-xs font-bold text-emerald-700">
                               {textbook === 'concept-middle-3-1'
                                 ? `${conceptChapter.replace(/_/g, ' ')} · ${conceptStage.replace(/_/g, ' ')}`
                                 : `${conceptSubunit.replace(/_/g, ' ')} · ${conceptStage.replace(/_/g, ' ')}`}
                             </span>
                             {currentConceptRange && (
-                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-700 border border-emerald-500/30">
                                 💡 제공 문항: {currentConceptRange.min} ~{' '}
                                 {currentConceptRange.max}번 (
                                 {currentConceptRange.count}문제)
@@ -3475,7 +3475,7 @@ export default function Home() {
                           </div>
                           <input
                             type="text"
-                            className="w-full px-3 py-2 bg-[#0F1118] border border-[#242938] focus:border-emerald-500 rounded-lg text-slate-100 placeholder-slate-500 text-xs outline-none"
+                            className="w-full px-3 py-2 bg-[#f8fafc] border border-[#dce4ed] focus:border-emerald-500 rounded-lg text-slate-900 placeholder-slate-500 text-xs outline-none"
                             placeholder={
                               currentConceptRange
                                 ? `번호 입력 (제공: ${currentConceptRange.min}~${currentConceptRange.max}번, 예: ${currentConceptRange.min}-${Math.min(currentConceptRange.min + 2, currentConceptRange.max)})`
@@ -3495,7 +3495,7 @@ export default function Home() {
                         </div>
                         <button
                           type="button"
-                          className="px-3.5 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg shadow shrink-0 self-end transition-all cursor-pointer"
+                          className="px-3.5 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-slate-900 rounded-lg shadow shrink-0 self-end transition-all cursor-pointer"
                           onClick={handleAddConceptQuick}
                         >
                           + 문항 추가
@@ -3503,11 +3503,11 @@ export default function Home() {
                       </div>
 
                       {conceptItems.length === 0 && (
-                        <div className="mt-2.5 p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-500/25 text-[11px] text-emerald-200 flex items-center gap-2">
+                        <div className="mt-2.5 p-2.5 rounded-lg bg-emerald-50 border border-emerald-500/25 text-[11px] text-emerald-700 flex items-center gap-2">
                           <span className="text-base shrink-0">💡</span>
                           <span>
                             단원과 유형을 고르고 번호를 입력한 뒤 우측 녹색{' '}
-                            <strong className="text-white underline decoration-emerald-400">
+                            <strong className="text-slate-900 underline decoration-emerald-400">
                               [+ 문항 추가]
                             </strong>{' '}
                             버튼(또는 Enter 키)을 누르시면 오답노트에 등록되어 실시간 미리보기가 생성됩니다.
@@ -3520,10 +3520,10 @@ export default function Home() {
                           {conceptItems.map((item) => (
                             <div
                               key={item.id}
-                              className="flex items-center justify-between text-xs bg-slate-900/90 border border-slate-800 rounded px-3 py-2"
+                              className="flex items-center justify-between text-xs bg-slate-50 border border-slate-200 rounded px-3 py-2"
                             >
-                              <span className="text-slate-200">
-                                <span className="text-emerald-400 font-semibold">
+                              <span className="text-slate-800">
+                                <span className="text-emerald-700 font-semibold">
                                   [
                                   {textbook === 'concept-middle-3-1'
                                     ? item.chapter.replace(/_/g, ' ')
@@ -3531,14 +3531,14 @@ export default function Home() {
                                   ]
                                 </span>{' '}
                                 {item.stage.replace(/_/g, ' ')} :{' '}
-                                <span className="font-mono text-emerald-400 font-bold">
+                                <span className="font-mono text-emerald-700 font-bold">
                                   {item.numbers}
                                 </span>{' '}
                                 ({item.count}제)
                               </span>
                               <button
                                 type="button"
-                                className="text-slate-400 hover:text-red-400 font-bold ml-2 px-1 cursor-pointer"
+                                className="text-slate-600 hover:text-red-700 font-bold ml-2 px-1 cursor-pointer"
                                 onClick={() => {
                                   const next = conceptItems.filter(
                                     (it) => it.id !== item.id,
@@ -3560,12 +3560,12 @@ export default function Home() {
 
                   {/* Basic Ssen picker if textbook === 'basic-ssen-middle-2-2' */}
                   {textbook === 'basic-ssen-middle-2-2' && (
-                    <div className="bg-slate-900/90 border border-sky-500/30 rounded-xl p-3.5 mb-3.5 shadow-lg">
+                    <div className="bg-slate-50 border border-teal-500/30 rounded-xl p-3.5 mb-3.5 shadow-sm">
                       <div className="flex items-center justify-between flex-wrap gap-2 pb-2.5 mb-3 border-b border-white/10">
-                        <span className="text-xs font-bold text-sky-400 flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-teal-700 flex items-center gap-1.5">
                           ▲ 베이직쎈 단원·단계 선택기
                         </span>
-                        <span className="text-xs text-slate-400">
+                        <span className="text-xs text-slate-600">
                           대단원/소단원/단계를 고르고 번호를 추가하세요
                         </span>
                       </div>
@@ -3574,14 +3574,14 @@ export default function Home() {
                         <div className="sm:col-span-3">
                           <label
                             htmlFor="bs-chapter-select"
-                            className="block text-xs font-semibold text-slate-400 mb-1"
+                            className="block text-xs font-semibold text-slate-600 mb-1"
                           >
                             대단원
                           </label>
                           <select
                             id="bs-chapter-select"
                             title={basicSsenChapter}
-                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer truncate"
+                            className="w-full px-2.5 py-2 bg-[#f8fafc] border border-[#dce4ed] focus:border-teal-500 rounded-lg text-slate-900 text-xs outline-none cursor-pointer truncate"
                             value={basicSsenChapter}
                             onChange={(e) => {
                               const newCh = e.target.value;
@@ -3606,14 +3606,14 @@ export default function Home() {
                         <div className="sm:col-span-4">
                           <label
                             htmlFor="bs-subunit-select"
-                            className="block text-xs font-semibold text-slate-400 mb-1"
+                            className="block text-xs font-semibold text-slate-600 mb-1"
                           >
                             소단원
                           </label>
                           <select
                             id="bs-subunit-select"
                             title={basicSsenSubunit}
-                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer truncate"
+                            className="w-full px-2.5 py-2 bg-[#f8fafc] border border-[#dce4ed] focus:border-teal-500 rounded-lg text-slate-900 text-xs outline-none cursor-pointer truncate"
                             value={basicSsenSubunit}
                             onChange={(e) => {
                               const newSub = e.target.value;
@@ -3636,14 +3636,14 @@ export default function Home() {
                         <div className="sm:col-span-5">
                           <label
                             htmlFor="bs-stage-select"
-                            className="block text-xs font-semibold text-slate-400 mb-1"
+                            className="block text-xs font-semibold text-slate-600 mb-1"
                           >
                             단계(유형)
                           </label>
                           <select
                             id="bs-stage-select"
                             title={basicSsenStage}
-                            className="w-full px-2.5 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 text-xs outline-none cursor-pointer truncate"
+                            className="w-full px-2.5 py-2 bg-[#f8fafc] border border-[#dce4ed] focus:border-teal-500 rounded-lg text-slate-900 text-xs outline-none cursor-pointer truncate"
                             value={basicSsenStage}
                             onChange={(e) => setBasicSsenStage(e.target.value)}
                           >
@@ -3661,11 +3661,11 @@ export default function Home() {
                       </div>
 
                       {/* 문항 번호 입력 및 액션 버튼 행 */}
-                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2.5 bg-slate-950/70 rounded-xl border border-white/10">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2.5 bg-slate-100 rounded-xl border border-white/10">
                         <div className="flex-1">
                           <input
                             type="text"
-                            className="w-full px-3 py-2 bg-[#0F1118] border border-[#242938] focus:border-sky-500 rounded-lg text-slate-100 placeholder-slate-500 text-xs outline-none font-mono"
+                            className="w-full px-3 py-2 bg-[#f8fafc] border border-[#dce4ed] focus:border-teal-500 rounded-lg text-slate-900 placeholder-slate-500 text-xs outline-none font-mono"
                             placeholder={
                               currentBasicSsenRange
                                 ? `문제 번호 입력 (제공: ${currentBasicSsenRange.min}~${currentBasicSsenRange.max}번 / 예: 1-5 또는 1, 3, 5)`
@@ -3686,7 +3686,7 @@ export default function Home() {
                         <div className="flex items-center gap-1.5 shrink-0">
                           <button
                             type="button"
-                            className="px-2.5 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 rounded-lg border border-slate-700 transition-all cursor-pointer"
+                            className="px-2.5 py-2 text-xs font-semibold bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-800 rounded-lg border border-slate-200 transition-all cursor-pointer"
                             onClick={() => {
                               if (!currentBasicSsenRange) return;
                               const max10 = Math.min(10, currentBasicSsenRange.max);
@@ -3697,7 +3697,7 @@ export default function Home() {
                           </button>
                           <button
                             type="button"
-                            className="px-2.5 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 rounded-lg border border-slate-700 transition-all cursor-pointer"
+                            className="px-2.5 py-2 text-xs font-semibold bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-800 rounded-lg border border-slate-200 transition-all cursor-pointer"
                             onClick={() => {
                               if (!currentBasicSsenRange) return;
                               setBasicSsenQuickInput(
@@ -3709,7 +3709,7 @@ export default function Home() {
                           </button>
                           <button
                             type="button"
-                            className="px-3.5 py-2 text-xs font-bold bg-sky-600 hover:bg-sky-500 active:scale-95 text-white rounded-lg shadow shrink-0 transition-all cursor-pointer"
+                            className="px-3.5 py-2 text-xs font-bold bg-teal-600 hover:bg-teal-500 active:scale-95 text-slate-900 rounded-lg shadow shrink-0 transition-all cursor-pointer"
                             onClick={addBasicSsenItem}
                           >
                             + 문항 추가
@@ -3718,11 +3718,11 @@ export default function Home() {
                       </div>
 
                       {basicSsenItems.length === 0 && (
-                        <div className="mt-2.5 p-2.5 rounded-lg bg-sky-950/40 border border-sky-500/25 text-[11px] text-sky-200 flex items-center gap-2">
+                        <div className="mt-2.5 p-2.5 rounded-lg bg-teal-50 border border-teal-500/25 text-[11px] text-teal-700 flex items-center gap-2">
                           <span className="text-base shrink-0">💡</span>
                           <span>
                             번호(예: 1-4)를 입력한 뒤 우측 파란색{' '}
-                            <strong className="text-white underline decoration-sky-400">
+                            <strong className="text-slate-900 underline decoration-teal-400">
                               [+ 문항 추가]
                             </strong>{' '}
                             버튼(또는 Enter 키)을 누르시면 오답노트에 등록되어 실시간 미리보기가 생성됩니다.
@@ -3735,27 +3735,27 @@ export default function Home() {
                           {basicSsenItems.map((item) => (
                             <div
                               key={item.id}
-                              className="flex items-center justify-between text-xs bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-sky-500/40 rounded-lg px-3 py-2 transition-all"
+                              className="flex items-center justify-between text-xs bg-slate-50 hover:bg-slate-50 border border-slate-200 hover:border-teal-500/40 rounded-lg px-3 py-2 transition-all"
                             >
                               <div className="flex items-center gap-2 flex-wrap min-w-0 flex-1">
-                                <span className="px-1.5 py-0.5 rounded bg-sky-950 text-sky-400 border border-sky-500/30 font-semibold text-[11px] shrink-0">
+                                <span className="px-1.5 py-0.5 rounded bg-teal-50 text-teal-700 border border-teal-500/30 font-semibold text-[11px] shrink-0">
                                   {item.subunit}
                                 </span>
-                                <span className="text-slate-300 font-medium truncate">
+                                <span className="text-slate-700 font-medium truncate">
                                   {item.stage.replace('자신감 ', '')}
                                 </span>
                                 <span className="text-slate-500 font-bold">:</span>
-                                <span className="font-mono text-sky-300 font-bold bg-black/40 px-2 py-0.5 rounded border border-white/5">
+                                <span className="font-mono text-teal-700 font-bold bg-black/40 px-2 py-0.5 rounded border border-slate-200">
                                   {item.numbers}번
                                 </span>
-                                <span className="text-slate-400 text-[11px]">
+                                <span className="text-slate-600 text-[11px]">
                                   ({item.count}제)
                                 </span>
                               </div>
                               <button
                                 type="button"
                                 title="삭제"
-                                className="text-slate-400 hover:text-red-400 font-bold ml-2 px-1 cursor-pointer shrink-0"
+                                className="text-slate-600 hover:text-red-700 font-bold ml-2 px-1 cursor-pointer shrink-0"
                                 onClick={() => {
                                   const next = basicSsenItems.filter(
                                     (it) => it.id !== item.id,
@@ -3787,53 +3787,53 @@ export default function Home() {
                           <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1.5">
                             <label
                               htmlFor="hs-problem-numbers"
-                              className="text-xs font-semibold text-slate-200 flex items-center gap-2"
+                              className="text-xs font-semibold text-slate-800 flex items-center gap-2"
                             >
                               <span>문제 번호 입력</span>
                               {currentTbInfo.range_text && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-500/15 text-sky-300 border border-sky-500/30 font-mono">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-teal-500/15 text-teal-700 border border-teal-500/30 font-mono">
                                   지원: {currentTbInfo.range_text}
                                 </span>
                               )}
                             </label>
-                            <span className="text-xs text-slate-400">
+                            <span className="text-xs text-slate-600">
                               {textbook === 'ssen-common-math-1' ? (
                                 <>
                                   예:{' '}
-                                  <code className="bg-slate-800 text-sky-300 px-1 py-0.5 rounded">
+                                  <code className="bg-slate-100 text-teal-700 px-1 py-0.5 rounded">
                                     40, 42, 65
                                   </code>
                                 </>
                               ) : textbook === 'ssen-middle-3-1' ? (
                                 <>
                                   예:{' '}
-                                  <code className="bg-slate-800 text-emerald-300 px-1 py-0.5 rounded">
+                                  <code className="bg-slate-100 text-emerald-700 px-1 py-0.5 rounded">
                                     50-58
                                   </code>
                                   ,{' '}
-                                  <code className="bg-slate-800 text-emerald-300 px-1 py-0.5 rounded">
+                                  <code className="bg-slate-100 text-emerald-700 px-1 py-0.5 rounded">
                                     50, 65, 120
                                   </code>
                                 </>
                               ) : textbook === 'ssen-middle-2-2' ? (
                                 <>
                                   예:{' '}
-                                  <code className="bg-slate-800 text-emerald-300 px-1 py-0.5 rounded">
+                                  <code className="bg-slate-100 text-emerald-700 px-1 py-0.5 rounded">
                                     21-28
                                   </code>
                                   ,{' '}
-                                  <code className="bg-slate-800 text-emerald-300 px-1 py-0.5 rounded">
+                                  <code className="bg-slate-100 text-emerald-700 px-1 py-0.5 rounded">
                                     21, 25, 30
                                   </code>
                                 </>
                               ) : (
                                 <>
                                   예:{' '}
-                                  <code className="bg-slate-800 text-blue-300 px-1 py-0.5 rounded">
+                                  <code className="bg-slate-100 text-teal-700 px-1 py-0.5 rounded">
                                     1-8
                                   </code>
                                   ,{' '}
-                                  <code className="bg-slate-800 text-blue-300 px-1 py-0.5 rounded">
+                                  <code className="bg-slate-100 text-teal-700 px-1 py-0.5 rounded">
                                     1, 3, 5-10
                                   </code>
                                 </>
@@ -3842,7 +3842,7 @@ export default function Home() {
                           </div>
                           <textarea
                             id="hs-problem-numbers"
-                            className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg text-slate-100 font-mono text-sm outline-none transition-all"
+                            className="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-[#dce4ed] focus:border-teal-500 focus:ring-1 focus:ring-teal-500 rounded-lg text-slate-900 font-mono text-sm outline-none transition-all"
                             rows={2}
                             placeholder={
                               textbook === 'ssen-common-math-1'
@@ -3870,21 +3870,21 @@ export default function Home() {
                             }}
                           />
                           {invalidProblemNumbers.length > 0 && (
-                            <div className="mt-2 p-2.5 rounded-lg bg-red-950/70 border border-red-500/40 text-xs text-red-200 flex items-start gap-2 shadow-lg">
-                              <AlertTriangle className="size-4 text-red-400 shrink-0 mt-0.5" />
+                            <div className="mt-2 p-2.5 rounded-lg bg-red-50 border border-red-500/40 text-xs text-red-700 flex items-start gap-2 shadow-sm">
+                              <AlertTriangle className="size-4 text-red-700 shrink-0 mt-0.5" />
                               <div className="flex-1">
-                                <div className="font-semibold text-red-300">
+                                <div className="font-semibold text-red-700">
                                   지원되지 않는 번호가 입력되었습니다:{' '}
-                                  <span className="text-white underline decoration-red-400 font-mono font-bold">
+                                  <span className="text-slate-900 underline decoration-red-400 font-mono font-bold">
                                     {invalidProblemNumbers.slice(0, 6).join(', ')}번
                                     {invalidProblemNumbers.length > 6
                                       ? ` 외 ${invalidProblemNumbers.length - 6}개`
                                       : ''}
                                   </span>
                                 </div>
-                                <div className="mt-1 text-[11px] text-red-300/80 leading-normal">
+                                <div className="mt-1 text-[11px] text-red-700 leading-normal">
                                   👉 <strong>{currentTbInfo.name}</strong>의 입력 가능 범위는{' '}
-                                  <strong className="text-white font-mono">
+                                  <strong className="text-slate-900 font-mono">
                                     {currentTbInfo.range_text}
                                   </strong>
                                   입니다.
@@ -3898,7 +3898,7 @@ export default function Home() {
                         <div className="mt-2.5 flex gap-2 flex-wrap">
                           <button
                             type="button"
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#2a1912] hover:bg-[#4d2c20] border border-[#4a3023] hover:border-[#63c5ae] rounded-lg text-[11px] font-semibold text-[#d8c5b6] hover:text-white transition-all cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#ffffff] hover:bg-[#f1f5f9] border border-[#dce4ed] hover:border-[#8dc8b6] rounded-lg text-[11px] font-semibold text-[#52647a] hover:text-slate-900 transition-all cursor-pointer"
                             onClick={handleSortNumbers}
                           >
                             <ArrowDownAZ className="size-3.5" /> 번호 오름차순
@@ -3906,7 +3906,7 @@ export default function Home() {
                           </button>
                           <button
                             type="button"
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#2a1912] hover:bg-[#4d2c20] border border-[#8b563d] hover:border-[#e08a5b] rounded-lg text-[11px] font-semibold text-[#e08a5b] hover:text-[#f0c1a6] transition-all cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#ffffff] hover:bg-[#f1f5f9] border border-[#cad7e5] hover:border-[#c4512d] rounded-lg text-[11px] font-semibold text-[#087f6c] hover:text-[#087f6c] transition-all cursor-pointer"
                             onClick={() => {
                               setNumbers('');
                               setPreviewPdfUrl(null);
@@ -3919,7 +3919,7 @@ export default function Home() {
 
                         {/* Selected problem numbers */}
                         {parsedProblemNumbers.length > 0 && (
-                          <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 max-h-36 overflow-y-auto px-1 py-1 text-sm text-[#d8c5b6]">
+                          <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 max-h-36 overflow-y-auto px-1 py-1 text-sm text-[#52647a]">
                             {parsedProblemNumbers.map((num) => (
                               <span
                                 key={num}
@@ -3928,7 +3928,7 @@ export default function Home() {
                                 No. {num}
                                 <button
                                   type="button"
-                                  className="text-[#8d7d6c] hover:text-[#e08a5b] font-bold cursor-pointer"
+                                  className="text-[#63758b] hover:text-[#087f6c] font-bold cursor-pointer"
                                   onClick={() => handleRemoveTag(num)}
                                   aria-label={`문항 ${num} 삭제`}
                                 >
@@ -3944,44 +3944,44 @@ export default function Home() {
               </div>
 
               {/* Step 4: 상세 양식 & 표지 설정 (아코디언) */}
-              <div className="bg-[#151822] border border-[#242938] border-l-4 border-l-amber-500 rounded-xl shadow-md overflow-hidden">
+              <div className="bg-[#ffffff] border border-[#dce4ed] border-l-4 border-l-amber-500 rounded-xl shadow-md overflow-hidden">
                 <button
                   type="button"
-                  className="w-full px-4 py-3 flex items-center justify-between border-b border-[#242938] bg-white/[0.015] text-left cursor-pointer select-none"
+                  className="w-full px-4 py-3 flex items-center justify-between border-b border-[#dce4ed] bg-slate-50/70 text-left cursor-pointer select-none"
                   onClick={() => setOptionsCollapsed(!optionsCollapsed)}
                   aria-label="상세 양식 및 표지 설정 토글"
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className="size-5.5 rounded-full flex items-center justify-center text-xs font-extrabold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                    <span className="size-5.5 rounded-full flex items-center justify-center text-xs font-extrabold bg-amber-500/20 text-amber-700 border border-amber-500/30">
                       4
                     </span>
-                    <h3 className="text-sm font-bold text-slate-100">
+                    <h3 className="text-sm font-bold text-slate-900">
                       상세 양식 & 표지 설정
                     </h3>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400">
+                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-700">
                       서식·표지 옵션
                     </span>
-                    <span className="text-xs text-amber-400 font-bold">
+                    <span className="text-xs text-amber-700 font-bold">
                       {optionsCollapsed ? '▼ 접기' : '▲ 펼치기'}
                     </span>
                   </div>
                 </button>
                 {optionsCollapsed && (
-                  <div className="p-4 border-t border-slate-800/80 space-y-3">
+                  <div className="p-4 border-t border-slate-200 space-y-3">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label
                           htmlFor="cover-title-input"
-                          className="block text-xs font-semibold text-slate-400 mb-1.5"
+                          className="block text-xs font-semibold text-slate-600 mb-1.5"
                         >
                           표지 메인 제목
                         </label>
                         <input
                           id="cover-title-input"
                           type="text"
-                          className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-slate-100 text-sm outline-none"
+                          className="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-[#dce4ed] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-slate-900 text-sm outline-none"
                           value={currentCoverTitle}
                           onChange={(e) => setCoverTitle(e.target.value)}
                         />
@@ -3989,14 +3989,14 @@ export default function Home() {
                       <div>
                         <label
                           htmlFor="academy-name-input"
-                          className="block text-xs font-semibold text-slate-400 mb-1.5"
+                          className="block text-xs font-semibold text-slate-600 mb-1.5"
                         >
                           학원/기관명 (바닥글)
                         </label>
                         <input
                           id="academy-name-input"
                           type="text"
-                          className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-slate-100 text-sm outline-none"
+                          className="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-[#dce4ed] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-slate-900 text-sm outline-none"
                           value={academyName}
                           onChange={(e) => setAcademyName(e.target.value)}
                         />
@@ -4006,14 +4006,14 @@ export default function Home() {
                       <div>
                         <label
                           htmlFor="cover-subtitle-input"
-                          className="block text-xs font-semibold text-slate-400 mb-1.5"
+                          className="block text-xs font-semibold text-slate-600 mb-1.5"
                         >
                           표지 부제목
                         </label>
                         <input
                           id="cover-subtitle-input"
                           type="text"
-                          className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-slate-100 text-sm outline-none"
+                          className="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-[#dce4ed] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-slate-900 text-sm outline-none"
                           value={coverSubtitle}
                           onChange={(e) => setCoverSubtitle(e.target.value)}
                         />
@@ -4021,22 +4021,22 @@ export default function Home() {
                       <div>
                         <label
                           htmlFor="test-date-input"
-                          className="block text-xs font-semibold text-slate-400 mb-1.5"
+                          className="block text-xs font-semibold text-slate-600 mb-1.5"
                         >
                           출제 일자
                         </label>
                         <input
                           id="test-date-input"
                           type="text"
-                          className="w-full px-3.5 py-2.5 bg-[#0F1118] border border-[#242938] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-slate-100 text-sm outline-none"
+                          className="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-[#dce4ed] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-slate-900 text-sm outline-none"
                           value={testDate}
                           onChange={(e) => setTestDate(e.target.value)}
                         />
                       </div>
                     </div>
-                    <div className="pt-2.5 border-t border-slate-800/80 space-y-3">
+                    <div className="pt-2.5 border-t border-slate-200 space-y-3">
                       <div className="flex flex-wrap items-center gap-4">
-                        <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-200">
+                        <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-800">
                           <input
                             type="checkbox"
                             className="size-4 rounded accent-blue-600"
@@ -4049,7 +4049,7 @@ export default function Home() {
                         </label>
 
                         {includeCover && (
-                          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-200">
+                          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-800">
                             <input
                               type="checkbox"
                               className="size-4 rounded accent-blue-600"
@@ -4064,8 +4064,8 @@ export default function Home() {
                       </div>
 
                       {includeCover && includeCharacter && (
-                        <div className="p-3.5 bg-[#0D1017] border border-[#242938] rounded-xl flex items-center gap-4">
-                          <div className="relative size-16 shrink-0 rounded-full border-2 border-slate-600/50 bg-slate-900/40 overflow-hidden flex items-center justify-center shadow-inner">
+                        <div className="p-3.5 bg-[#f8fafc] border border-[#dce4ed] rounded-xl flex items-center gap-4">
+                          <div className="relative size-16 shrink-0 rounded-full border-2 border-slate-600/50 bg-slate-50 overflow-hidden flex items-center justify-center shadow-inner">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={customCharacter || defaultLogoSrc}
@@ -4075,10 +4075,10 @@ export default function Home() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="text-xs font-bold text-slate-200">
+                              <span className="text-xs font-bold text-slate-800">
                                 표지 중앙 로고 / 마스코트
                               </span>
-                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-400">
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-teal-500/15 border border-teal-500/30 text-teal-700">
                                 {customCharacter
                                   ? '커스텀 로고 적용 중'
                                   : isMiddleDepartment
@@ -4086,7 +4086,7 @@ export default function Home() {
                                     : '고등부 기본 마스코트 적용 중'}
                               </span>
                             </div>
-                            <p className="text-[11px] text-slate-400 mt-0.5">
+                            <p className="text-[11px] text-slate-600 mt-0.5">
                               {isMiddleDepartment
                                 ? '중등부 기본 로고(다산미래학원)가 표지 상단 원형 엠블럼 중앙에 인쇄됩니다.'
                                 : '고등부 기본 마스코트가 표지 상단 원형 엠블럼 중앙에 인쇄됩니다.'}
@@ -4094,7 +4094,7 @@ export default function Home() {
                             <div className="flex items-center gap-2 mt-2">
                               <label
                                 htmlFor="character-upload-input"
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-200 bg-[#1F2433] hover:bg-[#2B3247] border border-[#30384F] hover:border-slate-500 transition-colors cursor-pointer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-800 bg-[#f1f5f9] hover:bg-[#e2e8f0] border border-[#cad7e5] hover:border-slate-500 transition-colors cursor-pointer"
                               >
                                 <Upload className="size-3.5" />
                                 <span>다른 로고/이미지로 변경</span>
@@ -4110,7 +4110,7 @@ export default function Home() {
                                 <button
                                   type="button"
                                   onClick={handleResetCharacter}
-                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
                                 >
                                   <RotateCcw className="size-3" />
                                   기본값 복원
@@ -4121,7 +4121,7 @@ export default function Home() {
                         </div>
                       )}
 
-                      <small className="block text-xs text-slate-400">
+                      <small className="block text-xs text-slate-600">
                         ※ 표지 중앙 &quot;{currentCoverTitle}&quot; / 하단 학생
                         이름 / 2×2 문제 배열 / 바닥글 {academyName} 적용
                       </small>
@@ -4134,7 +4134,7 @@ export default function Home() {
               <div className="generator-actions flex flex-wrap items-center gap-2.5 pt-1">
                 <button
                   type="button"
-                  className="flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-semibold bg-[#1B1E2B] hover:bg-[#2d1b12] border border-[#4a3023] hover:border-[#63c5ae] text-[#d8c5b6] hover:text-white transition-all cursor-pointer disabled:opacity-50"
+                  className="flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-semibold bg-[#ffffff] hover:bg-[#eaf7f1] border border-[#dce4ed] hover:border-[#8dc8b6] text-[#52647a] hover:text-slate-900 transition-all cursor-pointer disabled:opacity-50"
                   onClick={() => void handleRefreshPreview()}
                   disabled={previewLoading || busy}
                 >
@@ -4146,7 +4146,7 @@ export default function Home() {
 
                 <button
                   type="button"
-                  className="flex-[2] min-w-[210px] flex items-center justify-center gap-2 py-3 px-5 rounded-xl text-sm font-extrabold text-[#160d09] bg-[#63c5ae] hover:bg-[#8bd8c4] border border-[#9be0ce] shadow-lg shadow-[#63c5ae]/20 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer disabled:opacity-50"
+                  className="flex-[2] min-w-[210px] flex items-center justify-center gap-2 py-3 px-5 rounded-xl text-sm font-extrabold text-[#ffffff] bg-[#087f6c] hover:bg-[#066454] border border-[#087f6c] shadow-sm shadow-[#63c5ae]/20 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer disabled:opacity-50"
                   onClick={() => void handleDownloadPdf()}
                   disabled={busy || previewLoading}
                 >
@@ -4163,7 +4163,7 @@ export default function Home() {
 
                 <button
                   type="button"
-                  className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl text-sm font-extrabold bg-[#c58b32] hover:bg-[#e0aa4f] border border-[#f2c66d] text-[#160d09] hover:text-[#160d09] transition-all cursor-pointer disabled:opacity-50"
+                  className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl text-sm font-extrabold bg-[#f1f5f9] hover:bg-[#e2e8f0] border border-[#cad7e5] text-[#52647a] hover:text-[#52647a] transition-all cursor-pointer disabled:opacity-50"
                   onClick={handlePrintPdf}
                   disabled={previewLoading}
                 >
@@ -4174,7 +4174,7 @@ export default function Home() {
 
               {/* Status banner */}
               {status && (
-                <div className="p-3 text-xs rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+                <div className="p-3 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-700">
                   📢 {status}
                 </div>
               )}
@@ -4182,24 +4182,24 @@ export default function Home() {
 
             {/* Right Preview Panel */}
             <section
-              className={`bg-[#151822] border border-[#242938] rounded-xl shadow-xl flex flex-col p-4 sm:p-5 sticky top-6 transition-all duration-200 ${
+              className={`bg-[#ffffff] border border-[#dce4ed] rounded-xl shadow-md flex flex-col p-4 sm:p-5 sticky top-6 transition-all duration-200 ${
                 previewExpanded
                   ? 'min-h-[1180px]'
                   : 'min-h-[960px] xl:min-h-[1020px]'
               }`}
             >
-              <div className="flex flex-wrap items-center justify-between pb-3.5 mb-3.5 border-b border-[#242938] gap-2.5">
+              <div className="flex flex-wrap items-center justify-between pb-3.5 mb-3.5 border-b border-[#dce4ed] gap-2.5">
                 <div className="flex items-center gap-2.5 flex-wrap">
-                  <h3 className="text-sm font-bold text-slate-100">
+                  <h3 className="text-sm font-bold text-slate-900">
                     실시간 오답노트 미리보기
                   </h3>
                   {studentMode === 'batch' &&
                     parsedBatchStudentNames.length > 0 && (
-                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300">
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-teal-500/15 border border-teal-500/30 text-teal-700">
                         1번 학생 ({parsedBatchStudentNames[0]}) 미리보기
                       </span>
                     )}
-                  <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400">
+                  <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-700">
                     {previewLoading
                       ? '생성 중…'
                       : previewPdfUrl
@@ -4207,7 +4207,7 @@ export default function Home() {
                         : '입력 대기 중'}
                   </span>
                   {highSchoolProblemCount > 0 && (
-                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-700">
                       총 {highSchoolProblemCount}문항 ({highSchoolPageCount}
                       페이지)
                     </span>
@@ -4216,12 +4216,12 @@ export default function Home() {
 
                 {previewPdfUrl && (
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <div className="inline-flex items-center rounded-full bg-[#151923] border border-[#30384F] overflow-hidden">
-                      <button type="button" onClick={() => setPreviewPage((page) => Math.max(1, page - 1))} disabled={previewPage <= 1} className="p-2.5 text-slate-300 hover:bg-[#242A3A] disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed" aria-label="이전 페이지">
+                    <div className="inline-flex items-center rounded-full bg-[#f1f5f9] border border-[#cad7e5] overflow-hidden">
+                      <button type="button" onClick={() => setPreviewPage((page) => Math.max(1, page - 1))} disabled={previewPage <= 1} className="p-2.5 text-slate-700 hover:bg-[#e2e8f0] disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed" aria-label="이전 페이지">
                         <ChevronLeft className="size-4" />
                       </button>
-                      <span className="min-w-14 text-center text-sm font-bold text-slate-200">{previewPage}/{Math.max(1, highSchoolPageCount)}</span>
-                      <button type="button" onClick={() => setPreviewPage((page) => Math.min(Math.max(1, highSchoolPageCount), page + 1))} disabled={previewPage >= Math.max(1, highSchoolPageCount)} className="p-2.5 text-slate-300 hover:bg-[#242A3A] disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed" aria-label="다음 페이지">
+                      <span className="min-w-14 text-center text-sm font-bold text-slate-800">{previewPage}/{Math.max(1, highSchoolPageCount)}</span>
+                      <button type="button" onClick={() => setPreviewPage((page) => Math.min(Math.max(1, highSchoolPageCount), page + 1))} disabled={previewPage >= Math.max(1, highSchoolPageCount)} className="p-2.5 text-slate-700 hover:bg-[#e2e8f0] disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed" aria-label="다음 페이지">
                         <ChevronRight className="size-4" />
                       </button>
                     </div>
@@ -4233,7 +4233,7 @@ export default function Home() {
                           prev === 'Fit' ? 'FitH' : 'Fit',
                         )
                       }
-                      className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#1F2433] hover:bg-[#2A3245] border border-[#30384F] text-slate-300 hover:text-white transition-all cursor-pointer"
+                      className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#f1f5f9] hover:bg-[#e2e8f0] border border-[#cad7e5] text-slate-700 hover:text-slate-900 transition-all cursor-pointer"
                       title={
                         previewViewMode === 'Fit'
                           ? '가로폭에 맞추어 확대'
@@ -4249,7 +4249,7 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={() => setPreviewExpanded((prev) => !prev)}
-                      className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#1F2433] hover:bg-[#2A3245] border border-[#30384F] text-slate-300 hover:text-white transition-all cursor-pointer"
+                      className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#f1f5f9] hover:bg-[#e2e8f0] border border-[#cad7e5] text-slate-700 hover:text-slate-900 transition-all cursor-pointer"
                       title={
                         previewExpanded
                           ? '기본 높이로 복원'
@@ -4263,7 +4263,7 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={() => window.open(previewPdfUrl, '_blank')}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 hover:text-blue-200 transition-all cursor-pointer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-teal-600/20 hover:bg-teal-600/30 border border-teal-500/40 text-teal-700 hover:text-teal-700 transition-all cursor-pointer"
                       title="새 창에서 원본 크기로 전체화면 보기"
                     >
                       <ExternalLink className="size-3.5" />
@@ -4274,7 +4274,7 @@ export default function Home() {
               </div>
 
               <div
-                className={`flex-1 bg-[#090A0E] border border-[#1C202E] rounded-lg overflow-hidden flex flex-col items-center justify-center relative transition-all duration-200 ${
+                className={`flex-1 bg-[#edf2f7] border border-[#dce4ed] rounded-lg overflow-hidden flex flex-col items-center justify-center relative transition-all duration-200 ${
                   previewExpanded
                     ? 'min-h-[1100px]'
                     : 'min-h-[900px] xl:min-h-[960px]'
@@ -4282,9 +4282,9 @@ export default function Home() {
               >
                 {/* 최초 로딩 시: 전체 화면 중앙 스피너 */}
                 {previewLoading && !previewPdfUrl && (
-                  <div className="absolute inset-0 bg-[#090A0E]/85 backdrop-blur-xs flex flex-col items-center justify-center z-10 gap-3">
-                    <div className="size-10 rounded-full border-3 border-blue-500/20 border-t-blue-500 animate-spin" />
-                    <p className="text-sm text-slate-300 font-medium">
+                  <div className="absolute inset-0 bg-[#edf2f7]/85 backdrop-blur-xs flex flex-col items-center justify-center z-10 gap-3">
+                    <div className="size-10 rounded-full border-3 border-teal-500/20 border-t-blue-500 animate-spin" />
+                    <p className="text-sm text-slate-700 font-medium">
                       오답노트 PDF를 실시간 렌더링하고 있습니다…
                     </p>
                   </div>
@@ -4292,8 +4292,8 @@ export default function Home() {
 
                 {/* 백그라운드 갱신 시 (무깜빡임): 기존 시험지를 유지하고 우측 상단 플로팅 인디케이터만 표시 */}
                 {previewLoading && previewPdfUrl && (
-                  <div className="absolute top-4 right-4 z-20 flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0F121C]/90 border border-blue-500/40 text-blue-300 text-xs font-semibold shadow-2xl backdrop-blur-md animate-pulse pointer-events-none">
-                    <span className="size-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                  <div className="absolute top-4 right-4 z-20 flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#ffffff]/90 border border-teal-500/40 text-teal-700 text-xs font-semibold shadow-md backdrop-blur-md animate-pulse pointer-events-none">
+                    <span className="size-3 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
                     <span>실시간 갱신 중…</span>
                   </div>
                 )}
@@ -4303,45 +4303,45 @@ export default function Home() {
                     key={`${previewPdfUrl}-${previewViewMode}-${previewPage}`}
                     src={`${previewPdfUrl}#toolbar=0&navpanes=0&view=${previewViewMode}&page=${previewPage}`}
                     title="오답노트 실시간 미리보기"
-                    className="w-full h-full rounded-lg border-0 bg-white shadow-2xl transition-all"
+                    className="w-full h-full rounded-lg border-0 bg-white shadow-md transition-all"
                     style={{ minHeight: previewExpanded ? '1100px' : '960px' }}
                   />
                 ) : (
-                  <div className="flex flex-col items-center justify-center p-8 text-center text-slate-400 max-w-md">
-                    <div className="size-16 mb-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                  <div className="flex flex-col items-center justify-center p-8 text-center text-slate-600 max-w-md">
+                    <div className="size-16 mb-4 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-700">
                       <FileText className="size-8" />
                     </div>
-                    <h4 className="text-base font-bold text-slate-200 mb-1">
+                    <h4 className="text-base font-bold text-slate-800 mb-1">
                       {currentTb?.title} 오답노트
                     </h4>
-                    <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+                    <p className="text-xs text-slate-600 mb-4 leading-relaxed">
                       좌측에서 틀린 문제 번호를 입력하시면<br />
                       실제 시험지/오답노트 PDF가 이곳에 고화질로 즉시
                       렌더링됩니다.
                     </p>
-                    <div className="w-full bg-slate-900/90 border border-slate-800 rounded-lg p-3 text-left space-y-1.5 text-xs">
-                      <div className="flex justify-between text-slate-400">
+                    <div className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-left space-y-1.5 text-xs">
+                      <div className="flex justify-between text-slate-600">
                         <span>학생 성명:</span>
-                        <strong className="text-slate-200">
+                        <strong className="text-slate-800">
                           {student} ({grade})
                         </strong>
                       </div>
-                      <div className="flex justify-between text-slate-400">
+                      <div className="flex justify-between text-slate-600">
                         <span>선택 문항:</span>
-                        <strong className="text-blue-400">
+                        <strong className="text-teal-700">
                           {highSchoolProblemCount}문제 ({highSchoolPageCount}장
                           예상)
                         </strong>
                       </div>
-                      <div className="flex justify-between text-slate-400">
+                      <div className="flex justify-between text-slate-600">
                         <span>지원 문항:</span>
-                        <strong className="text-amber-300 font-mono">
+                        <strong className="text-amber-700 font-mono">
                           {currentTbInfo.range_text || `${currentTbInfo.max_num}번까지`}
                         </strong>
                       </div>
-                      <div className="flex justify-between text-slate-400">
+                      <div className="flex justify-between text-slate-600">
                         <span>출제 일자:</span>
-                        <span className="text-slate-300">{testDate}</span>
+                        <span className="text-slate-700">{testDate}</span>
                       </div>
                     </div>
 
@@ -4349,7 +4349,7 @@ export default function Home() {
                       type="button"
                       onClick={() => void handleRefreshPreview()}
                       disabled={previewLoading || busy}
-                      className="mt-4 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-500/30 transition-all cursor-pointer flex items-center gap-2"
+                      className="mt-4 px-5 py-2.5 bg-teal-600 hover:bg-teal-500 text-slate-900 font-bold text-xs rounded-xl shadow-sm shadow-teal-500/30 transition-all cursor-pointer flex items-center gap-2"
                     >
                       <RefreshCw
                         className={`size-4 ${previewLoading ? 'animate-spin' : ''}`}
@@ -4376,7 +4376,7 @@ export default function Home() {
         <header
           className={`mb-6 flex items-center justify-between px-5 py-4 ${
             !textbook
-              ? 'selection-header border-b border-dashed border-[#40372e] bg-transparent text-[#ffedd7]'
+              ? 'selection-header border-b border-dashed border-[#dce4ed] bg-transparent text-[#20334d]'
               : 'login-header rounded-2xl border bg-white/90 shadow-sm'
           }`}
         >
@@ -4418,14 +4418,14 @@ export default function Home() {
               <LogOut /> 로그아웃
             </Button>
           ) : (
-            <span className="rounded-full border border-[#40372e] bg-[#2a1912] px-3 py-1 text-xs font-semibold text-[#f5bd7b]">
+            <span className="whitespace-nowrap rounded-full border border-[#dce4ed] bg-[#ffffff] px-3 py-1 text-xs font-semibold text-[#52647a]">
               {configured ? '시험 운영' : '연결 준비'}
             </span>
           )}
         </header>
 
         {checkingSession ? (
-          <Card className="mx-auto max-w-md border-0 shadow-lg">
+          <Card className="mx-auto max-w-md border-0 shadow-sm">
             <CardContent
               className="py-12 text-center text-slate-600"
               aria-live="polite"
@@ -4614,7 +4614,7 @@ export default function Home() {
           </section>
         ) : !textbook ? (
           <section className="textbook-stage mx-auto max-w-5xl">
-            <div className="mb-3 flex flex-col gap-3 border-b border-dashed border-[#40372e] pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mb-3 flex flex-col gap-3 border-b border-dashed border-[#dce4ed] pb-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="selection-kicker">
                   {department === 'middle'
@@ -4693,7 +4693,7 @@ export default function Home() {
           </section>
         ) : (
           <section className="mx-auto max-w-3xl">
-            <Card className="border-0 shadow-lg">
+            <Card className="border-0 shadow-sm">
               <CardHeader className="border-b">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
