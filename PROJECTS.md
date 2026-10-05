@@ -12,7 +12,7 @@
   - **Frontend**: Next.js 16 (Turbopack), TypeScript, Tailwind CSS v4, Lucide React
   - **Backend API**: Python 3.10+, ReportLab, Pillow (`PIL`), `pypdf` (Vercel Serverless Function `/api/generate.py`)
   - **인증 & 사용량 트래킹**: Supabase Auth (이메일 로그인), Supabase Usage Database
-  - **클라우드 스토리지**: Cloudflare R2 비공개 `textbook-problems` 버킷 (로컬 설정 적용, 온라인 배포는 별도). Supabase Auth와 사용량 DB 유지.
+  - **클라우드 스토리지**: Cloudflare R2 비공개 `textbook-problems` 버킷 (로컬 및 온라인 운영 환경 적용 완료). Supabase Auth와 사용량 DB 유지.
 - **로컬 원본 교재 경로 (안전 규칙)**:
   - 로컬 원본 교재 디렉터리(`D:\시너지_공통수학2`, `D:\시너지_대수`, `D:\올림푸스_미적분`, `D:\공수2_고쟁이`, `D:\중등부교재작업\`)는 **읽기 전용**으로만 참조하며 절대 수정·이동·삭제하지 않습니다.
 - **보안 규칙**:
@@ -128,7 +128,7 @@
    - R2 키는 `.env.local` 또는 배포 서버의 비공개 환경변수에만 보관한다. `NEXT_PUBLIC_` 접두사로 노출하거나 Git·문서에 실제 키를 저장하지 않는다. Python 로컬 실행은 저장소 전용 변수를 `.env.local`에서 읽고, Vercel은 서버 환경변수를 사용한다.
    - Supabase 로그인·사용량 DB 설정을 유지한다. `twin-uploads`는 이 이전 작업의 조회·복사·수정·삭제 대상이 아니다. Supabase 원본과 로컬 교재 자료도 보존한다.
    - 2026-10-05: 15,966개 / 2,210,545,492바이트를 R2로 복사하고 전 파일을 다시 내려받아 SHA256 일치 확인. 복사 전후 원본 목록도 동일함.
-   - 온라인 서비스 전환에는 기존 Vercel 프로젝트의 비공개 R2 환경변수 설정과 배포가 필요하다. 로컬 설정 변경만으로 공개 사이트가 전환되지는 않는다.
+   - 2026-10-05: 기존 Vercel 운영 프로젝트에 R2 서버 변수 5개를 등록하고 검증된 커밋을 직접 배포했다. `https://fix.kangmath.com` 연결 및 운영 Ready 확인. GitHub main에도 동일 R2 코드 동기화 완료. 저장소별 GitHub 인증 계정은 소유 계정으로 지정한다.
 
 ---
 
