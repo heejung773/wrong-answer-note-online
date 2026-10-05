@@ -1086,6 +1086,14 @@ function countProblemTokens(raw: string) {
   return count;
 }
 
+function privateDownloadHref(url: string, filename: string): string {
+  const parsed = new URL(url);
+  // A signed R2 URL cannot be modified after the server signs its query.
+  if (parsed.searchParams.has('X-Amz-Signature')) return url;
+  parsed.searchParams.set('download', filename);
+  return parsed.toString();
+}
+
 export default function Home() {
   const configured = Boolean(supabaseUrl && supabaseKey);
   const supabase = useMemo(
@@ -2144,9 +2152,8 @@ export default function Home() {
           throw new Error('다운로드 주소를 받지 못했습니다.');
         }
         const targetFilename = result.filename || filename;
-        const separator = result.downloadUrl.includes('?') ? '&' : '?';
         const link = document.createElement('a');
-        link.href = `${result.downloadUrl}${separator}download=${encodeURIComponent(targetFilename)}`;
+        link.href = privateDownloadHref(result.downloadUrl, targetFilename);
         link.click();
         setStatus(
           isBatch
@@ -2439,9 +2446,8 @@ export default function Home() {
         if (!result.downloadUrl) {
           throw new Error('임시 PDF 다운로드 주소를 받지 못했습니다.');
         }
-        const separator = result.downloadUrl.includes('?') ? '&' : '?';
         const link = document.createElement('a');
-        link.href = `${result.downloadUrl}${separator}download=${encodeURIComponent(filename)}`;
+        link.href = privateDownloadHref(result.downloadUrl, filename);
         link.click();
         setStatus(
           '큰 PDF 다운로드가 시작되었습니다. 다운로드 주소는 30분 동안 유효합니다.',

@@ -17,6 +17,8 @@ from concurrent.futures import ThreadPoolExecutor
 import threading
 from typing import Any
 
+from storage_backend import fetch_r2_object, upload_r2_temporary, uses_r2
+
 from PIL import Image
 from pypdf import PdfReader, PdfWriter
 from reportlab.lib.pagesizes import A4
@@ -184,6 +186,15 @@ def request_bytes(
     data: bytes | None = None,
     method: str | None = None,
 ) -> bytes:
+    # Keep the existing object paths while changing the private storage provider.
+    parsed = urllib.parse.urlsplit(url)
+    storage_prefix = "/storage/v1/object/authenticated/"
+    if uses_r2() and data is None and method in (None, "GET") and parsed.path.startswith(storage_prefix):
+        source = urllib.parse.urlsplit(os.environ["NEXT_PUBLIC_SUPABASE_URL"])
+        source_bucket, separator, key = urllib.parse.unquote(parsed.path[len(storage_prefix):]).partition("/")
+        if parsed.netloc != source.netloc or source_bucket != os.environ.get("SUPABASE_STORAGE_BUCKET", "textbook-problems") or not separator:
+            raise ValueError("Unexpected textbook storage origin or bucket")
+        return fetch_r2_object(key)
     request = urllib.request.Request(url, data=data, headers=headers, method=method)
     with urllib.request.urlopen(request, timeout=20) as response:
         return response.read()
@@ -196,9 +207,12 @@ def upload_temporary_file(
     file_bytes: bytes,
     content_type: str = "application/pdf",
     ext: str = "pdf",
+    download_filename: str | None = None,
 ) -> str:
     """Upload a large PDF or ZIP and return a short-lived private download URL."""
     object_name = f"temporary-files/{uuid.uuid4().hex}.{ext}"
+    if uses_r2():
+        return upload_r2_temporary(object_name, file_bytes, content_type, download_filename)
     object_path = urllib.parse.quote(f"{bucket}/{object_name}", safe="/")
     upload_request = urllib.request.Request(
         f"{supabase_url}/storage/v1/object/{object_path}",
@@ -242,8 +256,9 @@ def upload_temporary_pdf(
     secret_key: str,
     bucket: str,
     pdf: bytes,
+    download_filename: str | None = None,
 ) -> str:
-    return upload_temporary_file(supabase_url, secret_key, bucket, pdf, "application/pdf", "pdf")
+    return upload_temporary_file(supabase_url, secret_key, bucket, pdf, "application/pdf", "pdf", download_filename)
 
 
 def pdf_image_reader(data: bytes, max_width: int, max_height: int) -> ImageReader:
@@ -2204,7 +2219,7 @@ class handler(BaseHTTPRequestHandler):
                 zip_filename = f"{title_label}_학생별_오답노트_모음.zip"
                 if len(zip_bytes) > 4_300_000:
                     download_url = upload_temporary_file(
-                        supabase_url, secret_key, bucket, zip_bytes, "application/zip", "zip"
+                        supabase_url, secret_key, bucket, zip_bytes, "application/zip", "zip", zip_filename
                     )
                     if not is_preview:
                         log_usage_event(
@@ -2239,7 +2254,10 @@ class handler(BaseHTTPRequestHandler):
 
             pdf = make_pdf(unique_students[0])
             if len(pdf) > 4_300_000:
-                download_url = upload_temporary_pdf(supabase_url, secret_key, bucket, pdf)
+                download_name = f"{unique_students[0]}_{grade}_{title_label}_오답노트.pdf"
+                download_url = upload_temporary_pdf(
+                    supabase_url, secret_key, bucket, pdf, None if is_preview else download_name
+                )
                 if not is_preview:
                     log_usage_event(
                         supabase_url, secret_key, user_id,

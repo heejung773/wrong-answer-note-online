@@ -12,7 +12,7 @@
   - **Frontend**: Next.js 16 (Turbopack), TypeScript, Tailwind CSS v4, Lucide React
   - **Backend API**: Python 3.10+, ReportLab, Pillow (`PIL`), `pypdf` (Vercel Serverless Function `/api/generate.py`)
   - **인증 & 사용량 트래킹**: Supabase Auth (이메일 로그인), Supabase Usage Database
-  - **클라우드 스토리지**: Supabase Storage (`textbook-problems` 버킷)
+  - **클라우드 스토리지**: Cloudflare R2 비공개 `textbook-problems` 버킷 (로컬 설정 적용, 온라인 배포는 별도). Supabase Auth와 사용량 DB 유지.
 - **로컬 원본 교재 경로 (안전 규칙)**:
   - 로컬 원본 교재 디렉터리(`D:\시너지_공통수학2`, `D:\시너지_대수`, `D:\올림푸스_미적분`, `D:\공수2_고쟁이`, `D:\중등부교재작업\`)는 **읽기 전용**으로만 참조하며 절대 수정·이동·삭제하지 않습니다.
 - **보안 규칙**:
@@ -105,23 +105,30 @@
    - 학생 이름 입력 시 미리보기 자동 갱신.
 4. **다중 학생 일괄 생성 (ZIP 압축)**:
    - 학생 이름을 줄바꿈 또는 쉼표로 다수 입력 시, 각 학생의 이름이 인쇄된 개별 시험지를 일괄 생성하여 ZIP 압축파일(`{교재명}_학생별_오답노트_모음.zip`)로 다운로드.
-   - 대용량 파일 발생 시 Supabase Storage 임시 파일 업로드 및 서명된 URL 자동 전환.
+   - R2 사용 설정에서는 대용량 파일을 비공개 R2에 업로드하고 30분 서명 URL로 다운로드한다. 파일명은 서버에서 서명에 포함하며 브라우저에서 서명 URL 쿼리를 변경하지 않는다. 기존 Supabase 설정도 호환한다.
 
 ---
 
-## 6. 이미지 저장소 및 Supabase 스토리지 규칙
+## 6. 이미지 저장소 및 Cloudflare R2 규칙
 
 1. **로컬 우선 탐색**:
    - 로컬 디렉터리에 해당 교재 이미지가 존재할 경우 디스크에서 즉시 로드하여 처리 속도 극대화.
-2. **Supabase Storage (`textbook-problems` 버킷)**:
+2. **Cloudflare R2 비공개 저장소 (`textbook-problems` 버킷, 기존 객체 경로 유지)**:
    - 시너지 / 고쟁이 / 쎈 공통수학1: `<교재id>/<num:04d>.png` (예: `synergy-algebra/0001.png`, `ssen-common-math-1/0040.png`)
    - 올림포스 미적분: `olympus-calculus/unit-<단원번호>/<유형id>/<num:04d>.png` (예: `unit-5/standard/0001.png`)
-   - 중등부 교재: Supabase S3 키 검증기 호환을 위한 영문 ASCII 슬러그 매핑 적용 (`ch01/sub01/concept/0001.png`).
+   - 중등부 교재: 기존 영문 ASCII 슬러그 매핑 유지 (`ch01/sub01/concept/0001.png`).
    - 베이직쎈 중2-2: `basic-ssen-middle-2-2/<ch>/<sub>/<stage>/<num:04d>.png` (예: `ch1/sub01/basic1/0001.png`), `문제모음_인쇄용` 고해상도(300 DPI) 609개 문항 전수 업로드 완료.
    - 쎈 공통수학1: `ssen-common-math-1/<num:04d>.png`, 10개 단원 927제(`0040.png` ~ `1316.png`) 전수 업로드 완료.
 3. **병렬 다운로드 및 인메모리 LRU 캐싱 (`ThreadPoolExecutor` + `ThreadSafeLRUCache`)**:
    - 문항 이미지를 순차(직렬)로 다운로드하던 방식을 최대 12개 스레드 병렬 다운로드로 전환하여 네트워크 레이턴시 병목 해소.
    - 3,000개 용량의 스레드 안전 인메모리 LRU 캐시(`IMAGE_CACHE`) 및 빠른정답 파싱 결과 캐시(`ANSWER_CACHE`)를 적용하여 동일 문항 재요청 시 즉시(0.001초) 반환.
+4. **서버 설정과 인증 분리**:
+   - `storage_backend.py`에서 R2 S3 API로 읽기·대용량 파일 업로드를 처리한다. 기존 다운로드 호출의 객체 경로만 재사용하며 R2 사용 중 실패 시 Supabase 원본으로 자동 재시도하지 않는다.
+   - 서버 환경변수: `TEXTBOOK_STORAGE_BACKEND`, `R2_ENDPOINT_URL`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`. 공급자는 `r2` 또는 `supabase`; 설정이 없으면 기존 Supabase 방식과 호환한다.
+   - R2 키는 `.env.local` 또는 배포 서버의 비공개 환경변수에만 보관한다. `NEXT_PUBLIC_` 접두사로 노출하거나 Git·문서에 실제 키를 저장하지 않는다. Python 로컬 실행은 저장소 전용 변수를 `.env.local`에서 읽고, Vercel은 서버 환경변수를 사용한다.
+   - Supabase 로그인·사용량 DB 설정을 유지한다. `twin-uploads`는 이 이전 작업의 조회·복사·수정·삭제 대상이 아니다. Supabase 원본과 로컬 교재 자료도 보존한다.
+   - 2026-10-05: 15,966개 / 2,210,545,492바이트를 R2로 복사하고 전 파일을 다시 내려받아 SHA256 일치 확인. 복사 전후 원본 목록도 동일함.
+   - 온라인 서비스 전환에는 기존 Vercel 프로젝트의 비공개 R2 환경변수 설정과 배포가 필요하다. 로컬 설정 변경만으로 공개 사이트가 전환되지는 않는다.
 
 ---
 
