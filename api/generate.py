@@ -18,9 +18,13 @@ import threading
 from typing import Any
 
 from storage_backend import fetch_r2_object, upload_r2_temporary, uses_r2
+from solution_links import SOLUTION_SOURCES, fetch_solution_links
 
 from PIL import Image
 from pypdf import PdfReader, PdfWriter
+from reportlab.graphics import renderPDF
+from reportlab.graphics.barcode.qr import QrCodeWidget
+from reportlab.graphics.shapes import Drawing
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
@@ -986,7 +990,25 @@ def draw_answer_page(c: canvas.Canvas, numbers: list[int], answers: dict[int, An
     draw_footer(c, page_number, page_width, academy_name)
 
 
-def create_pdf(student: str, grade: str, images: list[tuple[int, bytes]], answers: dict[int, str] | None, textbook: str, cover_options: dict | None = None) -> bytes:
+SOLUTION_QR_SIZE = 20 * mm
+SOLUTION_QR_ZONE = 3 * mm + SOLUTION_QR_SIZE + 1 * mm  # QR 이 있는 칸은 이 높이만큼 문제 그림을 위쪽에만 배치
+
+
+def draw_solution_qr(c: canvas.Canvas, url: str, cell_x: float, cell_y: float, cell_w: float) -> None:
+    """칸 오른쪽 아래 손풀이 QR: 인쇄물은 휴대폰으로 찍고, 패드에서는 QR 을 누르면 열린다."""
+    qr_x, qr_y = cell_x + cell_w - 3 * mm - SOLUTION_QR_SIZE, cell_y + 3 * mm
+    # 흰 여백을 2칸으로 줄여 같은 크기에서 무늬를 크게(패드 화면을 휴대폰으로 찍을 때 유리)
+    widget = QrCodeWidget(url, barLevel="M", barBorder=2)
+    x1, y1, x2, y2 = widget.getBounds()
+    drawing = Drawing(SOLUTION_QR_SIZE, SOLUTION_QR_SIZE,
+                      transform=[SOLUTION_QR_SIZE / (x2 - x1), 0, 0, SOLUTION_QR_SIZE / (y2 - y1), 0, 0])
+    drawing.add(widget)
+    renderPDF.draw(drawing, c, qr_x, qr_y)
+    c.linkURL(url, (qr_x, qr_y, qr_x + SOLUTION_QR_SIZE, qr_y + SOLUTION_QR_SIZE), relative=0, thickness=0)
+
+
+def create_pdf(student: str, grade: str, images: list[tuple[int, bytes]], answers: dict[int, str] | None, textbook: str, cover_options: dict | None = None, solution_links: dict[int, str] | None = None) -> bytes:
+    solution_links = solution_links or {}
     opts = cover_options or {}
     include_cover = opts.get("include_cover", True)
     academy_name = opts.get("academy_name") or "다산미래학원"
@@ -1013,10 +1035,14 @@ def create_pdf(student: str, grade: str, images: list[tuple[int, bytes]], answer
             c.drawString(x + 3 * mm, y + cell_h - 6 * mm, f"No. {label_number}")
             reader = pdf_image_reader(data, 900, 1150)
             iw, ih = reader.getSize()
-            available_w, available_h = cell_w - 6 * mm, cell_h - 14 * mm
+            solution_url = solution_links.get(number)
+            available_w = cell_w - 6 * mm
+            available_h = cell_h - 14 * mm - (SOLUTION_QR_ZONE if solution_url else 0)
             scale = min(available_w / iw, available_h / ih)
             dw, dh = iw * scale, ih * scale
             c.drawImage(reader, x + (cell_w - dw) / 2, y + cell_h - 10 * mm - dh, dw, dh, preserveAspectRatio=True)
+            if solution_url:
+                draw_solution_qr(c, solution_url, x, y, cell_w)
         draw_footer(c, page_index, page_width, academy_name)
         c.showPage()
     if answers is not None:
@@ -2178,8 +2204,19 @@ class handler(BaseHTTPRequestHandler):
                         raise ValueError(f"빠른정답에 없는 문제번호입니다: {listed}")
                     selected_answers = {number: all_answers[number] for number in numbers}
 
+                solution_qr_links: dict[int, str] = {}
+                include_solution_qr = payload.get("includeSolutionQr", True)
+                if isinstance(include_solution_qr, str):
+                    include_solution_qr = include_solution_qr.lower() not in ("false", "0", "no")
+                if include_solution_qr and textbook in SOLUTION_SOURCES:
+                    try:
+                        solution_qr_links = fetch_solution_links(textbook, numbers)
+                    except Exception as error:
+                        # 손풀이 링크를 못 가져와도 오답노트는 QR 없이 만든다
+                        print("[-] solution links lookup failed:", type(error).__name__)
+
                 def make_pdf(st: str) -> bytes:
-                    result = create_pdf(st, grade, images, selected_answers, textbook, cover_options)
+                    result = create_pdf(st, grade, images, selected_answers, textbook, cover_options, solution_qr_links)
                     if textbook == "ssen-middle-2-2":
                         result = append_ssen_selected_answers(result, numbers)
                     return result

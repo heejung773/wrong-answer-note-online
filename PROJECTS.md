@@ -130,6 +130,14 @@
    - 2026-10-05: 15,966개 / 2,210,545,492바이트를 R2로 복사하고 전 파일을 다시 내려받아 SHA256 일치 확인. 복사 전후 원본 목록도 동일함.
    - 2026-10-05: 기존 Vercel 운영 프로젝트에 R2 서버 변수 5개를 등록하고 검증된 커밋을 직접 배포했다. `https://fix.kangmath.com` 연결 및 운영 Ready 확인. GitHub main에도 동일 R2 코드 동기화 완료. 저장소별 GitHub 인증 계정은 소유 계정으로 지정한다.
 
+7. **문항별 손풀이 QR (2026-10-09 로컬 구현·검증 완료, 운영 배포 전)**:
+   - 대상 교재: `synergy-calculus`, `synergy-common-math-2`만. 다른 교재는 적용하지 않는다(`solution_links.py`의 `SOLUTION_SOURCES`와 `app/page.tsx`의 `SOLUTION_QR_TEXTBOOKS`를 같게 유지).
+   - 원본: 노션 '문제별 손풀이 영상' DB 2개. 선생님은 노션만 수정한다.
+   - 저장: Supabase `solution_links` 표(`supabase/solution_links.sql`, 기본키 교재+문항번호, RLS 켜고 정책 없음 → 서버 비밀 키 전용). PDF 생성 시 노션을 직접 부르지 않는다.
+   - 동기화: 노션 전체를 읽어 추가·수정 반영, 노션에서 지운 번호는 표에서도 삭제, 유튜브 https 주소만 허용. 실행 경로 3가지 — 로컬 `python scripts/sync_solution_links.py`(`--dry-run`), 관리자 화면 `/admin/usage`의 '손풀이 링크 지금 동기화' 버튼(POST, ADMIN_EMAILS 확인), Vercel Cron 매일 18:00 UTC(한국 03:00) GET `/api/sync_solution_links`(`CRON_SECRET` 확인). 서버 변수 `NOTION_TOKEN`, `CRON_SECRET`(값 기록 금지).
+   - PDF 형태(`create_pdf`): 링크 있는 문항만 칸 오른쪽 아래(칸 끝 3mm) QR 20mm(흰 여백 2칸) + QR 영역 클릭 링크. QR 주소는 `https://youtu.be/<ID>?t=<초>`로 정리(si 추적값 제거). 문제 그림은 QR 높이만큼 위에만 배치. 글자·아이콘 없음. 링크 조회 실패 시 QR 없이 생성.
+   - 생성 화면: 두 교재 선택 시 04 표지·서식에 '손풀이 QR 포함'(기본 켜짐), 요청값 `includeSolutionQr`.
+
 ---
 
 ## 7. 검증 테스트 및 품질 점검 명령어

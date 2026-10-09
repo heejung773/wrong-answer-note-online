@@ -1048,6 +1048,8 @@ const allTextbookInfo: Record<string, TextbookInfoDetail> = {
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? '';
+// 손풀이 QR 은 노션에 손풀이 링크 DB 가 있는 교재만 (solution_links.py 의 SOLUTION_SOURCES 와 같게 유지)
+const SOLUTION_QR_TEXTBOOKS = new Set(['synergy-calculus', 'synergy-common-math-2']);
 const loginDomain =
   process.env.NEXT_PUBLIC_LOGIN_EMAIL_DOMAIN ?? 'academy.local';
 
@@ -1188,6 +1190,7 @@ export default function Home() {
   const [basicSsenQuickInput, setBasicSsenQuickInput] = useState('1-4');
   const [includeCover, setIncludeCover] = useState(true);
   const [includeCharacter, setIncludeCharacter] = useState(true);
+  const [includeSolutionQr, setIncludeSolutionQr] = useState(true);
   const [customCharacter, setCustomCharacter] = useState<string | null>(null);
   const [coverTitle, setCoverTitle] = useState('');
   const [academyName, setAcademyName] = useState('다산미래학원');
@@ -1976,6 +1979,7 @@ export default function Home() {
           testDate,
           includeCharacter,
           customCharacter,
+          includeSolutionQr,
           department: isMiddleDepartment ? 'middle' : 'high',
         }),
       });
@@ -2130,6 +2134,7 @@ export default function Home() {
           testDate,
           includeCharacter,
           customCharacter,
+          includeSolutionQr,
           department: isMiddleDepartment ? 'middle' : 'high',
         }),
       });
@@ -2430,6 +2435,7 @@ export default function Home() {
           testDate,
           includeCharacter,
           customCharacter,
+          includeSolutionQr,
           department: isMiddleDepartment ? 'middle' : 'high',
         }),
       });
@@ -4058,6 +4064,20 @@ export default function Home() {
                               }
                             />
                             <span>표지 중앙 로고/마스코트 표시</span>
+                          </label>
+                        )}
+
+                        {SOLUTION_QR_TEXTBOOKS.has(textbook) && (
+                          <label className="flex items-center gap-2 cursor-pointer text-[13px] text-slate-200">
+                            <input
+                              type="checkbox"
+                              className="size-4 rounded accent-blue-600"
+                              checked={includeSolutionQr}
+                              onChange={(e) =>
+                                setIncludeSolutionQr(e.target.checked)
+                              }
+                            />
+                            <span>손풀이 QR 포함</span>
                           </label>
                         )}
                       </div>

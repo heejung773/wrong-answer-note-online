@@ -5,5 +5,11 @@
       "maxDuration": 300,
       "excludeFiles": "{tmp/**,**/__pycache__/**}"
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/sync_solution_links",
+      "schedule": "0 18 * * *"
+    }
+  ]
 }

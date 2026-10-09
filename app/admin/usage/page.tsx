@@ -38,6 +38,8 @@ export default function AdminUsagePage() {
   const [loginEmail, setLoginEmail] = useState('teacher01@academy.local');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginBusy, setLoginBusy] = useState(false);
+  const [syncBusy, setSyncBusy] = useState(false);
+  const [syncMessage, setSyncMessage] = useState('');
   const supabase = useMemo(() => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -128,6 +130,42 @@ export default function AdminUsagePage() {
     ([userId]) => userId === selectedUserId,
   )?.[1].email;
 
+  // 노션에서 손풀이 링크를 고친 뒤 바로 오답노트에 반영하고 싶을 때 (평소에는 매일 새벽 자동 동기화)
+  async function handleSolutionSync() {
+    if (!supabase) return;
+    setSyncBusy(true);
+    setSyncMessage('');
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    const response = await fetch('/api/sync_solution_links', {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    const result = (await response.json().catch(() => ({}))) as {
+      result?: Record<string, { rows: number; removed: number; problems: string[] }>;
+      error?: string;
+    };
+    if (response.ok && result.result) {
+      const names: Record<string, string> = {
+        'synergy-calculus': '시너지 미적분',
+        'synergy-common-math-2': '시너지 공통수학2',
+      };
+      setSyncMessage(
+        Object.entries(result.result)
+          .map(
+            ([textbook, r]) =>
+              `${names[textbook] ?? textbook} ${r.rows}개` +
+              (r.removed ? ` (삭제 ${r.removed})` : '') +
+              (r.problems.length ? ` · 확인 필요 ${r.problems.length}건` : ''),
+          )
+          .join(' / ') + ' 동기화 완료',
+      );
+    } else {
+      setSyncMessage(result.error ?? '동기화에 실패했습니다.');
+    }
+    setSyncBusy(false);
+  }
+
   async function handleAdminLogin(event: { preventDefault: () => void }) {
     event.preventDefault();
     if (!supabase) return;
@@ -202,6 +240,28 @@ export default function AdminUsagePage() {
         <p className="mt-2 text-sm text-slate-300">
           PDF 생성과 바로 인쇄 실행 기록입니다.
         </p>
+        {!loading && !error && (
+          <section className="mt-6 flex flex-wrap items-center gap-3 rounded-xl border border-slate-700 bg-slate-800 p-4">
+            <div className="mr-auto">
+              <p className="text-sm font-semibold">손풀이 QR 링크</p>
+              <p className="mt-1 text-xs text-slate-300">
+                노션 손풀이 영상 DB(시너지 미적분·공통수학2)를 오답노트에
+                반영합니다. 매일 새벽에도 자동으로 동기화됩니다.
+              </p>
+              {syncMessage && (
+                <p className="mt-2 text-xs text-primary">{syncMessage}</p>
+              )}
+            </div>
+            <button
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-[#115e59] disabled:opacity-50"
+              disabled={syncBusy}
+              onClick={() => void handleSolutionSync()}
+              type="button"
+            >
+              {syncBusy ? '동기화 중…' : '손풀이 링크 지금 동기화'}
+            </button>
+          </section>
+        )}
         {loading && <p className="mt-8 text-sm text-slate-300">불러오는 중…</p>}
         {error && (
           <p className="mt-8 rounded-lg border border-red-400/30 bg-red-400/10 p-4 text-sm text-red-300">
