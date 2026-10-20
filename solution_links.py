@@ -15,6 +15,8 @@ import urllib.request
 SOLUTION_SOURCES = {
     "synergy-calculus": "b5b90f91-7e63-42ad-857f-6bc63ac7d619",       # 고2 미적분 시너지 문제별 손풀이 영상
     "synergy-common-math-2": "3eae091f-51e9-8133-b288-e5edffe454f9",  # 고1 공수2 시너지 문제별 손풀이 영상
+    "synergy-algebra": "3fde091f-51e9-81b2-b5d0-f51d701d2ba1",        # 고2 대수 시너지 문제별 손풀이 영상
+    "synergy-common-math-1": "3fde091f-51e9-81cf-85d0-cb9cea084ec4",  # 고1 공수1 시너지 문제별 손풀이 영상
 }
 TABLE = "solution_links"
 # PDF 에 QR 로 인쇄되는 주소이므로 유튜브 https 주소만 받는다

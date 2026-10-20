@@ -791,3 +791,37 @@
 - 배포 전 필요(사용자 확인 후): Vercel 운영 환경변수 NOTION_TOKEN·CRON_SECRET 등록, 커밋·푸시, 배포 후 두 교재 생성·QR 확인. 커밋·푸시·배포 수행 안 함.
 - 사용자 질문: 지금 무엇을 확인하면 되는지 → 배포 전 샘플 PDF 2개(QR 위치·휴대폰 촬영·패드 터치) 확인 후 배포 여부 결정, 배포 후 확인 목록 안내.
 - 사용자: 샘플 PDF 2개 모두 이상 없음 확인. QR 포함 여부 선택 옵션 위치 문의 → 04 표지·서식(기본 접힘) 안 "손풀이 QR 포함" 체크(두 교재만, 기본 켜짐)이며 운영 배포 후 화면에서 보임을 안내.
+
+## 2026-10-09 손풀이 QR 운영 배포
+
+- 사용자 승인("일단 배포를 해보자").
+- 확인: 이 컴퓨터 Vercel CLI 로그아웃 상태. GitHub main 푸시 시 Vercel Git 연동으로 Production 자동 배포됨(커밋 상태로 확인).
+- 커밋 7fc60d1 (기능 파일 10개만 지정, package-lock.json 제외, 비밀 값 없음 확인) → origin main 푸시 성공 → 13:10 Vercel 상태 success.
+- 운영 확인: fix.kangmath.com 200, 배포된 JS에 "손풀이 QR 포함" 포함, /api/sync_solution_links GET(비밀값 없음)·POST(로그인 없음) 401, /api/generate 비로그인 401, /admin/usage 200. QR 생성은 기존 Supabase 서버 변수로 동작.
+- 남은 일: Vercel 운영 환경변수 NOTION_TOKEN·CRON_SECRET 미등록 → 관리자 동기화 버튼(502 예상)·매일 자동 동기화(401) 아직 미동작. 등록에 Vercel 로그인 필요(사용자). 사용자 운영 화면 확인 대기.
+- 사용자: 번호 입력 후 실시간 미리보기 반응 없음 보고. Claude 크롬(로그인됨)에서 운영 사이트 재현 시도: 시너지 미적분 22,23,151 입력 → 미리보기 자동 갱신, 22·23 QR 표시·151 없음; 30 추가 시 갱신; 시너지 공수2 4,5,6,116 입력 → 갱신 정상; 04 표지·서식에 "손풀이 QR 포함" 체크 존재. 재현 안 됨 → 사용자 환경(배포 전 열어 둔 탭, 다른 브라우저, 입력 범위 등) 확인 요청. 학생 성명 비어 있어도 미리보기는 동작.
+- 사용자: 직접 재테스트 예정. 공수2 손풀이 링크는 전 단원 완료(630개), 미적분은 앞으로 노션에 추가 예정. → 미적분 추가분 반영을 위해 Vercel NOTION_TOKEN·CRON_SECRET 등록 필요(미등록 상태에서는 로컬 scripts/sync_solution_links.py로만 반영 가능).
+- 사용자: 노션 자동화(Vercel NOTION_TOKEN·CRON_SECRET 등록)는 급하지 않음 → 보류, Claude 메모리에 기록. 그 전까지 미적분 추가분은 로컬 scripts/sync_solution_links.py로 반영.
+
+## 2026-10-09 테스트지만들기 QR 옵션 요청 확인 + 보안 문제 발견
+
+- 사용자: D:\테스트지만들기(test.kangmath.com)에도 손풀이 QR 옵션 필요.
+- 확인(읽기 전용): Flask + PyMuPDF(fitz) 구조, pdf_generator.py draw_problem_page 2x2, 같은 Supabase 프로젝트 사용. 교재에 synergy-calculus·synergy-common-math-2 포함 → 같은 solution_links 표 재사용 가능. QR 생성 라이브러리 없음(requirements: Flask, PyMuPDF, Pillow, requests, boto3) → 소형 QR 패키지(segno 등) 추가 필요.
+- 보안: math-test 저장소 app.py·pdf_generator.py·README.md·.env.example에 Supabase 비밀 키가 기본값으로 하드코딩되어 커밋됨(2026-09-12 9b5dcda부터). 현재 운영 서버 키와 동일(값 비교만, 기록 안 함). math-test 저장소는 비공개(GitHub API 비인증 404), wrong-answer-note-online 저장소는 공개(200)이나 비밀 키 흔적 없음. 권장: Supabase에서 새 비밀 키 발급 후 두 프로젝트 .env.local·Vercel 변수 교체, 기존 키 폐기, 하드코딩 제거. 사용자 결정 대기.
+- 참고: 테스트지만들기 PROJECTS.md에 "Supabase 원본 보존" 문구 남아 있음 → 오늘 원본 비움에 맞춰 갱신 필요.
+- 변경 없음.
+- 사용자: 테스트지만들기도 이미지 저장소를 Supabase→Cloudflare R2로 이동함. 확인: 이미지는 R2지만 로그인(verify_supabase_credentials가 SUPABASE_SECRET_KEY로 Supabase Auth 호출)과 손풀이 링크 표는 여전히 Supabase → 하드코딩된 비밀 키 문제는 그대로 유효함을 안내. QR 위치 결정 대기.
+- 사용자: 시험지만들기도 오답노트와 같은 패턴(문제마다 QR, 기본 켜짐). → D:\테스트지만들기에 로컬 구현·검증 완료(상세는 그 프로젝트 PROJECT_STATUS.md 2026-10-09). 검증 스크립트 tmp/qr-test/verify_testmaker_qr.py. 배포 전 사용자 확인 대기.
+- 시험지만들기 QR 배포 완료: 커밋 15e614d, test.kangmath.com 운영 미리보기에서 QR 표시 확인.
+- 사용자: 시험지만들기 QR 운영 화면 확인 — 잘 보임.
+
+## 2026-10-21 손풀이 QR 대수·공수1 추가 + 4교재 동기화
+
+- 요청(비서 경유, 선생님 허락: Supabase 쓰기·push 배포): 아르곤 손풀이 타임스탬프 점검 후 노션 링크 수정 반영, 새 노션 DB 2개(고2 대수 3fde091f-...-81b2, 고1 공수1 3fde091f-...-81cf) 연결. 노션은 읽기만.
+- 번호 체계 확인: 노션 '문제 번호' 전부 4자리 숫자, 중복 0, 범위 밖 0(대수 5~1763 ≤1968, 공수1 14~1715 ≤1883). 공수1 단원별 번호 범위가 data/synergy_common_math_1_answers.json 단원 범위 안에 모두 들어감. 샘플 PDF에서 0014·1715 문항 그림 번호 일치 확인.
+- 코드: solution_links.py SOLUTION_SOURCES 에 synergy-algebra·synergy-common-math-1 추가, app/page.tsx SOLUTION_QR_TEXTBOOKS 동일 추가. 두 교재 모두 create_pdf 경로라 PDF 쪽 추가 수정 없음. 손풀이PDF/손풀이pdf 속성은 동기화가 읽지 않아 영향 없음.
+- 사전 집계(dry-run): 미적분 노션 206행(유효 206, 신규 0, 변경 99 — 링크 t값·시작시간 수정분, 그대로 107), 공수2 630행(변경 0), 대수 831행(유효 791, 빈 링크 40 건너뜀), 공수1 1097행(유효 888, 빈 링크 209 건너뜀). 형식 아닌 링크·중복·범위 밖 0. 삭제 대상 0.
+- 동기화 실행(scripts/sync_solution_links.py): Supabase solution_links 신규 1,679줄(대수 791 + 공수1 888), 수정 99줄(미적분), 삭제 0. 재집계 결과 4교재 모두 노션 유효 행 = 표 행, 차이 0.
+- 로컬 QR 확인: fetch_solution_links + create_pdf 로 대수 5·6·13·115, 공수1 14·1084·1354·1715 생성 → 링크 있는 6·115·14·1715만 QR·클릭 링크(youtu.be/...?t=) 표시, 빈 링크 번호는 QR 없음. next build 성공.
+- 테스트지만들기(읽기만): 같은 solution_links 표를 읽지만 대상 목록이 D:\테스트지만들기\solution_links.py SOLUTION_QR_TEXTBOOKS, static/app.js SOLUTION_QR_TEXTBOOKS 에 두 교재만 있음 → 대수·공수1 QR은 그쪽 두 줄 추가·배포가 필요(미적분 수정분은 바로 반영됨).
+- 남은 일: Vercel 운영 NOTION_TOKEN·CRON_SECRET 미등록 → 자동 동기화·관리자 버튼 미동작, 노션 수정 후에는 로컬 스크립트로 반영해야 함(선생님 등록 필요).

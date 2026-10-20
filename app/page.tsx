@@ -1049,7 +1049,7 @@ const allTextbookInfo: Record<string, TextbookInfoDetail> = {
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? '';
 // 손풀이 QR 은 노션에 손풀이 링크 DB 가 있는 교재만 (solution_links.py 의 SOLUTION_SOURCES 와 같게 유지)
-const SOLUTION_QR_TEXTBOOKS = new Set(['synergy-calculus', 'synergy-common-math-2']);
+const SOLUTION_QR_TEXTBOOKS = new Set(['synergy-calculus', 'synergy-common-math-2', 'synergy-algebra', 'synergy-common-math-1']);
 const loginDomain =
   process.env.NEXT_PUBLIC_LOGIN_EMAIL_DOMAIN ?? 'academy.local';
 
