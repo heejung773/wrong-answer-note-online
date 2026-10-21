@@ -825,3 +825,26 @@
 - 로컬 QR 확인: fetch_solution_links + create_pdf 로 대수 5·6·13·115, 공수1 14·1084·1354·1715 생성 → 링크 있는 6·115·14·1715만 QR·클릭 링크(youtu.be/...?t=) 표시, 빈 링크 번호는 QR 없음. next build 성공.
 - 테스트지만들기(읽기만): 같은 solution_links 표를 읽지만 대상 목록이 D:\테스트지만들기\solution_links.py SOLUTION_QR_TEXTBOOKS, static/app.js SOLUTION_QR_TEXTBOOKS 에 두 교재만 있음 → 대수·공수1 QR은 그쪽 두 줄 추가·배포가 필요(미적분 수정분은 바로 반영됨).
 - 남은 일: Vercel 운영 NOTION_TOKEN·CRON_SECRET 미등록 → 자동 동기화·관리자 버튼 미동작, 노션 수정 후에는 로컬 스크립트로 반영해야 함(선생님 등록 필요).
+- 커밋 a30a49c(solution_links.py, app/page.tsx, PROJECTS.md, PROJECT_STATUS.md; package-lock.json 제외) → origin main push 성공 → Vercel 상태 success. 운영 fix.kangmath.com 200, 배포 JS에 4교재 QR 목록 포함 확인, /api/generate 비로그인 401(정상). 로그인 후 실제 운영 PDF QR 생성은 확인 못 함(선생님 확인 필요).
+
+## 2026-10-21 오답 기록 저장 설계안 (설계만, 변경 없음)
+
+- 요청(비서 경유): 선생님이 넣는 학생+교재+틀린 번호를 Supabase·노션에 동시에 쌓는 설계. 코드·Supabase·노션·git 변경 금지, 비밀 값 열람 금지.
+- 결과 파일: 설계_오답기록_저장.md (입력 흐름, SQL 초안, 중복 방지, 노션 속성안 A/B, 이름 맞추기, 단원 연결, 바꿀 파일·작업량, 선생님 결정 사항).
+- 확인: 개별 인쇄는 미리보기 PDF를 그대로 인쇄해 서버가 모름 → 기록은 화면이 성공 후 새 /api/wrong-records 를 부르는 방식 권장. 올림포스·중등 3단 교재는 정수 번호로 문항 구분 불가 → problem_key 칸 제안.
+- 발견한 기존 버그(미수정): generate.py 다운로드/인쇄 후 log_usage_event 의 len(numbers) 가 블랙라벨·개념유형·베이직쎈에서 정의되지 않아 오류(중등 3단 교재 사용량 미기록), 올림포스는 마지막 묶음 수만 셈. page.tsx 개별 인쇄 /api/usage 의 problem_count 가 입력 문자열 길이. 여러 학생 입력 기본값이 예시 이름 4명.
+- 단원 데이터: 올림포스·중등 3단은 요청에 단원 포함, 시너지 공수1은 data JSON, 쎈 공수1·쎈 중3-1은 원본 단원 폴더에서 범위 생성 가능, 시너지 미적분·대수·공수2·고쟁이·쎈 중2-2는 범위표 없음(원본 PDF 목차도 없음).
+- 노션(연결로 구조만 읽음): board 가 쓰는 '학생별 수강과목 관리하기' DB(학생이름·반·학년·학교, 고1·고2만)를 학생 원본으로 제안. 오답노트 노션 통합의 공유 여부는 확인 못 함.
+- Supabase 사용량 경고: 크롬에서 사용량 화면 열기 시도 → 로그인 화면, 확인 못 함(선생님 확인 필요).
+- 참고: board.kangmath.com/api/notion/students 가 로그인 없이 학생 목록을 돌려줌(개수만 확인) → notion-board 쪽 확인 필요.
+- 다음: 선생님 결정(여러 학생 모드 기록 여부, 노션 단위 A/B, 학생 원본 DB, 표지 이름 표기) 후 1단계 구현.
+
+## 2026-10-21 오답 기록 저장 1단계 구현 (Supabase 전용, 로컬만)
+
+- 요청(비서 경유, 선생님 결정): 설계안 기반으로 Supabase 오답 기록 구현. 노션 쓰기·읽기·학생 목록 제외, 개별 학생 모드만 기록, 이름 자동완성, 여러 학생 예시 이름 빈칸, 사용량 버그 2개 수정. git·배포·Supabase SQL 실행·데이터 쓰기·.env 열람 금지.
+- 새 파일: lib/wrong-records.ts(이름 키·번호 풀이·problem_key·단원), app/api/wrong-records/route.ts(POST 기록, GET 이름 목록), supabase/wrong_answer_records.sql(표·고유 색인·RLS·이름 목록 함수, 미실행).
+- 수정: app/page.tsx(개별 다운로드 성공·바로 인쇄 창 열림 뒤 기록 호출, 인쇄는 미리보기를 만든 입력으로 기록, 이름 자동완성 datalist + 칸 벗어날 때 예전 표기로 맞춤, 기록 결과 한 줄 표시, 여러 학생 기본값 빈칸, 인쇄 사용량 problem_count 를 실제 문항 수로), api/generate.py(중등 3단 교재 사용량 기록 오류·올림포스 문항 수 → problem_count 변수, 사용량 기록 실패가 응답에 덧쓰지 않게 log_usage_event 예외 처리).
+- 테스트지만들기 규칙과 대조: student_key(NFKC→공백 제거→소문자), 칸 이름, problem_key, 올림포스 problem_number(전권 순번) 모두 sheet_records.py·test_sheets.sql 과 같음. 객체 이름 겹침 없음(test_* 와 wrong_answer_records·wrong_record_student_names).
+- 확인: lib 단위 시험(node, 이름 키·제외 이름·번호 교재·공수1 단원·올림포스 순번 63/66/513·중등 3단 5종 키·오류 입력), generate.py 가짜 의존성 시험(블랙라벨 4문항·올림포스 5문항 사용량, 미리보기 미기록), oxlint·tsc 통과, npm run build 성공(/api/wrong-records 동적), next start 로 WRONG_RECORDS_ENABLED=0 → off, 기본 실행에서도 로컬 키 부족으로 off(조용히 건너뜀) 확인.
+- 확인 못 함: 실제 Supabase 저장·중복 무시·이름 목록(표 미생성, 쓰기 금지), 로그인 후 화면 동작(로그인 불가), 운영 Python PDF.
+- 남은 일: 선생님이 supabase/wrong_answer_records.sql 실행 → 배포(push) → 운영에서 개별 다운로드·인쇄 1회씩 해 보고 표에 줄이 생기는지 확인. 표가 없을 때 배포하면 화면에 '오답 기록 저장 실패(PDF는 정상)' 한 줄이 뜸.

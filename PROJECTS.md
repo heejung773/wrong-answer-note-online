@@ -141,6 +141,16 @@
 
 ---
 
+## 6-1. 오답 기록 저장 (Supabase `wrong_answer_records`, 2026-10-21 구현·배포 전)
+
+- 대상: **개별 학생 모드**의 PDF 다운로드·바로 인쇄가 성공한 뒤에만 화면이 `POST /api/wrong-records` 를 부른다. 미리보기·여러 학생 모드는 기록하지 않는다. 노션은 쓰지도 읽지도 않는다.
+- 한 줄 = 학생 1명 × 문항 1개 × 한국 날짜. 고유 색인 `(source, student_key, textbook, problem_key, recorded_on)` 으로 같은 날 재다운로드·재인쇄는 1줄.
+- 이름: `student_name_raw`(입력 그대로), `student_name`(공백 정리), `student_key`(NFKC → 공백 모두 제거 → 소문자). 빈 이름·`학생`·`홍길동`·예시 이름(김민준·이서진·박도윤·정시우)·쉼표가 든 이름은 기록 제외. 예전 이름은 `GET /api/wrong-records`(RPC `wrong_record_student_names`)로 자동완성.
+- `problem_key`(R2 경로에서 교재 폴더·`.png` 를 뺀 모양): 번호 교재 `0040`, 올림포스 `unit-1/standard/0005`, 블랙라벨 중2-2 `ch1/sub01/must/0012`, 블랙라벨 중3-1 `ch01/step1/0012`, 개념유형파워 중2-2 `ch01/sub01/concept/0012`, 중3-1 `ch01/type/0012`, 베이직쎈 `ch1/sub01/basic1/0012`. `problem_number`: 번호 교재는 교재 번호, 올림포스는 전권 순번(1~513), 중등 3단은 단계 내 번호. 테스트지만들기 `test_sheets.sql` 과 같은 규칙.
+- `unit`: 올림포스(단원명), 중등 3단(대단원 > 소단원), 시너지 공통수학1(13단원 범위)만 채움. 나머지 교재는 null(범위표 생기면 채움).
+- 규칙 코드: `lib/wrong-records.ts`, 서버: `app/api/wrong-records/route.ts`, 표 SQL: `supabase/wrong_answer_records.sql`(선생님이 SQL Editor 에서 실행).
+- 서버 환경변수 `NEXT_PUBLIC_SUPABASE_URL`·`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`·`SUPABASE_SECRET_KEY` 가 없거나 `WRONG_RECORDS_ENABLED=0` 이면 `{status:'off'}` 로 조용히 건너뛴다. 기록 실패는 PDF 에 영향 없음(별도 요청).
+
 ## 7. 검증 테스트 및 품질 점검 명령어
 
 코드 수정이나 교재 추가 후에는 반드시 아래 검증 명령어를 실행하여 무결성을 확인합니다.

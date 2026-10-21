@@ -1088,6 +1088,23 @@ function countProblemTokens(raw: string) {
   return count;
 }
 
+/** /api/wrong-records 로 보내는 오답 기록 요청(PDF 생성 요청과 같은 문항 입력). */
+type WrongRecordRequest = {
+  textbook: TextbookId;
+  student: string;
+  grade: string;
+  numbers: string;
+  olympusItems: { unit: string; problemType: string; numbers: string }[];
+  blacklabelItems: { chapter: string; subunit: string; stage: string; numbers: string }[];
+  conceptItems: { chapter: string; subunit: string; stage: string; numbers: string }[];
+  basicSsenItems: { chapter: string; subunit: string; stage: string; numbers: string }[];
+};
+
+/** 이름 비교 키(서버 lib/wrong-records.ts nameKey 와 같은 규칙): NFKC → 공백 제거 → 소문자. */
+function studentNameKey(raw: string): string {
+  return raw.normalize('NFKC').replace(/\s+/g, '').toLowerCase();
+}
+
 function privateDownloadHref(url: string, filename: string): string {
   const parsed = new URL(url);
   // A signed R2 URL cannot be modified after the server signs its query.
@@ -1108,9 +1125,7 @@ export default function Home() {
   const [student, setStudent] = useState('');
   const [grade, setGrade] = useState('1학년');
   const [studentMode, setStudentMode] = useState<'single' | 'batch'>('single');
-  const [studentNamesText, setStudentNamesText] = useState(
-    '김민준\n이서진\n박도윤\n정시우',
-  );
+  const [studentNamesText, setStudentNamesText] = useState('');
   const [numbers, setNumbers] = useState('');
   const [department, setDepartment] = useState<Department | null>(null);
   const [textbook, setTextbook] = useState<TextbookId | null>(null);
@@ -1176,6 +1191,11 @@ export default function Home() {
     configured ? '로그인이 필요합니다.' : 'Supabase 연결 설정 전입니다.',
   );
   const [busy, setBusy] = useState(false);
+  // 오답 기록(Supabase): 예전에 기록한 학생 이름(자동완성)과 마지막 기록 결과 한 줄
+  const [studentSuggestions, setStudentSuggestions] = useState<string[]>([]);
+  const [recordNote, setRecordNote] = useState('');
+  // 지금 미리보기 PDF를 만든 입력(바로 인쇄는 이 PDF를 그대로 인쇄하므로 기록도 이 입력으로)
+  const previewRecordRef = useRef<WrongRecordRequest | null>(null);
   const [checkingSession, setCheckingSession] = useState(configured);
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
   const [previewPage, setPreviewPage] = useState(1);
@@ -1916,6 +1936,30 @@ export default function Home() {
       studentMode === 'batch'
         ? parsedBatchStudentNames[0] || '학생'
         : student || '학생';
+    // 개별 학생 모드만 오답 기록 대상. 미리보기 자체는 기록하지 않고, 이 PDF를 바로 인쇄할 때 쓴다.
+    const recordSnapshot: WrongRecordRequest | null =
+      studentMode === 'single'
+        ? {
+            textbook: activeTb,
+            student,
+            grade,
+            numbers: curNumbers,
+            olympusItems: curOlympus.map(({ unit, problemType, numbers }) => ({
+              unit,
+              problemType,
+              numbers,
+            })),
+            blacklabelItems: curBlacklabel.map(
+              ({ chapter, subunit, stage, numbers }) => ({ chapter, subunit, stage, numbers }),
+            ),
+            conceptItems: curConcept.map(
+              ({ chapter, subunit, stage, numbers }) => ({ chapter, subunit, stage, numbers }),
+            ),
+            basicSsenItems: curBasicSsen.map(
+              ({ chapter, subunit, stage, numbers }) => ({ chapter, subunit, stage, numbers }),
+            ),
+          }
+        : null;
 
     // 교재를 빠르게 바꾸거나 입력값이 연속으로 바뀌면 이전 생성 요청이
     // 새 미리보기를 가로채지 않도록 항상 최신 요청만 유지한다.
@@ -1999,6 +2043,7 @@ export default function Home() {
         if (result.downloadUrl) {
           setPreviewPdfUrl(result.downloadUrl);
           setPreviewPage(1);
+          previewRecordRef.current = recordSnapshot;
           setStatus('미리보기가 갱신되었습니다.');
           return;
         }
@@ -2010,6 +2055,7 @@ export default function Home() {
       }
       setPreviewPdfUrl(url);
       setPreviewPage(1);
+      previewRecordRef.current = recordSnapshot;
       setStatus('미리보기가 최신 상태로 갱신되었습니다.');
     } catch (error) {
       setStatus(
@@ -2026,6 +2072,35 @@ export default function Home() {
         setPreviewLoading(false);
       }
     }
+  }
+
+  // 로그인 뒤 예전에 기록한 학생 이름을 한 번 불러와 자동완성 목록으로 쓴다(실패해도 빈 목록).
+  useEffect(() => {
+    if (!sessionToken) return;
+    let active = true;
+    void fetch('/api/wrong-records', {
+      headers: { Authorization: `Bearer ${sessionToken}` },
+      cache: 'no-store',
+    })
+      .then((response) => (response.ok ? response.json() : { students: [] }))
+      .then((result: { students?: unknown }) => {
+        if (!active || !Array.isArray(result.students)) return;
+        setStudentSuggestions(
+          result.students.filter((n): n is string => typeof n === 'string' && n.trim() !== ''),
+        );
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [sessionToken]);
+
+  /** 입력한 이름이 예전 표기와 공백·전각 차이만 있으면 예전 표기로 맞춘다. */
+  function alignStudentName() {
+    const key = studentNameKey(student);
+    if (!key) return;
+    const match = studentSuggestions.find((n) => studentNameKey(n) === key);
+    if (match && match !== student) setStudent(match);
   }
 
   const handleRefreshPreviewRef = useRef(handleRefreshPreview);
@@ -2052,6 +2127,62 @@ export default function Home() {
     return () => window.clearTimeout(timer);
   }, [highSchoolPageCount]);
 
+  /**
+   * 개별 학생 PDF 다운로드·인쇄가 성공한 뒤 오답 기록을 남긴다(Supabase, /api/wrong-records).
+   * PDF와는 따로 가는 요청이라 실패해도 PDF에는 영향이 없고, 결과는 상태 줄 아래 한 줄로만 보여 준다.
+   * 서버에 키가 없으면(status 'off') 아무것도 표시하지 않는다.
+   */
+  async function recordWrongAnswers(
+    snapshot: WrongRecordRequest | null,
+    outputKind: 'download' | 'print',
+  ) {
+    if (!snapshot || !sessionToken) return;
+    try {
+      const response = await fetch('/api/wrong-records', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionToken}`,
+        },
+        body: JSON.stringify({ ...snapshot, outputKind }),
+      });
+      const result = (await response.json().catch(() => ({}))) as {
+        status?: string;
+        reason?: string;
+        student?: string;
+        total?: number;
+        duplicates?: number;
+      };
+      if (result.status === 'off') {
+        setRecordNote('');
+        return;
+      }
+      if (result.status === 'saved') {
+        const dup = result.duplicates ?? 0;
+        setRecordNote(
+          `오답 기록 저장: ${result.student} · ${result.total}문항` +
+            (dup > 0 ? ` (오늘 이미 기록된 ${dup}문항은 한 번만)` : ''),
+        );
+        const savedName = result.student ?? '';
+        if (savedName) {
+          setStudentSuggestions((names) =>
+            names.some((n) => studentNameKey(n) === studentNameKey(savedName))
+              ? names
+              : [savedName, ...names],
+          );
+        }
+        return;
+      }
+      if (result.status === 'skipped') {
+        setRecordNote(`오답 기록 안 함: ${result.reason ?? ''}`);
+        return;
+      }
+      setRecordNote('오답 기록 저장 실패 (PDF는 정상입니다)');
+    } catch {
+      setRecordNote('오답 기록 저장 실패 (PDF는 정상입니다)');
+    }
+  }
+
   async function handleDownloadPdf(mode: 'download' | 'print' = 'download') {
     if (!sessionToken || !textbook) return;
     const selectedTextbook = textbooks.find((item) => item.id === textbook);
@@ -2073,6 +2204,30 @@ export default function Home() {
       studentMode === 'batch'
         ? parsedBatchStudentNames[0] || '학생'
         : student || '학생';
+    // 오답 기록은 개별 학생 모드에서만(여러 학생 모드는 기록하지 않음)
+    const recordSnapshot: WrongRecordRequest | null =
+      studentMode === 'single' && !isBatch
+        ? {
+            textbook,
+            student,
+            grade,
+            numbers,
+            olympusItems: olympusItems.map(({ unit, problemType, numbers }) => ({
+              unit,
+              problemType,
+              numbers,
+            })),
+            blacklabelItems: blacklabelItems.map(
+              ({ chapter, subunit, stage, numbers }) => ({ chapter, subunit, stage, numbers }),
+            ),
+            conceptItems: conceptItems.map(
+              ({ chapter, subunit, stage, numbers }) => ({ chapter, subunit, stage, numbers }),
+            ),
+            basicSsenItems: basicSsenItems.map(
+              ({ chapter, subunit, stage, numbers }) => ({ chapter, subunit, stage, numbers }),
+            ),
+          }
+        : null;
     setBusy(true);
     setStatus(
       isBatch
@@ -2160,6 +2315,7 @@ export default function Home() {
         const link = document.createElement('a');
         link.href = privateDownloadHref(result.downloadUrl, targetFilename);
         link.click();
+        void recordWrongAnswers(recordSnapshot, 'download');
         setStatus(
           isBatch
             ? `총 ${parsedBatchStudentNames.length}명 학생별 ZIP 다운로드가 시작되었습니다.`
@@ -2182,6 +2338,7 @@ export default function Home() {
       link.download = filename;
       link.click();
       URL.revokeObjectURL(url);
+      void recordWrongAnswers(recordSnapshot, 'download');
       setStatus(
         isBatch
           ? `총 ${parsedBatchStudentNames.length}명 학생별 ZIP 다운로드가 완료되었습니다.`
@@ -2214,10 +2371,15 @@ export default function Home() {
         body: JSON.stringify({
           event_type: 'print_started',
           textbook,
-          problem_count: numbers.length,
+          // 입력 글자 수(numbers.length)가 아니라 실제 문항 수
+          problem_count: highSchoolProblemCount,
           student_count: 1,
         }),
       });
+      // 인쇄 창이 열렸을 때만 기록(팝업 차단 등으로 못 열리면 기록 안 함)
+      if (printWin && studentMode === 'single') {
+        void recordWrongAnswers(previewRecordRef.current, 'print');
+      }
     } else {
       await handleRefreshPreview();
     }
@@ -2790,13 +2952,21 @@ export default function Home() {
                           id="hs-student-name"
                           type="text"
                           className="w-full px-3.5 py-2.5 bg-[#111c30] border border-[#334155] focus:border-teal-500 focus:ring-1 focus:ring-teal-500 rounded-lg text-slate-100 placeholder-slate-500 text-[13px] outline-none transition-all"
-                          placeholder="예: 홍길동 (또는 여러 명 쉼표 구분)"
+                          placeholder="학생 이름 (예전 이름은 목록에서 선택)"
+                          autoComplete="off"
+                          list="wrong-record-student-names"
                           value={student}
                           onChange={(e) => setStudent(e.target.value)}
+                          onBlur={alignStudentName}
                         />
+                        <datalist id="wrong-record-student-names">
+                          {studentSuggestions.map((name) => (
+                            <option key={name} value={name} aria-label={name} />
+                          ))}
+                        </datalist>
                         <small className="block mt-1 text-[12px] text-slate-400">
-                          ※ 쉼표로 여러 명(예: 김민준, 이서진)을 적거나 우측
-                          [여러 학생] 탭을 선택하세요.
+                          ※ 다운로드·인쇄하면 이 학생의 오답 기록이 남습니다.
+                          예전에 쓴 이름은 목록에서 골라 같은 표기로 맞춰 주세요.
                         </small>
                       </div>
                       <div>
@@ -2838,7 +3008,7 @@ export default function Home() {
                         id="hs-batch-names"
                         rows={3}
                         className="w-full px-3.5 py-2.5 bg-[#111c30] border border-[#334155] focus:border-teal-500 focus:ring-1 focus:ring-teal-500 rounded-lg text-slate-100 placeholder-slate-500 text-[13px] outline-none [font-family:inherit] transition-all resize-y"
-                        placeholder={'김민준\n이서진\n박도윤\n정시우'}
+                        placeholder={'학생 이름을 한 줄에 한 명씩 입력'}
                         value={studentNamesText}
                         onChange={(e) => setStudentNamesText(e.target.value)}
                       />
@@ -4195,6 +4365,11 @@ export default function Home() {
               {status && (
                 <div className="p-3 text-[13px] rounded-lg bg-slate-800 border border-slate-700 text-slate-300">
                   📢 {status}
+                </div>
+              )}
+              {recordNote && (
+                <div className="px-3 py-1.5 text-[12px] rounded-lg bg-[#111c30] border border-[#334155] text-slate-400">
+                  {recordNote}
                 </div>
               )}
             </section>

@@ -306,17 +306,21 @@ def log_usage_event(
         },
         ensure_ascii=False,
     ).encode("utf-8")
-    request_bytes(
-        f"{supabase_url}/rest/v1/usage_events",
-        {
-            "apikey": secret_key,
-            "Authorization": f"Bearer {secret_key}",
-            "Content-Type": "application/json",
-            "Prefer": "return=minimal",
-        },
-        payload,
-        method="POST",
-    )
+    # PDF 응답을 이미 보낸 뒤 부르므로, 기록 실패가 응답 스트림에 오류를 덧쓰지 않게 여기서 삼킨다.
+    try:
+        request_bytes(
+            f"{supabase_url}/rest/v1/usage_events",
+            {
+                "apikey": secret_key,
+                "Authorization": f"Bearer {secret_key}",
+                "Content-Type": "application/json",
+                "Prefer": "return=minimal",
+            },
+            payload,
+            method="POST",
+        )
+    except Exception as error:
+        print("[-] usage event log failed:", type(error).__name__)
 
 
 def _load_single_image(supabase_url: str, secret_key: str, bucket: str, textbook: str, number: int) -> tuple[int, bytes]:
@@ -2096,6 +2100,7 @@ class handler(BaseHTTPRequestHandler):
                     images = load_olympus_images(supabase_url, secret_key, bucket, unit, problem_type, numbers)
                     olympus_items.extend((unit, problem_type, number, data) for number, data in images)
                 olympus_answers = load_olympus_answers(supabase_url, secret_key, bucket)
+                problem_count = total
 
                 def make_pdf(st: str) -> bytes:
                     return create_olympus_pdf(st, grade, olympus_items, olympus_answers, cover_options)
@@ -2124,6 +2129,7 @@ class handler(BaseHTTPRequestHandler):
                         ))
                     blacklabel_items.extend(fetched)
                 blacklabel_answers = load_blacklabel_answers(supabase_url, secret_key, bucket) if textbook == "blacklabel-middle-2-2" else {}
+                problem_count = total
 
                 def make_pdf(st: str) -> bytes:
                     return create_blacklabel_pdf(st, grade, blacklabel_items, blacklabel_answers, cover_options, textbook=textbook)
@@ -2151,6 +2157,7 @@ class handler(BaseHTTPRequestHandler):
                             tokens,
                         ))
                     concept_items.extend(fetched)
+                problem_count = total
 
                 def make_pdf(st: str) -> bytes:
                     return create_concept_pdf(st, grade, concept_items, cover_options, textbook=textbook)
@@ -2178,6 +2185,7 @@ class handler(BaseHTTPRequestHandler):
                             tokens,
                         ))
                     basic_ssen_items.extend(fetched)
+                problem_count = total
 
                 def make_pdf(st: str) -> bytes:
                     return create_basic_ssen_pdf(
@@ -2192,6 +2200,7 @@ class handler(BaseHTTPRequestHandler):
 
             else:
                 numbers = parse_numbers(str(payload.get("numbers", "")))
+                problem_count = len(numbers)
                 images = load_images(supabase_url, secret_key, bucket, textbook, numbers)
                 selected_answers = None
                 if textbook == "synergy-algebra":
@@ -2241,7 +2250,7 @@ class handler(BaseHTTPRequestHandler):
                     self.wfile.write(print_bytes)
                     log_usage_event(
                         supabase_url, secret_key, user_id, "print_started", textbook,
-                        len(numbers), len(unique_students), {"mode": "batch"},
+                        problem_count, len(unique_students), {"mode": "batch"},
                     )
                     return
 
@@ -2261,7 +2270,7 @@ class handler(BaseHTTPRequestHandler):
                     if not is_preview:
                         log_usage_event(
                             supabase_url, secret_key, user_id, "pdf_generated", textbook,
-                            len(numbers), len(unique_students), {"format": "zip"},
+                            problem_count, len(unique_students), {"format": "zip"},
                         )
                     return self.send_json_data(
                         200,
@@ -2285,7 +2294,7 @@ class handler(BaseHTTPRequestHandler):
                 if not is_preview:
                     log_usage_event(
                         supabase_url, secret_key, user_id, "pdf_generated", textbook,
-                        len(numbers), len(unique_students), {"format": "zip"},
+                        problem_count, len(unique_students), {"format": "zip"},
                     )
                 return
 
@@ -2299,7 +2308,7 @@ class handler(BaseHTTPRequestHandler):
                     log_usage_event(
                         supabase_url, secret_key, user_id,
                         "print_started" if payload.get("printBatch") else "pdf_generated",
-                        textbook, len(numbers), 1, {"format": "pdf", "temporary": True},
+                        textbook, problem_count, 1, {"format": "pdf", "temporary": True},
                     )
                 return self.send_json_data(
                     200,
@@ -2318,7 +2327,7 @@ class handler(BaseHTTPRequestHandler):
                 log_usage_event(
                     supabase_url, secret_key, user_id,
                     "print_started" if payload.get("printBatch") else "pdf_generated",
-                    textbook, len(numbers), 1, {"format": "pdf"},
+                    textbook, problem_count, 1, {"format": "pdf"},
                 )
         except KeyError:
             self.send_json(503, "서버 연결 설정이 아직 완료되지 않았습니다.")
