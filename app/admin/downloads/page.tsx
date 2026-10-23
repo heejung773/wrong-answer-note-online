@@ -4,6 +4,7 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'rea
 import { createClient } from '@supabase/supabase-js';
 import { RefreshCw, Search, Trash2, X } from 'lucide-react';
 import { AdminNav } from '../admin-nav';
+import { GoToMainLogin } from '../go-to-login';
 import {
   kstDate,
   problemGroups,
@@ -15,7 +16,7 @@ import {
 /**
  * 관리자 '다운목록': 개별 학생 오답노트를 다운로드·인쇄할 때 쌓인 오답 기록(wrong_answer_records)을
  * 발급(같은 날 · 같은 학생 · 같은 교재) 단위로 보여 준다. 데이터는 /api/admin/wrong-records 에서만
- * 받는다(관리자 로그인 토큰 + ADMIN_EMAILS 확인). 로그인 전·관리자 아님이면 로그인 창만 보인다.
+ * 받는다(메인 화면과 같은 로그인 토큰 확인). 로그인 전이면 메인 로그인 화면(/)으로 보낸다.
  */
 
 type Summary = { monthCount: number; monthStudents: number };
@@ -135,10 +136,6 @@ export default function AdminDownloadsPage() {
 
   const [ready, setReady] = useState(false);
   const [loginRequired, setLoginRequired] = useState(false);
-  const [loginEmail, setLoginEmail] = useState('teacher01@academy.local');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [loginBusy, setLoginBusy] = useState(false);
-  const [loginError, setLoginError] = useState('');
 
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -162,7 +159,7 @@ export default function AdminDownloadsPage() {
     return data.session?.access_token ?? '';
   }, [supabase]);
 
-  /** 관리자 API 호출. 401·403 이면 로그인 창으로. */
+  /** 관리자 API 호출. 로그인 안 됨(401)이면 메인 로그인 화면으로. */
   const callApi = useCallback(
     async (
       input: string,
@@ -179,13 +176,8 @@ export default function AdminDownloadsPage() {
         cache: 'no-store',
       });
       const result = (await response.json().catch(() => ({}))) as Record<string, unknown>;
-      if (response.status === 401 || response.status === 403) {
+      if (response.status === 401) {
         setLoginRequired(true);
-        setLoginError(
-          response.status === 403
-            ? '현재 계정은 관리자가 아닙니다. 관리자 계정으로 로그인해 주세요.'
-            : '로그인이 필요합니다.',
-        );
         return null;
       }
       if (!response.ok)
@@ -295,67 +287,7 @@ export default function AdminDownloadsPage() {
     }
   }
 
-  async function handleAdminLogin(event: { preventDefault: () => void }) {
-    event.preventDefault();
-    if (!supabase) return;
-    setLoginBusy(true);
-    setLoginError('');
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: loginEmail.trim(),
-      password: loginPassword,
-    });
-    if (signInError) {
-      setLoginError('이메일 또는 비밀번호를 확인해 주세요.');
-      setLoginBusy(false);
-      return;
-    }
-    window.location.reload();
-  }
-
-  if (loginRequired) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-background px-4 text-foreground">
-        <form
-          className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-800 p-7"
-          onSubmit={handleAdminLogin}
-        >
-          <p className="text-xs uppercase tracking-[0.25em] text-teal-300">Admin · 다운목록</p>
-          <h1 className="mt-3 text-2xl font-semibold">관리자 로그인</h1>
-          <p className="mt-2 text-sm text-slate-300">
-            다운목록은 관리자 선생님만 볼 수 있어요. 관리자 계정으로 로그인해 주세요.
-          </p>
-          <label className="mt-6 block text-sm text-slate-300">
-            이메일
-            <input
-              className="mt-2 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-foreground"
-              type="email"
-              value={loginEmail}
-              onChange={(event) => setLoginEmail(event.target.value)}
-              required
-            />
-          </label>
-          <label className="mt-4 block text-sm text-slate-300">
-            비밀번호
-            <input
-              className="mt-2 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-foreground"
-              type="password"
-              value={loginPassword}
-              onChange={(event) => setLoginPassword(event.target.value)}
-              required
-            />
-          </label>
-          {loginError && <p className="mt-4 text-sm text-red-300">{loginError}</p>}
-          <button
-            className="mt-6 w-full rounded-md bg-primary px-4 py-2.5 font-medium text-white disabled:opacity-50"
-            disabled={loginBusy}
-            type="submit"
-          >
-            {loginBusy ? '로그인 중…' : '관리자 로그인'}
-          </button>
-        </form>
-      </main>
-    );
-  }
+  if (loginRequired) return <GoToMainLogin />;
 
   const filtered = Boolean(debouncedQuery || textbook || period);
   const visible = issues.slice(0, shown);

@@ -11,7 +11,7 @@ import {
 } from '@/lib/wrong-record-list';
 
 /**
- * 관리자 '다운목록' (app/admin/downloads) 전용 API. 관리자(ADMIN_EMAILS) 로그인만 통과한다.
+ * 관리자 '다운목록' (app/admin/downloads) 전용 API. 메인 화면과 같은 Supabase 로그인 토큰이 있어야 통과한다(lib/admin-auth.ts).
  *
  * GET    ?q=이름일부 | ?student=student_key, &textbook=교재id, &from=YYYY-MM-DD, &to=YYYY-MM-DD
  *        → { summary: {monthCount, monthStudents}, issues: Issue[], truncated }

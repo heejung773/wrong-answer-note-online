@@ -33,8 +33,11 @@ export function AdminNav({ current }: { current: (typeof TABS)[number]['href'] }
           );
         })}
       </div>
-      <Link className="ml-auto text-sm text-slate-400 hover:text-teal-300" href="/">
-        오답노트 만들기로 →
+      <Link
+        className="ml-auto inline-flex items-center rounded-full border border-teal-700/70 bg-teal-950/40 px-3 py-1.5 text-sm font-semibold text-teal-300 hover:bg-teal-900/50 hover:text-teal-100"
+        href="/"
+      >
+        ← 오답노트 만들기
       </Link>
     </nav>
   );

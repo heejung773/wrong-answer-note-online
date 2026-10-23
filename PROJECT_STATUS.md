@@ -863,3 +863,14 @@
 - 확인 못 함: 실제 Supabase 데이터 조회·삭제(로컬에 공개키 없음, 관리자 로그인 불가, 운영 데이터 쓰기 금지), 운영 화면.
 - 남은 일: 선생님 확인 뒤 push(희정 계정) → 운영 fix.kangmath.com/admin/downloads 로그인 → 목록이 뜨는지, 실수 기록 하나로 삭제 확인. 메인 화면에는 관리자 링크가 없음(주소 직접 입력 또는 /admin).
 - 다른 프로젝트 영향: 없음(R2·storage_backend.py·표 구조 그대로, 읽기·삭제는 source='fix' 줄만).
+
+## 2026-10-23 메인 머리말 '다운목록' 버튼 + 관리자 화면 로그인 하나로 (커밋까지, push·배포 안 함)
+
+- 요청(비서 경유, 선생님): 메인 화면에서 다운목록을 찾을 수 없다. "오답노트와 테스트지도 나 혼자 보는 창", "메인에서 로그인만 거칠 뿐" → 메인에서 로그인한 상태면 관리자 로그인 창 없이 바로 목록.
+- 버튼: app/page.tsx 생성기 머리말 오른쪽 '고등부 · 교재' 표시와 '로그아웃' 사이에 '다운목록'(→ /admin/downloads, 청록 알약 버튼 .generator-topbar-link). 교재 고르기 화면 머리말에도 로그아웃 왼쪽에 같은 버튼. 로그인했으면 누구에게나 보임. 휴대폰(<640px) 여백 축소, 420px 미만은 두 버튼 아이콘 숨김.
+- 관리자 화면: app/admin/downloads·usage 의 관리자 로그인 창 제거 → 세션 없거나 401 이면 메인(/)으로 보냄(app/admin/go-to-login.tsx). 메인·관리자 화면은 같은 createClient 기본 저장소라 원래도 세션은 공유됐음 → 다시 로그인 창이 뜬 원인은 API 의 ADMIN_EMAILS 403(목록 비었거나 계정 빠짐)뿐.
+- API: lib/admin-auth.ts requireAdmin = 유효한 Supabase 로그인 토큰 + 이메일 계정(익명 토큰 거부)이면 통과, ADMIN_EMAILS 로 막지 않음. /api/admin/usage 도 같은 함수로 교체. admin-nav '← 오답노트 만들기' 링크를 테두리 알약으로 눈에 띄게.
+- 그대로 둔 것: api/sync_solution_links.py POST(사용량 화면 '손풀이 링크 지금 동기화' 버튼)는 ADMIN_EMAILS 확인 유지 — 이번 세션 권한 검사가 보안 완화로 보고 막음. 선생님 계정이 ADMIN_EMAILS 에 없으면 그 버튼만 403.
+- 확인: npm run build 성공, oxlint 통과. 로컬 dev(가짜 Supabase 주소·가짜 세션, 실제 Supabase 접속·쓰기 없음): 375px 머리말 겹침·가로 넘침 없음, 다운목록 버튼 → /admin/downloads 로그인 창 없이 같은 토큰으로 API 호출(가짜 주소라 '로그인 확인 실패'가 정상), 로그아웃 상태 /admin/downloads·/admin/usage → / 로 이동. dev 서버·브라우저 탭 종료, headless 0개.
+- 확인 못 함: 실제 계정으로 운영 목록 표시(배포 전), Supabase Auth '새 가입 허용' 설정(로컬 .env.local 에 공개키 없음). 로그인만으로 통과하므로 가입이 열려 있으면 누구나 계정을 만들어 학생 오답 기록을 볼 수 있음 → 선생님이 Supabase Authentication 설정에서 가입 꺼짐 확인 권장.
+- 다른 프로젝트 영향: 없음(R2·storage_backend.py·Supabase 표 그대로). 테스트지만들기는 Flask 라 이 로그인 코드와 무관.

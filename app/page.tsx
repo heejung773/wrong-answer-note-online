@@ -3,6 +3,7 @@
 import { SyntheticEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
+import Link from 'next/link';
 import {
   AlertTriangle,
   ArrowDownAZ,
@@ -14,6 +15,7 @@ import {
   FileDown,
   FileText,
   GraduationCap,
+  ListChecks,
   LockKeyhole,
   LogOut,
   Printer,
@@ -2746,6 +2748,10 @@ export default function Home() {
             </div>
             <div className="generator-topbar-tools">
               <span className="generator-topbar-context">{department === 'middle' ? '중등부' : '고등부'}<span />{currentTb?.title}</span>
+              {/* 선생님 혼자 쓰는 사이트: 로그인했으면 누구나 보임, 같은 로그인으로 바로 열림 */}
+              <Link href="/admin/downloads" className="generator-topbar-link" title="다운로드·인쇄한 오답노트 기록">
+                <ListChecks className="size-3.5" /> 다운목록
+              </Link>
               <button type="button" onClick={logout} disabled={busy} className="generator-logout">
                 <LogOut className="size-3.5" /> 로그아웃
               </button>
@@ -4592,15 +4598,20 @@ export default function Home() {
             </div>
           </div>
           {sessionToken ? (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={logout}
-              disabled={busy}
-              className={!textbook ? 'ghost-pill' : undefined}
-            >
-              <LogOut /> 로그아웃
-            </Button>
+            <div className="flex shrink-0 items-center gap-2">
+              <Link href="/admin/downloads" className="generator-topbar-link" title="다운로드·인쇄한 오답노트 기록">
+                <ListChecks className="size-3.5" /> 다운목록
+              </Link>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={logout}
+                disabled={busy}
+                className={!textbook ? 'ghost-pill' : undefined}
+              >
+                <LogOut /> 로그아웃
+              </Button>
+            </div>
           ) : (
             <span className="whitespace-nowrap rounded-full border border-[#334155] bg-[#1e293b] px-3 py-1 text-xs font-semibold text-[#b6c3d5]">
               {configured ? '시험 운영' : '연결 준비'}
