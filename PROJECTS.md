@@ -150,6 +150,7 @@
 - `unit`: 올림포스(단원명), 중등 3단(대단원 > 소단원), 시너지 공통수학1(13단원 범위)만 채움. 나머지 교재는 null(범위표 생기면 채움).
 - 규칙 코드: `lib/wrong-records.ts`, 서버: `app/api/wrong-records/route.ts`, 표 SQL: `supabase/wrong_answer_records.sql`(선생님이 SQL Editor 에서 실행).
 - 서버 환경변수 `NEXT_PUBLIC_SUPABASE_URL`·`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`·`SUPABASE_SECRET_KEY` 가 없거나 `WRONG_RECORDS_ENABLED=0` 이면 `{status:'off'}` 로 조용히 건너뛴다. 기록 실패는 PDF 에 영향 없음(별도 요청).
+- 관리자 '다운목록' 화면 `/admin/downloads`(2026-10-23, 사용량 화면 옆 탭): 발급 1건 = 같은 한국 날짜 · 같은 `student_key` · 같은 교재(source='fix'만). 칸: 발급 날짜(마지막 시각), 학생(누르면 그 학생 전체 이력 펼침, 두 번 이상 틀린 문항 노란색 ×n), 교재, 틀린 문항(단원·단계별 묶음, 개수, 단원), 방식(다운로드/인쇄·학년), 삭제. 위에 '이번 달 n건 · 학생 n명', 이름 검색(student_key ilike), 교재·기간(전체/오늘/최근 7일/이번 달/지난 30일/지난 달), 새로고침. API `GET/DELETE /api/admin/wrong-records`(lib/admin-auth.ts: 로그인 토큰 + `ADMIN_EMAILS` 확인, 아니면 401/403). DELETE `{id:'YYYY-MM-DD|student_key|textbook'}` 는 그 묶음 줄 전체 삭제(확인 창 뒤). 묶기 규칙: `lib/wrong-record-list.ts`. 표 구조 변경 없음. 한 번에 최대 20,000줄(1,000줄씩) 읽음.
 
 ## 7. 검증 테스트 및 품질 점검 명령어
 

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { CalendarDays, Search } from 'lucide-react';
+import { AdminNav } from '../admin-nav';
 
 type EventRow = {
   id: string;
@@ -233,10 +234,8 @@ export default function AdminUsagePage() {
   return (
     <main className="min-h-screen bg-background px-5 py-10 text-foreground sm:px-10">
       <div className="mx-auto max-w-6xl">
-        <p className="text-xs uppercase tracking-[0.25em] text-primary">
-          Admin
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold">사용량 관리</h1>
+        <AdminNav current="/admin/usage" />
+        <h1 className="mt-6 text-3xl font-semibold">사용량 관리</h1>
         <p className="mt-2 text-sm text-slate-300">
           PDF 생성과 바로 인쇄 실행 기록입니다.
         </p>

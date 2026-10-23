@@ -848,3 +848,18 @@
 - 확인: lib 단위 시험(node, 이름 키·제외 이름·번호 교재·공수1 단원·올림포스 순번 63/66/513·중등 3단 5종 키·오류 입력), generate.py 가짜 의존성 시험(블랙라벨 4문항·올림포스 5문항 사용량, 미리보기 미기록), oxlint·tsc 통과, npm run build 성공(/api/wrong-records 동적), next start 로 WRONG_RECORDS_ENABLED=0 → off, 기본 실행에서도 로컬 키 부족으로 off(조용히 건너뜀) 확인.
 - 확인 못 함: 실제 Supabase 저장·중복 무시·이름 목록(표 미생성, 쓰기 금지), 로그인 후 화면 동작(로그인 불가), 운영 Python PDF.
 - 남은 일: 선생님이 supabase/wrong_answer_records.sql 실행 → 배포(push) → 운영에서 개별 다운로드·인쇄 1회씩 해 보고 표에 줄이 생기는지 확인. 표가 없을 때 배포하면 화면에 '오답 기록 저장 실패(PDF는 정상)' 한 줄이 뜸.
+
+## 2026-10-23 관리자 '다운목록' 화면 (커밋까지, push·배포 안 함)
+
+- 요청(비서 경유, 선생님): 변형문제(twin print-log)처럼 오답노트 다운로드 목록을 사이트에서 보고 싶다(Supabase 대시보드 없이). 관리자만.
+- 한 일: `/admin/downloads` 화면 + `GET/DELETE /api/admin/wrong-records` 추가, 사용량 화면과 같은 관리자 탭(사용량 · 다운목록) 추가, `/admin` 아래 검색 제외(noindex). 표 구조 변경 없음(SQL 없음).
+  - 한 줄 = 같은 한국 날짜 · 같은 학생(student_key) · 같은 교재(source='fix'). 날짜(요일·마지막 시각), 학생, 교재, 틀린 문항(단원·단계별 묶음·개수·단원), 방식(다운로드/인쇄·학년), 삭제 버튼.
+  - 위: '이번 달 n건 · 학생 n명'(필터와 무관), 이름 검색, 교재·기간(전체/오늘/최근 7일/이번 달/지난 30일/지난 달), 새로고침, 빈 목록 안내, 100건씩 더 보기.
+  - 학생 이름 클릭 → 그 학생 전체 이력(날짜별 교재·번호) 펼침, 두 번 이상 틀린 문항은 노란색 ×n.
+  - 삭제: 확인 창 → DELETE {id:'날짜|student_key|교재'} → 그 묶음 줄 전체 삭제(source='fix'만, 세 값 모두 검사).
+  - 막기: lib/admin-auth.ts(기존 /api/admin/usage 와 같은 방식: Bearer 토큰 → Supabase /auth/v1/user → ADMIN_EMAILS). 비로그인 401, 관리자 아님 403 → 화면은 관리자 로그인 창만.
+- 변경 파일: lib/admin-auth.ts, lib/wrong-record-list.ts, app/api/admin/wrong-records/route.ts, app/admin/downloads/page.tsx, app/admin/admin-nav.tsx, app/admin/layout.tsx, app/admin/usage/page.tsx(탭만), PROJECTS.md(6-1 에 사양 한 줄).
+- 확인: 묶기 함수 node 시험(번호·올림포스·블랙라벨 묶음·정렬·방식 합치기), oxlint·tsc 통과, npm run build 성공(/admin/downloads 정적, /api/admin/wrong-records 동적). 로컬 dev(가짜 공개키): 토큰 없음 GET/DELETE 401, 가짜 토큰 401, 사용량 API 401, 화면은 로그인 창. 가짜 응답(브라우저 안에서만)으로 목록·학생 이력·휴대폰 폭(가로 스크롤 없음)·삭제 확인 창·빈 목록 문구 확인.
+- 확인 못 함: 실제 Supabase 데이터 조회·삭제(로컬에 공개키 없음, 관리자 로그인 불가, 운영 데이터 쓰기 금지), 운영 화면.
+- 남은 일: 선생님 확인 뒤 push(희정 계정) → 운영 fix.kangmath.com/admin/downloads 로그인 → 목록이 뜨는지, 실수 기록 하나로 삭제 확인. 메인 화면에는 관리자 링크가 없음(주소 직접 입력 또는 /admin).
+- 다른 프로젝트 영향: 없음(R2·storage_backend.py·표 구조 그대로, 읽기·삭제는 source='fix' 줄만).
