@@ -971,3 +971,21 @@
   - Vercel 프로덕션 배포 `success` 확인 (Deployment `7348393061`, `Deployment has completed`).
   - 운영 사이트 `https://fix.kangmath.com/` HTTP 200 OK 정상 서빙 확인.
 - 보존: 기존 미추적 `package-lock.json` 및 로컬 원본 교재 디렉터리 안전 보존.
+
+## 2026-10-27 로그인 후 교재 선택 및 생성기 상단 메뉴 일관화
+
+- 요청: 로그인 후 상단 메뉴가 여전히 기존 상태로 유지되는 문제 점검 및 일괄 정리.
+- 문제 원인:
+  1. 교재 선택 화면(`!textbook && sessionToken`) 헤더에서 `!sessionToken ? 'login-page-header' : ''` 조건 분기로 인해 로그인 후 `login-page-header` 클래스가 제거되어 상하 여백 축소 및 옛날 `selection-header` 스타일(로고 초록 테두리, 제목 밑줄)이 노출되었음.
+  2. 교재 선택 후 들어가는 오답노트 생성기 화면(`generator-topbar`) 브랜드 영역에 `<span className="generator-academy"><BookOpen />다산미래학원</span>` 캡슐 텍스트가 그대로 남아있었고 로고 이미지가 없었음.
+- 변경:
+  - 교재 선택 화면 헤더에 `selection-header login-page-header`를 항상 적용하여 로그인 후에도 동일하게 64px 확대 로고, 테두리/밑줄 없는 투명 헤더, 넉넉한 상하 마진(`margin-bottom: clamp(1.5rem, 3.5vh, 2.5rem); padding-block: 1rem !important;`) 유지 (`app/page.tsx`, `app/globals.css`).
+  - 오답노트 생성기 상단 바(`generator-topbar`)에서 `다산미래학원` 텍스트 캡슐을 삭제하고 원형 로고 이미지(`dasan-mirae-logo.png`, `size-10`, 40px)를 제목 앞에 배치 (`app/page.tsx`).
+  - 생성기 화면 상단 바 세로 여백 확장: `.generator-canvas` 상단 패딩 18px, `.generator-topbar` 내부 패딩 `14px 22px`, 높이 `64px`, 하단 마진 `20px`로 쾌적하게 벌림 (`app/globals.css`).
+  - `PROJECTS.md` 5-2절 사양 갱신.
+- 검증:
+  - `npm.cmd run lint` (oxlint app): 0 errors, 0 warnings 통과.
+  - `npx.cmd tsc --noEmit`: 오류 없음 통과.
+  - `npm.cmd run build`: Next.js Turbopack 최적화 프로덕션 빌드 성공.
+  - `git diff --check`: 통과.
+- 보존: 기존 미추적 `package-lock.json` 및 로컬 원본 교재 디렉터리 안전 보존.

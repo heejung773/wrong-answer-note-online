@@ -522,16 +522,16 @@ html:has(.selection-canvas) {
 .login-header-title-accent { position: relative; display: inline-block; color: #5eead4; text-shadow: none; }
 .login-header-title-accent::after { position: absolute; right: 0; bottom: -.18rem; left: 0; height: .22rem; border-radius: 999px; background: #5eead4; content: ''; opacity: .85; }
 .login-header-caption { display: block; margin-top: .22rem; color: #94a3b8; font-size: .55rem; font-weight: 800; letter-spacing: .13em; }
-.selection-header .login-header-academy { font-family: inherit; color: #5eead4 !important; }
+.selection-header .login-header-academy { display: none !important; }
 .selection-header .login-header-title { font-family: inherit; color: #e2e8f0 !important; font-size: 1.35rem !important; font-weight: 800 !important; letter-spacing: -.08em !important; }
 .selection-header .login-header-title-accent { color: #e2e8f0 !important; text-shadow: none; -webkit-text-stroke: 0 !important; }
-.selection-header .login-header-title-accent::after { right: 0; bottom: -.14rem; left: 0; height: .14rem; background: #5eead4; opacity: 1; }
-.selection-header img { border: 2px solid #5eead4; box-shadow: 0 8px 24px rgba(32, 51, 77, .07); }
-.selection-header.login-page-header { margin-bottom: clamp(1.5rem, 3.5vh, 2.5rem); background: transparent; border: 0; border-bottom: 1px solid #26364b; box-shadow: none; }
+.selection-header .login-header-title-accent::after { display: none !important; }
+.selection-header img { border: 0 !important; box-shadow: none !important; }
+.selection-header.login-page-header { margin-bottom: clamp(1.5rem, 3.5vh, 2.5rem); background: transparent !important; border: 0; border-bottom: 1px solid #26364b; box-shadow: none; }
 .selection-header.login-page-header img { border: 0 !important; box-shadow: none !important; }
-.selection-header.login-page-header .login-header-academy { color: #cbd5e1 !important; }
+.selection-header.login-page-header .login-header-academy { display: none !important; }
 .selection-header.login-page-header .login-header-title-accent { color: #e2e8f0 !important; }
-.selection-header.login-page-header .login-header-title-accent::after { display: none; }
+.selection-header.login-page-header .login-header-title-accent::after { display: none !important; }
 
 @media (min-width: 900px) and (max-width: 1100px) {
   .login-stage {
@@ -603,14 +603,14 @@ html:has(.selection-canvas) {
   --workspace-body-size: 13px;
   --workspace-caption-size: 12px;
   background: #0d1421; color: #e6edf5;
-  padding: 14px 28px 48px; font-family: inherit;
+  padding: 18px 28px 48px; font-family: inherit;
 }
 .generator-shell { max-width: 1560px; margin: auto; }
-.generator-topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 14px; padding: 12px 18px; min-height: 60px; border: 1px solid #293548; border-radius: 12px; background: #111a28; }
-.generator-topbar-brand, .generator-topbar-tools { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.generator-topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; padding: 14px 22px; min-height: 64px; border: 1px solid #293548; border-radius: 12px; background: #111a28; }
+.generator-topbar-brand, .generator-topbar-tools { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .generator-academy { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid #294c75; border-radius: 999px; background: #192b43; color: #b9dcff; font-size: 13px; font-weight: 700; white-space: nowrap; }
 .generator-academy svg { color: #64b5f6; }
-.generator-topbar h1 { font-size: 17px; line-height: 26px; font-weight: 700; letter-spacing: -.04em; white-space: nowrap; }
+.generator-topbar h1 { font-size: 18px; line-height: 28px; font-weight: 800; letter-spacing: -.03em; color: #f8fafc; white-space: nowrap; }
 .generator-topbar-context { display: inline-flex; align-items: center; gap: 10px; padding: 7px 12px; border-radius: 999px; border: 1px solid #293548; background: #1a2534; color: #aebbcf; font-size: 12px; white-space: nowrap; }
 .generator-logout { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; padding: 8px 12px; border: 1px solid #633640; border-radius: 999px; background: #30202b; color: #f39b9f; font-size: 12px; cursor: pointer; }
 .generator-logout:hover:not(:disabled) { background: #442834; color: #ffc0c3; }

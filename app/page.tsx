@@ -2742,7 +2742,14 @@ export default function Home() {
         <div className="generator-shell">
           <header className="generator-topbar">
             <div className="generator-topbar-brand">
-              <span className="generator-academy"><BookOpen className="size-4" />다산미래학원</span>
+              <Image
+                src="/dasan-mirae-logo.png"
+                alt="학원 로고"
+                width={40}
+                height={40}
+                priority
+                className="size-10 shrink-0 rounded-full"
+              />
               <h1>맞춤 오답노트 생성기</h1>
             </div>
             <div className="generator-topbar-tools">
@@ -4565,7 +4572,7 @@ export default function Home() {
         <header
           className={`mb-6 flex items-center justify-between px-5 py-4 ${
             !textbook
-              ? `selection-header border-b border-dashed border-[#334155] bg-transparent text-[#e2e8f0] ${!sessionToken ? 'login-page-header' : ''}`
+              ? 'selection-header login-page-header border-b border-dashed border-[#334155] bg-transparent text-[#e2e8f0]'
               : 'login-header rounded-2xl border bg-slate-800/90 shadow-sm'
           }`}
         >
