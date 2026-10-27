@@ -4569,21 +4569,16 @@ export default function Home() {
               : 'login-header rounded-2xl border bg-slate-800/90 shadow-sm'
           }`}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3.5">
             <Image
               src="/dasan-mirae-logo.png"
-              alt="다산미래학원 로고"
-              width={48}
-              height={48}
+              alt="학원 로고"
+              width={64}
+              height={64}
               priority
-              className="size-12 shrink-0 rounded-full"
+              className="size-16 shrink-0 rounded-full"
             />
             <div>
-              <p
-                className={`login-header-academy ${!textbook ? 'text-[#dc5000]' : 'text-primary'}`}
-              >
-                다산미래학원
-              </p>
               <h1 className="login-header-title text-xl font-bold tracking-tight">
                 <span className="login-header-title-accent">
                   {sessionToken ? '온라인 오답노트 만들기' : '온라인 오답노트'}

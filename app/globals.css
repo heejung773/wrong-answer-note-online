@@ -340,9 +340,9 @@ html:has(.selection-canvas) {
   width: 100%;
 }
 .login-page-header {
-  min-height: 76px;
-  margin-bottom: 14px;
-  padding-block: .75rem !important;
+  min-height: 84px;
+  margin-bottom: clamp(1.5rem, 3.5vh, 2.5rem);
+  padding-block: 1rem !important;
 }
 .login-stage {
   position: relative;
@@ -353,7 +353,7 @@ html:has(.selection-canvas) {
   max-width: 1140px;
   min-height: min(650px, calc(100svh - 148px));
   margin: 0 auto;
-  padding: clamp(2.5rem, 6vh, 3.5rem) 0 2rem;
+  padding: clamp(2rem, 5vh, 3.5rem) 0 clamp(2.5rem, 6vh, 4.5rem);
 }
 .login-stage::before, .login-stage::after { display: none; }
 .login-intro {
@@ -527,7 +527,7 @@ html:has(.selection-canvas) {
 .selection-header .login-header-title-accent { color: #e2e8f0 !important; text-shadow: none; -webkit-text-stroke: 0 !important; }
 .selection-header .login-header-title-accent::after { right: 0; bottom: -.14rem; left: 0; height: .14rem; background: #5eead4; opacity: 1; }
 .selection-header img { border: 2px solid #5eead4; box-shadow: 0 8px 24px rgba(32, 51, 77, .07); }
-.selection-header.login-page-header { margin-bottom: 0; background: transparent; border: 0; border-bottom: 1px solid #26364b; box-shadow: none; }
+.selection-header.login-page-header { margin-bottom: clamp(1.5rem, 3.5vh, 2.5rem); background: transparent; border: 0; border-bottom: 1px solid #26364b; box-shadow: none; }
 .selection-header.login-page-header img { border: 0 !important; box-shadow: none !important; }
 .selection-header.login-page-header .login-header-academy { color: #cbd5e1 !important; }
 .selection-header.login-page-header .login-header-title-accent { color: #e2e8f0 !important; }
@@ -546,7 +546,7 @@ html:has(.selection-canvas) {
 }
 
 @media (max-width: 899px) {
-  .login-stage { grid-template-columns: 1fr; gap: 2rem; min-height: auto; padding: 1.5rem .25rem 3rem; }
+  .login-stage { grid-template-columns: 1fr; gap: 2rem; min-height: auto; padding: 2rem .25rem 3.5rem; }
   .login-stage::before, .login-stage::after { display: none; }
   .login-intro { padding: 0 .5rem; }
   .login-headline { font-size: clamp(1.15rem, 4.6vw, 2rem); }
@@ -564,10 +564,10 @@ html:has(.selection-canvas) {
 }
 
 @media (min-width: 900px) and (max-height: 820px) {
-  .login-canvas { padding-block: 1rem !important; }
-  .login-page-header { min-height: 70px; margin-bottom: 8px; padding-block: .55rem !important; }
-  .login-page-header img { width: 2.5rem; height: 2.5rem; }
-  .login-stage { min-height: calc(100svh - 110px); padding-block: 1.5rem 1rem; }
+  .login-canvas { padding-block: 1.25rem !important; }
+  .login-page-header { min-height: 74px; margin-bottom: 1.25rem; padding-block: .75rem !important; }
+  .login-page-header img { width: 3.25rem; height: 3.25rem; }
+  .login-stage { min-height: calc(100svh - 120px); padding-block: 2rem 2.5rem; }
   .login-headline { margin-block: .8rem 1.15rem; }
   .login-headline { font-size: clamp(1.65rem, 2.6vw, 2.15rem); }
 }

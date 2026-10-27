@@ -947,3 +947,23 @@
   - GitHub Vercel 연동 배포 상태 `success` (Deployment completed, commit `3a0f950`).
   - 운영 사이트 `https://fix.kangmath.com/` HTTP 200 OK 및 최신 CSS 청크(`fit-content`, 중앙 정렬 규칙) 반영 확인 완료.
 - 보존: 기존 미추적 `package-lock.json` 및 로컬 원본 교재 디렉터리 안전 보존.
+
+## 2026-10-27 상단 학원명 제거, 로고 확대 및 상하 세로 공간 확장
+
+- 요청: 상단 헤더의 `다산미래학원` 텍스트를 제거하고 로고 크기를 키울 것, 그리고 상단과 하단의 세로 공간이 좁아 답답한 문제를 해결하기 위해 간격을 더 넓힐 것.
+- 변경:
+  - 상단 헤더에서 `다산미래학원` `<p>` 텍스트를 제거하고, 로고 이미지를 `size-12`(48px)에서 `size-16`(64px, `width={64} height={64}`)으로 확대 (`app/page.tsx`).
+  - 상단 헤더와 본문 사이의 세로 간격 확보:
+    - `.selection-header.login-page-header`의 `margin-bottom: 0`을 `clamp(1.5rem, 3.5vh, 2.5rem)`로 확장.
+    - 헤더 패딩을 `padding-block: 1rem !important`로 여유롭게 설정.
+  - 본문(`.login-stage`) 및 하단 세로 공간 확장:
+    - 데스크톱: 본문 상하 패딩을 `clamp(2rem, 5vh, 3.5rem) 0 clamp(2.5rem, 6vh, 4.5rem)`로 변경하여 하단 바닥까지의 간격을 대폭 확보.
+    - 노트북(높이 820px 이하): `.login-canvas` 패딩 1.25rem, 헤더 밑마진 1.25rem, 로고 3.25rem, 본문 상하 패딩 `2rem 2.5rem`으로 조정.
+    - 모바일(899px 이하): 본문 패딩 `2rem .25rem 3.5rem`으로 하단 숨통 확보.
+  - `PROJECTS.md` 5절 상단 헤더 사양 갱신.
+- 검증:
+  - `npm.cmd run lint` (oxlint app): 0 errors, 0 warnings 통과.
+  - `npx.cmd tsc --noEmit`: 오류 없음 통과.
+  - `npm.cmd run build`: Next.js Turbopack 최적화 프로덕션 빌드 성공.
+  - `git diff --check`: 통과.
+- 보존: 기존 미추적 `package-lock.json` 및 로컬 원본 교재 디렉터리 안전 보존.
