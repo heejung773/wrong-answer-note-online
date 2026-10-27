@@ -4611,11 +4611,11 @@ export default function Home() {
                 <LogOut /> 로그아웃
               </Button>
             </div>
-          ) : !configured ? (
+          ) : (
             <span className="whitespace-nowrap rounded-full border border-[#334155] bg-[#1e293b] px-3 py-1 text-xs font-semibold text-[#b6c3d5]">
-              연결 준비
+              {configured ? '로그인' : '연결 준비'}
             </span>
-          ) : null}
+          )}
         </header>
 
         {checkingSession ? (
