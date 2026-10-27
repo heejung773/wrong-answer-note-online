@@ -359,8 +359,12 @@ html:has(.selection-canvas) {
 .login-intro {
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   color: #e2e8f0;
   padding-left: 0;
+  text-align: center;
 }
 
 /* Headline: one compact line, with the action emphasized. */
@@ -381,13 +385,16 @@ html:has(.selection-canvas) {
 .login-features {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.45rem;
   margin-top: 0.35rem;
-  max-width: 32.5rem;
+  width: fit-content;
+  max-width: 100%;
 }
 .login-feature-item {
   position: relative;
-  display: flex;
+  display: inline-flex;
+  align-self: center;
   align-items: center;
   gap: .85rem;
   padding: .68rem .95rem;
@@ -397,6 +404,8 @@ html:has(.selection-canvas) {
   border: 1px solid #334155;
   box-shadow: 0 8px 24px rgba(32, 51, 77, .07);
   transition: background-color .2s, border-color .2s, transform .2s;
+  width: auto;
+  max-width: 100%;
 }
 .login-feature-badge {
   display: grid;
@@ -427,6 +436,7 @@ html:has(.selection-canvas) {
   flex-direction: column;
   gap: 0.3rem;
   min-width: 0;
+  text-align: left;
 }
 .login-feature-title-wrap {
   display: flex;
@@ -540,8 +550,8 @@ html:has(.selection-canvas) {
   .login-stage::before, .login-stage::after { display: none; }
   .login-intro { padding: 0 .5rem; }
   .login-headline { font-size: clamp(1.15rem, 4.6vw, 2rem); }
-  .login-features { margin-top: 1.2rem; gap: 0.5rem; max-width: 100%; }
-  .login-feature-item { padding: 0.72rem 0.95rem; gap: 0.8rem; }
+  .login-features { width: 100%; margin-top: 1.2rem; gap: 0.5rem; max-width: 100%; }
+  .login-feature-item { width: 100%; padding: 0.72rem 0.95rem; gap: 0.8rem; }
   .login-feature-icon { width: 2.8rem; height: 2.8rem; }
   .login-feature-icon svg { width: 1.4rem; height: 1.4rem; }
   .login-feature-title { font-size: 1.15rem; }
