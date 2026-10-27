@@ -928,3 +928,22 @@
 - 검증: `npm run lint`, `npm run build` 통과. 로컬 1280×720·390×844에서 여백·제목·첫 화면 수용 범위 확인. 운영 1280×720에서 `시험 운영` 삭제, 늘어난 상단 간격, `로그인` 제목 반영 확인.
 - 배포: 커밋 `cfaed9f`(`refine: tune login spacing and labels`)을 `origin/main`에 push했고 GitHub Vercel 상태 `success` 확인. 로그인 입력이나 계정 인증은 실행하지 않음.
 - 기존 미추적 `package-lock.json`은 변경하거나 커밋하지 않고 보존.
+
+
+## 2026-10-27 헤더 상태 레이블 변경 및 로그인 특장점 중앙 정렬·폭 최적화
+
+- 요청: 상단 헤더의 상태 레이블을 목적에 맞게 간결하게 변경하고, 로그인 홈 특장점 카드의 정렬 축과 너비를 최적화.
+- 변경:
+  - 상단 헤더 우측 태그를 `관리자 접속`에서 `로그인`으로 명확화 (`app/page.tsx`, 커밋 `ba888a9`).
+  - 왼쪽 소개 영역(`.login-intro`)과 카드 묶음(`.login-features`)의 중심축을 중앙 정렬(`align-items: center`)로 맞추고, 각 카드가 열 전체를 과도하게 채우지 않고 문장 길이에 맞게 차지하도록 `width: fit-content`, `display: inline-flex` 적용 (`app/globals.css`, 커밋 `3a0f950`).
+  - `PROJECTS.md` 5절 로그인 화면 사양 설명 갱신.
+- 검증:
+  - `npm run lint` (oxlint app): 0 errors, 0 warnings 통과.
+  - `npx tsc --noEmit`: 컴파일 오류 없음 (통과).
+  - `npm run build`: Next.js 16.3.4 (Turbopack) 최적화 프로덕션 빌드 성공.
+  - `git diff --check`: 공백 및 충돌 문제 없음.
+- 배포:
+  - GitHub `origin/main` 푸시 완료 (`3a0f950`).
+  - GitHub Vercel 연동 배포 상태 `success` (Deployment completed, commit `3a0f950`).
+  - 운영 사이트 `https://fix.kangmath.com/` HTTP 200 OK 및 최신 CSS 청크(`fit-content`, 중앙 정렬 규칙) 반영 확인 완료.
+- 보존: 기존 미추적 `package-lock.json` 및 로컬 원본 교재 디렉터리 안전 보존.
