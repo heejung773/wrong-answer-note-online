@@ -988,4 +988,8 @@
   - `npx.cmd tsc --noEmit`: 오류 없음 통과.
   - `npm.cmd run build`: Next.js Turbopack 최적화 프로덕션 빌드 성공.
   - `git diff --check`: 통과.
+- 배포:
+  - GitHub `origin/main` 푸시 완료 (`7a3218d`).
+  - Vercel 프로덕션 배포 `success` 확인 (`Deployment has completed`).
+  - 운영 사이트 `https://fix.kangmath.com/` HTTP 200 OK 정상 서빙 확인.
 - 보존: 기존 미추적 `package-lock.json` 및 로컬 원본 교재 디렉터리 안전 보존.
