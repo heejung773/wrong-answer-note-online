@@ -4630,9 +4630,6 @@ export default function Home() {
         ) : !sessionToken ? (
           <section className="login-stage">
             <div className="login-intro">
-              <div className="login-kicker">
-                <span /> DASAN MIRAE ACADEMY
-              </div>
               <h2 className="login-headline">
                 필요한 문제만 골라서{' '}
                 <span className="login-headline-accent">오답노트 만들기</span>
@@ -4683,10 +4680,6 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="login-intro-rule" />
-              <span className="login-intro-caption">
-                SMART REVIEW · SIMPLE PRACTICE
-              </span>
             </div>
             <Card className="login-card">
               <CardContent className="login-card-content">

@@ -348,22 +348,20 @@ html:has(.selection-canvas) {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(320px, 400px);
-  align-items: center;
+  align-items: start;
   gap: clamp(2.5rem, 5vw, 5.5rem);
   max-width: 1140px;
   min-height: min(650px, calc(100svh - 148px));
   margin: 0 auto;
-  padding: 1rem 1.5rem 2rem;
+  padding: clamp(2rem, 5vh, 3rem) 0 2rem;
 }
 .login-stage::before, .login-stage::after { display: none; }
 .login-intro {
   position: relative;
   z-index: 1;
   color: #e2e8f0;
-  padding-left: clamp(0rem, 2vw, 2rem);
+  padding-left: 0;
 }
-.login-kicker { display: flex; align-items: center; gap: .65rem; color: #5eead4; font-size: .75rem; font-weight: 800; letter-spacing: .22em; }
-.login-kicker span { width: 2.2rem; height: 1.5px; background: #5eead4; }
 
 /* Headline: one compact line, with the action emphasized. */
 .login-headline {
@@ -376,10 +374,10 @@ html:has(.selection-canvas) {
   white-space: nowrap;
 }
 .login-headline-accent {
-  color: #5eead4;
+  color: #7dd3fc;
 }
 
-/* Feature Chips: 1.5x larger, 3 distinct colors, numbering badges */
+/* Feature cards use three restrained accents for faster scanning. */
 .login-features {
   display: flex;
   flex-direction: column;
@@ -471,17 +469,22 @@ html:has(.selection-canvas) {
   flex-shrink: 0;
 }
 
-/* One accent family for all welcome cards. */
+/* Neutral cards with distinct blue, violet, and amber identifiers. */
 .login-feature-item { background: #1e293b; border-color: var(--border); box-shadow: 0 2px 6px #e2e8f008; backdrop-filter: none; }
-.login-feature-badge, .login-feature-icon, .login-feature-tag {
-  background: #153b37; color: #5eead4; border: 1px solid #2b5951;
-}
+.login-feature-badge, .login-feature-icon, .login-feature-tag { background: #18263b; color: #cbd5e1; border: 1px solid #34445b; }
+.login-feature-speed .login-feature-badge,
+.login-feature-speed .login-feature-icon,
+.login-feature-speed .login-feature-tag { background: #162d47; color: #7dd3fc; border-color: #294f72; }
+.login-feature-books .login-feature-badge,
+.login-feature-books .login-feature-icon,
+.login-feature-books .login-feature-tag { background: #292340; color: #c4b5fd; border-color: #4b4268; }
+.login-feature-print .login-feature-badge,
+.login-feature-print .login-feature-icon,
+.login-feature-print .login-feature-tag { background: #392d1d; color: #fbbf24; border-color: #66502a; }
 .login-feature-desc { color: #b6c3d5; }
-.login-feature-bullet { background: #5eead4; }
-.login-feature-item:hover { background: #111c30; border-color: #408d7b; }
+.login-feature-bullet { background: #94a3b8; }
+.login-feature-item:hover { background: #111c30; border-color: #526178; }
 
-.login-intro-rule { width: 100%; max-width: 18rem; margin-top: 1.5rem; border-top: 1px dashed #334155; }
-.login-intro-caption { display: block; margin-top: .85rem; color: #94a3b8; font-size: .65rem; font-weight: 700; letter-spacing: .18em; }
 .login-card {
   position: relative;
   z-index: 1;
@@ -494,9 +497,9 @@ html:has(.selection-canvas) {
 .login-card label > span { color: #e2e8f0; font-size: .82rem; font-weight: 700; }
 .login-card label small { margin-left: .35rem; color: #94a3b8; font-size: .62rem; font-weight: 700; letter-spacing: .08em; }
 .login-card input { height: 2.9rem; border: 1.5px solid #475569; border-radius: .75rem; background: #1e293b; color: #e2e8f0; font-size: .95rem; font-weight: 600; box-shadow: 0 8px 24px rgba(32, 51, 77, .07); }
-.login-card input:focus { border-color: #5eead4; box-shadow: 0 8px 24px rgba(32, 51, 77, .07); }
-.login-card button[type='submit'] { height: 2.95rem; margin-top: .2rem; border-radius: .75rem; background: #5eead4; color: #fff; font-size: .95rem; font-weight: 800; letter-spacing: .04em; box-shadow: 0 8px 24px rgba(32, 51, 77, .07); transition: all .18s ease; }
-.login-card button[type='submit']:hover { background: #5eead4; color: #fff; box-shadow: 0 8px 24px rgba(32, 51, 77, .07); transform: translateY(-1px); }
+.login-card input:focus { border-color: #60a5fa; box-shadow: 0 8px 24px rgba(32, 51, 77, .07); }
+.login-card button[type='submit'] { height: 2.95rem; margin-top: .2rem; border-radius: .75rem; background: #2563eb; color: #fff; font-size: .95rem; font-weight: 800; letter-spacing: .04em; box-shadow: 0 8px 24px rgba(37, 99, 235, .2); transition: all .18s ease; }
+.login-card button[type='submit']:hover { background: #1d4ed8; color: #fff; box-shadow: 0 10px 28px rgba(37, 99, 235, .28); transform: translateY(-1px); }
 .login-status { background: #1e293b; color: #b6c3d5; font-weight: 600; border: 1px solid #334155; }
 .login-header { position: relative; overflow: hidden; border-color: #334155 !important; background: #1e293b !important; }
 .login-header::after { position: absolute; right: 1.25rem; bottom: 0; left: 1.25rem; height: 2px; background: #5eead4; content: ''; opacity: .8; }
@@ -513,6 +516,11 @@ html:has(.selection-canvas) {
 .selection-header .login-header-title-accent { color: #e2e8f0 !important; text-shadow: none; -webkit-text-stroke: 0 !important; }
 .selection-header .login-header-title-accent::after { right: 0; bottom: -.14rem; left: 0; height: .14rem; background: #5eead4; opacity: 1; }
 .selection-header img { border: 2px solid #5eead4; box-shadow: 0 8px 24px rgba(32, 51, 77, .07); }
+.selection-header.login-page-header { margin-bottom: 0; background: transparent; border: 0; border-bottom: 1px solid #26364b; box-shadow: none; }
+.selection-header.login-page-header img { border: 0 !important; box-shadow: none !important; }
+.selection-header.login-page-header .login-header-academy { color: #cbd5e1 !important; }
+.selection-header.login-page-header .login-header-title-accent { color: #e2e8f0 !important; }
+.selection-header.login-page-header .login-header-title-accent::after { display: none; }
 
 @media (min-width: 900px) and (max-width: 1100px) {
   .login-stage {
@@ -539,7 +547,6 @@ html:has(.selection-canvas) {
   .login-feature-tag { font-size: 0.68rem; padding: 0.1rem 0.45rem; }
   .login-feature-desc { font-size: 0.88rem; }
   .login-feature-bullet { width: 4px; height: 4px; }
-  .login-intro-rule, .login-intro-caption { display: none; }
   .login-card { width: 100%; }
   .login-header-academy { font-size: .9rem !important; }
   .login-header-title { font-size: 1.15rem !important; }
@@ -550,10 +557,8 @@ html:has(.selection-canvas) {
   .login-page-header { min-height: 70px; margin-bottom: 8px; padding-block: .55rem !important; }
   .login-page-header img { width: 2.5rem; height: 2.5rem; }
   .login-stage { min-height: calc(100svh - 110px); padding-block: .5rem 1rem; }
-  .login-kicker { font-size: .68rem; }
   .login-headline { margin-block: .8rem 1.15rem; }
   .login-headline { font-size: clamp(1.65rem, 2.6vw, 2.15rem); }
-  .login-intro-rule, .login-intro-caption { display: none; }
 }
 
 /* Dark surfaces and restrained accents across all stages. */
@@ -566,8 +571,8 @@ html:has(.selection-canvas) {
 .textbook-row h3 { font-weight: 700; }
 .login-feature-item:hover { transform: translateY(-2px); }
 .login-feature-text { flex: 1; }
-.login-card button[type='submit']:hover { background: #99f6e4; }
-.login-card input:focus { border-color: #5eead4; box-shadow: 0 0 0 3px #5eead420; }
+.login-card button[type='submit']:hover { background: #1d4ed8; }
+.login-card input:focus { border-color: #60a5fa; box-shadow: 0 0 0 3px #60a5fa30; }
 .ghost-pill { border-color: #475569; }
 .ghost-pill:hover { background: #153b37 !important; color: #99f6e4 !important; }
 @media (prefers-reduced-motion: reduce) {
@@ -576,8 +581,8 @@ html:has(.selection-canvas) {
 
 /* Solid login action. */
 :root { --primary: #0f766e; }
-.login-card button[type='submit'] { background: #0f766e; color: #fff; }
-.login-card button[type='submit']:hover { background: #115e59; color: #fff; }
+.login-card button[type='submit'] { background: #2563eb; color: #fff; }
+.login-card button[type='submit']:hover { background: #1d4ed8; color: #fff; }
 
 /* The workspace uses quiet surfaces; mint is reserved for actions and focus. */
 .generator-canvas {
