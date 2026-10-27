@@ -4560,13 +4560,13 @@ export default function Home() {
     <main
       className={`min-h-screen px-4 py-5 sm:px-7 sm:py-7 ${
         !textbook ? 'selection-canvas' : ''
-      }`}
+      } ${!sessionToken ? 'login-canvas' : ''}`}
     >
       <div className="mx-auto max-w-6xl">
         <header
           className={`mb-6 flex items-center justify-between px-5 py-4 ${
             !textbook
-              ? 'selection-header border-b border-dashed border-[#334155] bg-transparent text-[#e2e8f0]'
+              ? `selection-header border-b border-dashed border-[#334155] bg-transparent text-[#e2e8f0] ${!sessionToken ? 'login-page-header' : ''}`
               : 'login-header rounded-2xl border bg-slate-800/90 shadow-sm'
           }`}
         >

@@ -849,6 +849,15 @@
 - 확인 못 함: 실제 Supabase 저장·중복 무시·이름 목록(표 미생성, 쓰기 금지), 로그인 후 화면 동작(로그인 불가), 운영 Python PDF.
 - 남은 일: 선생님이 supabase/wrong_answer_records.sql 실행 → 배포(push) → 운영에서 개별 다운로드·인쇄 1회씩 해 보고 표에 줄이 생기는지 확인. 표가 없을 때 배포하면 화면에 '오답 기록 저장 실패(PDF는 정상)' 한 줄이 뜸.
 
+## 2026-10-21 오답 기록 저장 배포 시도 (커밋까지, push 막힘)
+
+- 요청(비서 경유, 선생님 배포 허락): 오답 기록 저장 1단계 commit·push(운영 배포). 선생님이 supabase/wrong_answer_records.sql 실행 완료.
+- 확인: remote = heejung773/wrong-answer-note-online, 변경 파일이 예상 7개 + package-lock.json 뿐(예상 밖 변경 없음), npm run build 다시 성공(/api/wrong-records 동적).
+- 커밋 9dd4bf0(lib/wrong-records.ts, app/api/wrong-records/route.ts, supabase/wrong_answer_records.sql, app/page.tsx, api/generate.py, PROJECTS.md, PROJECT_STATUS.md; package-lock.json 제외).
+- git push origin main 은 이 에이전트 세션의 권한 검사(운영 배포 차단)에 막혀 실행되지 않음 → 운영 미반영. 우회하지 않음.
+- 운영 현재 상태(읽기만): fix.kangmath.com 200, /api/wrong-records POST 404(새 코드 아직 없음).
+- 남은 일: push 허용(권한 설정) 또는 선생님이 직접 `git -C "D:\오답노트_온라인_테스트" push origin main` → Vercel 완료 후 /api/wrong-records 비로그인 POST 가 401(키가 없으면 200 {status:'off'}) 인지 확인 → 화면에서 개별 다운로드 1회·같은 것 인쇄·관리자 사용량 확인.
+
 ## 2026-10-23 관리자 '다운목록' 화면 (커밋까지, push·배포 안 함)
 
 - 요청(비서 경유, 선생님): 변형문제(twin print-log)처럼 오답노트 다운로드 목록을 사이트에서 보고 싶다(Supabase 대시보드 없이). 관리자만.
@@ -874,3 +883,14 @@
 - 확인: npm run build 성공, oxlint 통과. 로컬 dev(가짜 Supabase 주소·가짜 세션, 실제 Supabase 접속·쓰기 없음): 375px 머리말 겹침·가로 넘침 없음, 다운목록 버튼 → /admin/downloads 로그인 창 없이 같은 토큰으로 API 호출(가짜 주소라 '로그인 확인 실패'가 정상), 로그아웃 상태 /admin/downloads·/admin/usage → / 로 이동. dev 서버·브라우저 탭 종료, headless 0개.
 - 확인 못 함: 실제 계정으로 운영 목록 표시(배포 전), Supabase Auth '새 가입 허용' 설정(로컬 .env.local 에 공개키 없음). 로그인만으로 통과하므로 가입이 열려 있으면 누구나 계정을 만들어 학생 오답 기록을 볼 수 있음 → 선생님이 Supabase Authentication 설정에서 가입 꺼짐 확인 권장.
 - 다른 프로젝트 영향: 없음(R2·storage_backend.py·Supabase 표 그대로). 테스트지만들기는 Flask 라 이 로그인 코드와 무관.
+
+## 2026-10-27 로그인 홈 노트북 화면 잘림 개선 (로컬 완료, 미배포)
+
+- 요청: `https://fix.kangmath.com/` 첫 로그인 홈 디자인을 다듬고, 데스크톱에서는 몰랐던 노트북 화면 잘림을 해결.
+- 운영 화면 확인: 1366×768에서 상단 브랜드 영역과 본문 세로 여백이 커 로그인 카드 아래쪽이 첫 화면 밖으로 밀림. 가로 넘침보다 고정적인 세로 여백·큰 제목·세로형 카드 머리말이 주원인.
+- 변경: `app/page.tsx`에 로그인 전용 `login-canvas`·`login-page-header` 범위를 추가. `app/globals.css`에서 브랜드 바, 제목, 3대 특장점 카드, 로그인 폼의 크기·간격을 정리하고 로그인 카드의 아이콘·제목을 가로형 머리말로 재배치. 높이 820px 이하에서는 영문 하단 장식을 숨기고 세로 간격을 더 줄임.
+- 반응형: 2열→1열 전환을 1023px에서 899px로 낮춰 화면 배율이 큰 노트북에서도 2열 유지. 900~1100px 전용 열 비율·글자 크기 보정 추가. 899px 이하는 기존처럼 세로 배치.
+- 시각 검증: 운영 기존 화면 1366×768 캡처 후 로컬 개발·최종 프로덕션 빌드를 1280×720, 1024×768, 900×768, 390×844에서 확인. 노트북 3개 크기에서 로컬 연결 안내가 추가된 더 긴 카드도 첫 화면 안에 들어오며, 모바일은 가로 잘림 없음.
+- 코드 검증: `npm run lint` 통과. Next.js 빌드 캐시가 오래된 CSS를 재사용한 것을 발견해 기존 `.next`를 임시 폴더로 이동하고 깨끗하게 다시 빌드; 최종 `npm run build` 경고 없이 성공. 최종 빌드 화면도 1280×720·900×768 재확인.
+- 기록: 현재 사양에 맞춰 `PROJECTS.md`의 로그인 화면 반응형 규칙을 갱신. 기존 사용자 변경 `PROJECT_STATUS.md`와 미추적 `package-lock.json`은 보존.
+- 미완료: 커밋·push·Vercel 운영 배포는 하지 않음. 운영 계정으로 실제 로그인 동작은 건드리지 않았고, 로그인 전 화면만 검증함.
