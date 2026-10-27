@@ -353,7 +353,7 @@ html:has(.selection-canvas) {
   max-width: 1140px;
   min-height: min(650px, calc(100svh - 148px));
   margin: 0 auto;
-  padding: clamp(2rem, 5vh, 3rem) 0 2rem;
+  padding: clamp(2.5rem, 6vh, 3.5rem) 0 2rem;
 }
 .login-stage::before, .login-stage::after { display: none; }
 .login-intro {
@@ -494,6 +494,7 @@ html:has(.selection-canvas) {
   box-shadow: 0 8px 24px rgba(32, 51, 77, .07);
 }
 .login-card-content { padding: 1.5rem !important; }
+.login-card-title { margin: 0 0 1.1rem; color: #f8fafc; font-size: 1.08rem; font-weight: 800; letter-spacing: -.02em; }
 .login-card label > span { color: #e2e8f0; font-size: .82rem; font-weight: 700; }
 .login-card label small { margin-left: .35rem; color: #94a3b8; font-size: .62rem; font-weight: 700; letter-spacing: .08em; }
 .login-card input { height: 2.9rem; border: 1.5px solid #475569; border-radius: .75rem; background: #1e293b; color: #e2e8f0; font-size: .95rem; font-weight: 600; box-shadow: 0 8px 24px rgba(32, 51, 77, .07); }
@@ -556,7 +557,7 @@ html:has(.selection-canvas) {
   .login-canvas { padding-block: 1rem !important; }
   .login-page-header { min-height: 70px; margin-bottom: 8px; padding-block: .55rem !important; }
   .login-page-header img { width: 2.5rem; height: 2.5rem; }
-  .login-stage { min-height: calc(100svh - 110px); padding-block: .5rem 1rem; }
+  .login-stage { min-height: calc(100svh - 110px); padding-block: 1.5rem 1rem; }
   .login-headline { margin-block: .8rem 1.15rem; }
   .login-headline { font-size: clamp(1.65rem, 2.6vw, 2.15rem); }
 }

@@ -4611,11 +4611,11 @@ export default function Home() {
                 <LogOut /> 로그아웃
               </Button>
             </div>
-          ) : (
+          ) : !configured ? (
             <span className="whitespace-nowrap rounded-full border border-[#334155] bg-[#1e293b] px-3 py-1 text-xs font-semibold text-[#b6c3d5]">
-              {configured ? '시험 운영' : '연결 준비'}
+              연결 준비
             </span>
-          )}
+          ) : null}
         </header>
 
         {checkingSession ? (
@@ -4683,6 +4683,7 @@ export default function Home() {
             </div>
             <Card className="login-card">
               <CardContent className="login-card-content">
+                <h3 className="login-card-title">로그인</h3>
                 <form className="space-y-4" onSubmit={login}>
                   <label htmlFor="login-id" className="block space-y-2">
                     <span className="font-medium">
