@@ -16,7 +16,6 @@ import {
   FileText,
   GraduationCap,
   ListChecks,
-  LockKeyhole,
   LogOut,
   Printer,
   RefreshCw,
@@ -4635,10 +4634,8 @@ export default function Home() {
                 <span /> DASAN MIRAE ACADEMY
               </div>
               <h2 className="login-headline">
-                <span className="login-headline-line1">
-                  필요한 문제만 골라서
-                </span>
-                <span className="login-headline-line2">오답노트 만들기</span>
+                필요한 문제만 골라서{' '}
+                <span className="login-headline-accent">오답노트 만들기</span>
               </h2>
 
               <div className="login-features">
@@ -4692,16 +4689,6 @@ export default function Home() {
               </span>
             </div>
             <Card className="login-card">
-              <CardHeader className="login-card-header">
-                <div className="login-lock">
-                  <LockKeyhole />
-                </div>
-                <div className="login-card-eyebrow">MEMBER ACCESS</div>
-                <CardTitle className="text-2xl">반가워요</CardTitle>
-                <CardDescription>
-                  관리자에게 받은 계정으로 로그인해 주세요.
-                </CardDescription>
-              </CardHeader>
               <CardContent className="login-card-content">
                 <form className="space-y-4" onSubmit={login}>
                   <label htmlFor="login-id" className="block space-y-2">
@@ -4736,12 +4723,14 @@ export default function Home() {
                   >
                     {busy ? '확인 중…' : '로그인'}
                   </Button>
-                  <p
-                    aria-live="polite"
-                    className="login-status rounded-xl p-3 text-sm leading-6"
-                  >
-                    {status}
-                  </p>
+                  {status !== '로그인이 필요합니다.' && (
+                    <p
+                      aria-live="polite"
+                      className="login-status rounded-xl p-3 text-sm leading-6"
+                    >
+                      {status}
+                    </p>
+                  )}
                 </form>
                 {!configured && (
                   <p className="mt-4 rounded-xl bg-amber-950 p-3 text-sm leading-6 text-amber-200">
