@@ -154,6 +154,31 @@ html:has(.selection-canvas) {
 .editorial-choice-high .choice-footer h3 {
   color: #5eead4;
 }
+/* 내신 기출: 중등부·고등부 아래 한 줄 전체, 높이는 낮게 */
+.selection-grid .editorial-choice-naesin {
+  display: block;
+  grid-column: 1 / -1;
+  min-height: 10rem;
+}
+.editorial-choice-naesin .choice-icon,
+.editorial-choice-naesin .choice-footer h3 {
+  color: #7dd3fc;
+}
+.editorial-choice-naesin .choice-icon {
+  top: 1.25rem;
+  right: 1.5rem;
+  left: auto;
+  width: 3rem;
+  height: 3rem;
+  transform: none;
+}
+.editorial-choice-naesin:hover .choice-icon {
+  transform: translateY(-0.25rem);
+}
+.editorial-choice-naesin .choice-footer {
+  border-top: 0;
+  padding-top: 0;
+}
 .choice-footer {
   position: absolute;
   right: 1.5rem;

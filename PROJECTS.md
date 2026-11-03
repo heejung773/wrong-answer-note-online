@@ -153,6 +153,17 @@
 - 관리자 '다운목록' 화면 `/admin/downloads`(2026-10-23, 사용량 화면 옆 탭): 발급 1건 = 같은 한국 날짜 · 같은 `student_key` · 같은 교재(source='fix'만). 칸: 발급 날짜(마지막 시각), 학생(누르면 그 학생 전체 이력 펼침, 두 번 이상 틀린 문항 노란색 ×n), 교재, 틀린 문항(단원·단계별 묶음, 개수, 단원), 방식(다운로드/인쇄·학년), 삭제. 위에 '이번 달 n건 · 학생 n명', 이름 검색(student_key ilike), 교재·기간(전체/오늘/최근 7일/이번 달/지난 30일/지난 달), 새로고침. API `GET/DELETE /api/admin/wrong-records`(lib/admin-auth.ts: 메인과 같은 Supabase 로그인 토큰 확인, 아니면 401). DELETE `{id:'YYYY-MM-DD|student_key|textbook'}` 는 그 묶음 줄 전체 삭제(확인 창 뒤). 묶기 규칙: `lib/wrong-record-list.ts`. 표 구조 변경 없음. 한 번에 최대 20,000줄(1,000줄씩) 읽음.
 - 관리자 화면 로그인(2026-10-23 선생님: "오답노트·테스트는 나 혼자 보는 창, 로그인은 메인에서 한 번만"): 메인 머리말 오른쪽(교재 표시 · **다운목록** · 로그아웃, 교재 고르기 화면도 다운목록 · 로그아웃)에 `/admin/downloads` 버튼. `/admin/usage`·`/admin/downloads` 는 따로 관리자 로그인 창이 없고 메인과 같은 Supabase 세션(브라우저 저장소)을 그대로 쓴다. 세션이 없거나 API 가 401 이면 메인 로그인 화면(`/`)으로 보냄(app/admin/go-to-login.tsx). `/api/admin/usage`·`/api/admin/wrong-records` 는 lib/admin-auth.ts `requireAdmin` 하나로: 유효한 로그인 토큰 + 이메일 계정(익명 로그인 토큰 거부)이면 통과, `ADMIN_EMAILS` 로는 막지 않음. 단 손풀이 링크 동기화 POST(`api/sync_solution_links.py`)는 아직 `ADMIN_EMAILS` 확인 그대로.
 
+## 6-2. 내신 기출 오답노트 (2026-11-03 로컬 시범, 운영 배포 전)
+
+- 화면: 로그인 후 첫 화면(중등부·고등부 아래) '내신 기출' 카드 → `/naesin`. 학교 → 학년 → 시험 고르기, 시험 안 번호(1~N) 눌러 고르기, '변형 같이 넣기', 학생 1명 이름, 표지 넣기, 미리보기·PDF 다운로드. 로그인 없으면 메인 로그인으로 보냄(관리자 화면과 같은 세션). 오답 기록(wrong_answer_records)은 아직 남기지 않음. 일괄(여러 학생) 없음.
+- 문항 키: 정수 번호 대신 문자열 키. 원본 `naesin-donghwa/g1/2025-2final/0001`, 변형 `…/0001-v1`. 시험 = 키 앞부분(prefix) 폴더 = `exam.json`(prefix·school·grade·exam·subject·year·title·problems[key,name,no,position,score,format,unit,type,difficulty,answer,image,variants[key,name,difficulty,answer,image]]) + 그림 `<키 끝>.png`. 트윈 이름(`name`, 예 `동화고1_2025_2학기기말-01`)은 키와 함께 들고 다닌다(나중 Supabase 표의 name 칸). 그림은 트윈 사본이라 읽기만 한다.
+- 읽기는 `naesin_source.py` 한 곳: `NAESIN_SOURCE=local|r2`(기본 local), `NAESIN_EXPORT_DIR`(기본 `D:\변형문제\output\naesin_export`). 시험 목록은 `<폴더>/*/*/*/exam.json` 을 모아 만든다(시험 추가 = 폴더 추가). r2 모드는 같은 키 모양(`<prefix>/exam.json`, `<prefix>/0001.png`)과 버킷 맨 위 `naesin-exams.json`({"exams":[prefix…]}) 을 읽게 써 두었으나 **미시험·미업로드**. 테스트지만들기로 옮길 때 이 파일을 그대로 가져갈 수 있게 오답노트 코드에 기대지 않는다.
+- 변형 순서: `variants` 배열 순서대로 '3번 변형1, 변형2…'(키의 v 번호는 비어 있을 수 있어 쓰지 않음). 변형이 없는 문항은 켜도 원본만. 원본+변형 합계 최대 100문항.
+- API: `GET /api/generate?list=naesin`(로그인 필요) 시험 목록, `POST /api/generate` `{textbook:'naesin', naesinExam, naesinNumbers:[3,7], includeVariants, student, grade, includeCover, preview}`. 사용량 기록은 textbook `naesin`.
+- PDF(`create_pdf` 재사용, `labels` 인자): 2x2 칸 번호 '3번'(남색)·'3번 변형1'('변형1' 주황), 문항 페이지·정답 페이지 오른쪽 위 머리말 '동화고 고1 2025 2학기 기말고사', 표지 제목 같은 글자(긴 제목은 글자 크기 자동 축소, 기존 교재 제목은 36pt 그대로), 배지 '고등 내신 기출 | 과목'. 빠른 정답은 exam.json answer(객관식 '5'→⑤, 간단한 LaTeX → 글자, 긴 서술형 정답은 7pt 두 줄). 손풀이 QR: `naesin_source.solution_links_for()` 가 지금은 항상 빈 값 → QR 없음(나중 Supabase 표 자리).
+- 로컬 실행: ① 바로 PDF `python scripts/make_naesin_note.py --list` / `--exam <prefix> --numbers 3,7,12,19 [--variants] --student 이름 [--export-dir 폴더]` (로그인·Supabase·R2 연결 없음, 기본 저장 `output/naesin/`). ② 화면으로: 터미널1 `python scripts/dev_python_api.py`(127.0.0.1:8001, .env.local 읽음) + 터미널2 `$env:PYTHON_API_DEV_URL="http://127.0.0.1:8001"; npm run dev` (next.config.ts 가 개발 모드에서만 /api/generate 를 넘김).
+- 운영 반영 전 필요: 그림·exam.json R2 업로드(키 모양 그대로) + `NAESIN_SOURCE=r2`, 시험 목록 파일, 손풀이 링크 Supabase 표, 배포.
+
 ## 7. 검증 테스트 및 품질 점검 명령어
 
 코드 수정이나 교재 추가 후에는 반드시 아래 검증 명령어를 실행하여 무결성을 확인합니다.

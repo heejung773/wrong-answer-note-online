@@ -4790,6 +4790,20 @@ export default function Home() {
                   </span>
                 </div>
               </button>
+              <Link
+                href="/naesin"
+                className="editorial-choice editorial-choice-naesin group"
+              >
+                <span className="choice-index">03</span>
+                <FileText className="choice-icon" />
+                <div className="choice-footer">
+                  <div>
+                    <h3>내신 기출</h3>
+                    <p>SCHOOL EXAMS · 학교 → 학년 → 시험</p>
+                  </div>
+                  <span className="choice-status">변형 같이</span>
+                </div>
+              </Link>
             </div>
           </section>
         ) : !textbook ? (

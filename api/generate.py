@@ -19,6 +19,7 @@ from typing import Any
 
 from storage_backend import fetch_r2_object, upload_r2_temporary, uses_r2
 from solution_links import SOLUTION_SOURCES, fetch_solution_links
+import naesin_source
 
 from PIL import Image
 from pypdf import PdfReader, PdfWriter
@@ -624,6 +625,7 @@ def draw_test_cover(
     custom_character_bytes: bytes | None = None,
     textbook: str = "synergy-calculus",
     department: str | None = None,
+    badge_override: tuple[str, str] | None = None,
 ) -> None:
     page_width, page_height = A4
     pdfmetrics.registerFont(UnicodeCIDFont("HYGothic-Medium"))
@@ -690,6 +692,8 @@ def draw_test_cover(
     else:
         badge_text = "고등 수학 영역  |  맞춤 클리닉"
         eng_sub = "MATHEMATICS CLINIC TEST"
+    if badge_override:
+        badge_text, eng_sub = badge_override
 
     badge_w = 175
     badge_h = 26
@@ -801,12 +805,19 @@ def draw_test_cover(
 
     # Main Title
     c.setFillColorRGB(*C_MIDNIGHT)
-    c.setFont(font_name, 36)
+    # 긴 제목(내신 '동화고 고1 2025 2학기 기말고사' 등)만 줄여서 표지 폭 안에 넣는다. 기존 교재 제목은 36 그대로.
+    title_size = 36.0
+    while title_size > 18 and c.stringWidth(title, font_name, title_size) > page_width - 120:
+        title_size -= 1
+    c.setFont(font_name, title_size)
     c.drawCentredString(center_x, center_y + 5, title)
 
     # Subtitle
     c.setFillColorRGB(*C_SLATE_TXT)
-    c.setFont(font_name, 13.5)
+    subtitle_size = 13.5
+    while subtitle_size > 9 and c.stringWidth(subtitle, font_name, subtitle_size) > page_width - 120:
+        subtitle_size -= 0.5
+    c.setFont(font_name, subtitle_size)
     c.drawCentredString(center_x, center_y - 32, subtitle)
 
     # Bottom Accent Line & Diamond Jewel
@@ -927,6 +938,7 @@ def draw_cover(
         custom_character_bytes=opts.get("custom_character_bytes"),
         textbook=textbook,
         department=opts.get("department"),
+        badge_override=opts.get("badge_override"),
     )
 
 
@@ -942,7 +954,7 @@ def draw_footer(c: canvas.Canvas, page_number: int, page_width: float, academy_n
     c.drawRightString(right, 5.2 * mm, str(page_number))
 
 
-def draw_answer_page(c: canvas.Canvas, numbers: list[int], answers: dict[int, Any], page_number: int, page_width: float, page_height: float, textbook: str, academy_name: str = "다산미래학원") -> None:
+def draw_answer_page(c: canvas.Canvas, numbers: list[int], answers: dict[int, Any], page_number: int, page_width: float, page_height: float, textbook: str, academy_name: str = "다산미래학원", labels: dict[int, str] | None = None, answer_source: str | None = None) -> None:
     left = 16 * mm
     right = page_width - 16 * mm
     top = page_height - 18 * mm
@@ -972,10 +984,38 @@ def draw_answer_page(c: canvas.Canvas, numbers: list[int], answers: dict[int, An
         c.rect(x, y, column_width, row_height, stroke=0, fill=1)
         c.setFillColorRGB(0.18, 0.18, 0.18)
         c.setFont("HYSMyeongJo-Medium", 12)
-        c.drawString(x + 3 * mm, y + (row_height - 12) / 2 + 1, f"{number:04d}")
+        number_text = labels.get(number, str(number)) if labels else f"{number:04d}"
+        c.drawString(x + 3 * mm, y + (row_height - 12) / 2 + 1, number_text)
 
         ans_val = answers.get(number)
-        if isinstance(ans_val, str):
+        if isinstance(ans_val, str) and labels:
+            # 내신 정답은 길 수 있어 번호 글자와 겹치지 않게 줄인다
+            font = "HYSMyeongJo-Medium"
+            room = column_width - 9 * mm - c.stringWidth(number_text, font, 12)
+            size = 12.0
+            while size > 8.5 and c.stringWidth(ans_val, font, size) > room:
+                size -= 0.5
+            if c.stringWidth(ans_val, font, size) <= room:
+                c.setFont(font, size)
+                c.drawRightString(x + column_width - 3 * mm, y + (row_height - size) / 2 + 1, ans_val)
+            else:
+                # 서술형처럼 긴 정답: 7pt 로 칸 안에서 두 줄까지, 넘치면 끝을 … 로
+                size = 7.0
+                lines = [""]
+                for ch in ans_val:
+                    if c.stringWidth(lines[-1] + ch, font, size) > room:
+                        lines.append("")
+                    lines[-1] += ch
+                if len(lines) > 2:
+                    lines = lines[:2]
+                    while c.stringWidth(lines[1] + "…", font, size) > room:
+                        lines[1] = lines[1][:-1]
+                    lines[1] += "…"
+                c.setFont(font, size)
+                top = y + row_height / 2 + (len(lines) - 1) * size * 0.6 - size * 0.35
+                for line_index, line in enumerate(lines):
+                    c.drawRightString(x + column_width - 3 * mm, top - line_index * size * 1.2, line.strip())
+        elif isinstance(ans_val, str):
             c.drawRightString(x + column_width - 3 * mm, y + (row_height - 12) / 2 + 1, ans_val)
         elif ans_val:
             reader = ImageReader(BytesIO(ans_val))
@@ -990,8 +1030,16 @@ def draw_answer_page(c: canvas.Canvas, numbers: list[int], answers: dict[int, An
 
     c.setFillColorRGB(0.45, 0.45, 0.45)
     c.setFont("HYSMyeongJo-Medium", 7.5)
-    c.drawString(left, 13.5 * mm, TEXTBOOKS.get(textbook, {}).get("answer_source", ""))
+    c.drawString(left, 13.5 * mm, answer_source if answer_source is not None else TEXTBOOKS.get(textbook, {}).get("answer_source", ""))
     draw_footer(c, page_number, page_width, academy_name)
+
+
+def draw_page_header(c: canvas.Canvas, text: str, page_width: float, page_height: float) -> None:
+    """문항 페이지 맨 위 머리말(내신: 학교·학년·시험 이름). 칸 위 10mm 여백 안에만 그린다."""
+    c.setFillColorRGB(0.12, 0.27, 0.48)
+    c.setFont("HYGothic-Medium", 8.5)
+    c.drawRightString(page_width - 10 * mm, page_height - 7.2 * mm, text)
+    c.setFillColorRGB(0, 0, 0)
 
 
 SOLUTION_QR_SIZE = 20 * mm
@@ -1011,12 +1059,29 @@ def draw_solution_qr(c: canvas.Canvas, url: str, cell_x: float, cell_y: float, c
     c.linkURL(url, (qr_x, qr_y, qr_x + SOLUTION_QR_SIZE, qr_y + SOLUTION_QR_SIZE), relative=0, thickness=0)
 
 
-def create_pdf(student: str, grade: str, images: list[tuple[int, bytes]], answers: dict[int, str] | None, textbook: str, cover_options: dict | None = None, solution_links: dict[int, str] | None = None) -> bytes:
+def draw_item_label(c: canvas.Canvas, text: str, x: float, y: float) -> None:
+    """내신 칸 번호: '3번'은 남색, '3번 변형1'은 '변형1'만 주황 글자로 구분."""
+    base, _, variant = text.partition(" ")
+    c.setFont("HYGothic-Medium", 10)
+    c.setFillColorRGB(0.07, 0.11, 0.22)
+    c.drawString(x, y, base)
+    if variant:
+        offset = c.stringWidth(base + " ", "HYGothic-Medium", 10)
+        c.setFillColorRGB(0.80, 0.36, 0.05)
+        c.drawString(x + offset, y, variant)
+    c.setFillColorRGB(0, 0, 0)
+
+
+def create_pdf(student: str, grade: str, images: list[tuple[int, bytes]], answers: dict[int, str] | None, textbook: str, cover_options: dict | None = None, solution_links: dict[int, str] | None = None, labels: dict[int, str] | None = None) -> bytes:
+    """교재 오답노트 2x2. labels 가 있으면(내신) images 의 정수는 순번이고, 칸·정답표에는 labels 글자를 쓴다."""
     solution_links = solution_links or {}
     opts = cover_options or {}
     include_cover = opts.get("include_cover", True)
     academy_name = opts.get("academy_name") or "다산미래학원"
+    page_header = opts.get("page_header")
     pdfmetrics.registerFont(UnicodeCIDFont("HYSMyeongJo-Medium"))
+    if labels or page_header:
+        pdfmetrics.registerFont(UnicodeCIDFont("HYGothic-Medium"))
     output = BytesIO()
     page_width, page_height = A4
     c = canvas.Canvas(output, pagesize=A4, pageCompression=1)
@@ -1034,9 +1099,12 @@ def create_pdf(student: str, grade: str, images: list[tuple[int, bytes]], answer
         for index, (number, data) in enumerate(images[page_start:page_start + 4]):
             x, y = boxes[index]
             c.roundRect(x, y, cell_w, cell_h, 2 * mm)
-            c.setFont("Helvetica-Bold", 9)
-            label_number = f"{number:04d}" if "ssen" in textbook else str(number)
-            c.drawString(x + 3 * mm, y + cell_h - 6 * mm, f"No. {label_number}")
+            if labels:
+                draw_item_label(c, labels.get(number, str(number)), x + 3 * mm, y + cell_h - 6 * mm)
+            else:
+                c.setFont("Helvetica-Bold", 9)
+                label_number = f"{number:04d}" if "ssen" in textbook else str(number)
+                c.drawString(x + 3 * mm, y + cell_h - 6 * mm, f"No. {label_number}")
             reader = pdf_image_reader(data, 900, 1150)
             iw, ih = reader.getSize()
             solution_url = solution_links.get(number)
@@ -1047,6 +1115,8 @@ def create_pdf(student: str, grade: str, images: list[tuple[int, bytes]], answer
             c.drawImage(reader, x + (cell_w - dw) / 2, y + cell_h - 10 * mm - dh, dw, dh, preserveAspectRatio=True)
             if solution_url:
                 draw_solution_qr(c, solution_url, x, y, cell_w)
+        if page_header:
+            draw_page_header(c, page_header, page_width, page_height)
         draw_footer(c, page_index, page_width, academy_name)
         c.showPage()
     if answers is not None:
@@ -1054,11 +1124,48 @@ def create_pdf(student: str, grade: str, images: list[tuple[int, bytes]], answer
         answer_chunks = [numbers[i:i + 60] for i in range(0, len(numbers), 60)]
         first_answer_page = (len(images) + 3) // 4 + 1
         for index, chunk in enumerate(answer_chunks):
-            draw_answer_page(c, chunk, answers, first_answer_page + index, page_width, page_height, textbook, academy_name)
+            draw_answer_page(c, chunk, answers, first_answer_page + index, page_width, page_height, textbook, academy_name,
+                             labels=labels, answer_source=opts.get("answer_source"))
+            if page_header:
+                draw_page_header(c, page_header, page_width, page_height)
             if index < len(answer_chunks) - 1:
                 c.showPage()
     c.save()
     return output.getvalue()
+
+
+NAESIN_GRADES = {"고1": "1학년", "고2": "2학년", "고3": "3학년", "중1": "1학년", "중2": "2학년", "중3": "3학년"}
+
+
+def prepare_naesin(prefix: str, raw_numbers: Any, include_variants: bool, cover_options: dict | None = None) -> tuple[dict, list, dict]:
+    """내신 시험 + 고른 번호 → (exam, items, PDF 옵션). 문항 키 처리는 naesin_source 에, 그리기는 create_pdf 에 맡긴다."""
+    exam = naesin_source.load_exam(prefix)
+    numbers = naesin_source.parse_selection(raw_numbers)
+    items = naesin_source.build_items(exam, numbers, include_variants)
+    heading = naesin_source.exam_heading(exam)
+    opts = dict(cover_options or {})
+    variant_count = sum(1 for item in items if item.variant)
+    subject = str(exam.get("subject") or "").strip()
+    count_text = f"원본 {len(items) - variant_count}문항 + 변형 {variant_count}문항" if variant_count else f"{len(items)}문항"
+    opts["title"] = opts.get("title") or heading
+    opts["subtitle"] = opts.get("subtitle") or " · ".join(p for p in (subject, "내신 기출 오답노트", count_text) if p)
+    opts["page_header"] = heading
+    opts["answer_source"] = f"출처: {heading} (변형 문항 포함)" if variant_count else f"출처: {heading}"
+    school_level = "중등" if str(exam.get("grade", "")).startswith("중") else "고등"
+    opts["badge_override"] = (f"{school_level} 내신 기출  |  {subject or '수학'}", "SCHOOL EXAM CLINIC TEST")
+    opts.setdefault("department", "middle" if school_level == "중등" else "high")
+    return exam, items, opts
+
+
+def create_naesin_pdf(student: str, grade: str, items: list, cover_options: dict) -> bytes:
+    """내신: images 정수는 1부터 순번, 칸 번호는 '3번'·'3번 변형1'. 손풀이 링크 빈칸이면 QR 없음."""
+    images = [(index, item.image) for index, item in enumerate(items, start=1)]
+    labels = {index: item.label for index, item in enumerate(items, start=1)}
+    by_key = naesin_source.solution_links_for([item.key for item in items])
+    links = {index: by_key[item.key] for index, item in enumerate(items, start=1) if by_key.get(item.key)}
+    answers = {index: naesin_source.plain_answer(item.answer, item.format) for index, item in enumerate(items, start=1)}
+    has_answers = any(answers.values())
+    return create_pdf(student, grade, images, answers if has_answers else None, "naesin", cover_options, links, labels)
 
 
 def parse_olympus_answer_block(block: str) -> dict[int, str]:
@@ -1980,6 +2087,9 @@ class handler(BaseHTTPRequestHandler):
         self.send_json_data(status, {"error": message})
 
     def do_GET(self):
+        query = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)
+        if query.get("list") == ["naesin"]:
+            return self.send_naesin_exams()
         body = json.dumps(
             {"status": "ok", "textbooks": sorted(TEXTBOOKS)},
             ensure_ascii=False,
@@ -1989,6 +2099,24 @@ class handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
+
+    def send_naesin_exams(self) -> None:
+        """GET /api/generate?list=naesin : 내신 기출 메뉴(학교 → 학년 → 시험). 로그인한 사용자만."""
+        try:
+            supabase_url = os.environ["NEXT_PUBLIC_SUPABASE_URL"].rstrip("/")
+            publishable_key = os.environ["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]
+            auth = self.headers.get("Authorization", "")
+            if not auth.startswith("Bearer "):
+                return self.send_json(401, "로그인이 필요합니다.")
+            if not str(verify_user(supabase_url, publishable_key, auth[7:]).get("id", "")):
+                return self.send_json(401, "로그인이 필요합니다.")
+            self.send_json_data(200, {"exams": naesin_source.list_exams()})
+        except KeyError:
+            self.send_json(503, "서버 연결 설정이 아직 완료되지 않았습니다.")
+        except urllib.error.HTTPError as error:
+            self.send_json(401 if error.code in (401, 403) else 502, "로그인 또는 저장소 접근을 확인해 주세요.")
+        except Exception as error:
+            self.send_json(500, f"내신 시험 목록을 읽지 못했습니다: {type(error).__name__}")
 
     def do_POST(self):
         try:
@@ -2010,7 +2138,7 @@ class handler(BaseHTTPRequestHandler):
             textbook = str(payload.get("textbook", ""))
             if not student or grade not in {"1학년", "2학년", "3학년"}:
                 raise ValueError("학생 이름과 학년을 확인해 주세요.")
-            if textbook not in TEXTBOOKS:
+            if textbook != "naesin" and textbook not in TEXTBOOKS:
                 raise ValueError("지원하지 않는 교재입니다.")
 
             # Cover & Styling options
@@ -2080,7 +2208,22 @@ class handler(BaseHTTPRequestHandler):
 
             is_batch = (len(unique_students) > 1 and not is_preview and is_batch_req)
 
-            if textbook == "olympus-calculus":
+            naesin_heading = None
+            if textbook == "naesin":
+                # 내신 기출: 시험(prefix) + 시험 안 번호. 변형 같이 넣기를 켜면 각 번호 뒤에 변형이 붙는다.
+                naesin_exam, naesin_items, naesin_options = prepare_naesin(
+                    str(payload.get("naesinExam", "")),
+                    payload.get("naesinNumbers"),
+                    payload.get("includeVariants") in (True, "true", "1", 1),
+                    cover_options,
+                )
+                naesin_heading = naesin_source.exam_heading(naesin_exam)
+                problem_count = len(naesin_items)
+
+                def make_pdf(st: str) -> bytes:
+                    return create_naesin_pdf(st, grade, naesin_items, naesin_options)
+
+            elif textbook == "olympus-calculus":
                 raw_items = payload.get("olympusItems")
                 if not isinstance(raw_items, list) or not raw_items:
                     raise ValueError("올림포스 문제를 목록에 추가해 주세요.")
@@ -2230,7 +2373,7 @@ class handler(BaseHTTPRequestHandler):
                         result = append_ssen_selected_answers(result, numbers)
                     return result
 
-            title_label = cover_title or TEXTBOOKS.get(textbook, {}).get("title", "오답노트")
+            title_label = cover_title or naesin_heading or TEXTBOOKS.get(textbook, {}).get("title", "오답노트")
 
             if is_batch:
                 # 인쇄는 ZIP 대신 학생별 PDF를 하나의 인쇄용 PDF로 합친다.
