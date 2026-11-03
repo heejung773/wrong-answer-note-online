@@ -878,7 +878,7 @@ export default function NaesinPage() {
 
             {/* 트윈 시험지 만들기(D:\변형문제\site\exam.html)와 같은 두 칸, 칸마다 따로 스크롤.
                 왼쪽 원본 시험지: 번호 앞 체크 = 오답, 문항을 누르면 오른쪽이 그 문항 변형으로 이동.
-                오른쪽 변형 문제지: 체크한 문항의 변형만 번호 순서로, 변형마다 '넣기'. 원본·변형은 같은 배율로 보인다. */}
+                오른쪽 변형 문제지: 체크한 문항마다 변형 1개(세트 + '문항 바꾸기'). 원본·변형은 같은 배율로 보인다. */}
             <div className="grid gap-3 lg:h-[calc(100vh-250px)] lg:min-h-[560px] lg:grid-cols-2">
               <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[#1d2733] bg-[#0a0e13]" aria-label="원본 시험지">
                 <h2 className="flex flex-wrap items-baseline gap-2 border-b-2 border-[#1d2733] bg-[#11161d] px-4 py-2.5 text-[15px] font-bold text-slate-100">
