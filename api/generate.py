@@ -2120,6 +2120,8 @@ class handler(BaseHTTPRequestHandler):
             return self.send_naesin_exams()
         if query.get("naesinProblem"):
             return self.send_naesin_gallery(query["naesinProblem"][0], (query.get("no") or [""])[0])
+        if query.get("naesinOriginals"):
+            return self.send_naesin_gallery(query["naesinOriginals"][0], None)
         body = json.dumps(
             {"status": "ok", "textbooks": sorted(TEXTBOOKS)},
             ensure_ascii=False,
@@ -2148,8 +2150,10 @@ class handler(BaseHTTPRequestHandler):
         except Exception as error:
             self.send_json(500, f"내신 시험 목록을 읽지 못했습니다: {type(error).__name__}")
 
-    def send_naesin_gallery(self, prefix: str, raw_no: str) -> None:
-        """GET /api/generate?naesinProblem=<prefix>&no=9 : 변형 고르기 화면용 원본·변형 그림(로그인한 사용자만)."""
+    def send_naesin_gallery(self, prefix: str, raw_no: str | None) -> None:
+        """[변형문제 만들기] 화면 그림(로그인한 사용자만, data URL).
+        GET ?naesinProblem=<prefix>&no=9 : 그 번호의 원본 + 변형(variants 배열 순서)
+        GET ?naesinOriginals=<prefix>   : 이 시험 원본 문항 전부(왼쪽 목록)"""
         try:
             supabase_url = os.environ["NEXT_PUBLIC_SUPABASE_URL"].rstrip("/")
             publishable_key = os.environ["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]
@@ -2158,14 +2162,17 @@ class handler(BaseHTTPRequestHandler):
                 return self.send_json(401, "로그인이 필요합니다.")
             if not str(verify_user(supabase_url, publishable_key, auth[7:]).get("id", "")):
                 return self.send_json(401, "로그인이 필요합니다.")
-            if not raw_no.isdigit():
+            if raw_no is not None and not raw_no.isdigit():
                 return self.send_json(400, "문항 번호를 확인해 주세요.")
             exam = naesin_source.load_exam(prefix)
-            gallery = naesin_source.problem_gallery(exam, int(raw_no))
+            if raw_no is None:
+                gallery = naesin_source.exam_originals(exam)
+            else:
+                gallery = naesin_source.problem_gallery(exam, int(raw_no))
             items = [{**{k: v for k, v in entry.items() if k != "image"},
                       "image": "data:image/png;base64," + base64.b64encode(entry["image"]).decode("ascii")}
                      for entry in gallery]
-            self.send_json_data(200, {"no": int(raw_no), "items": items})
+            self.send_json_data(200, {"no": int(raw_no) if raw_no is not None else None, "items": items})
         except KeyError:
             self.send_json(503, "서버 연결 설정이 아직 완료되지 않았습니다.")
         except ValueError as error:

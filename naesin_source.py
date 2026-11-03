@@ -302,6 +302,25 @@ def problem_gallery(exam: dict, no: int) -> list[dict]:
     return gallery
 
 
+def exam_originals(exam: dict) -> list[dict]:
+    """[변형문제 만들기] 왼쪽 목록용: 이 시험 원본 문항 그림 전부(번호 순). 그림은 PNG bytes."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    prefix = exam["prefix"].strip("/")
+    problems = sorted(exam["problems"], key=lambda p: int(p["no"]))
+
+    def one(problem: dict) -> dict:
+        key = str(problem.get("key") or "").strip("/")
+        if not key.startswith(prefix + "/"):
+            raise ValueError(f"문항 키가 시험과 다릅니다: {key}")
+        image_name = problem.get("image") or (key.rsplit("/", 1)[1] + ".png")
+        return {"no": int(problem["no"]), "key": key, "difficulty": problem.get("difficulty") or "",
+                "variants": len(problem.get("variants") or []), "image": _read_object(prefix, image_name)}
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        return list(pool.map(one, problems))
+
+
 def is_original_key(key: str) -> bool:
     return bool(ORIGINAL_KEY_RE.fullmatch(str(key or "").strip("/")))
 
