@@ -2169,7 +2169,9 @@ class handler(BaseHTTPRequestHandler):
                 gallery = naesin_source.exam_originals(exam)
             else:
                 gallery = naesin_source.problem_gallery(exam, int(raw_no))
+            # width: 그림 원래 폭(px). 화면이 원본·변형을 같은 배율로 보이게 할 때 쓴다(원본 약 900, 변형 880)
             items = [{**{k: v for k, v in entry.items() if k != "image"},
+                      "width": Image.open(BytesIO(entry["image"])).size[0],
                       "image": "data:image/png;base64," + base64.b64encode(entry["image"]).decode("ascii")}
                      for entry in gallery]
             self.send_json_data(200, {"no": int(raw_no) if raw_no is not None else None, "items": items})

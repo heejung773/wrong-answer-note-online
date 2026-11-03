@@ -10,7 +10,8 @@
 - 키는 naesin_source.r2_key() 로만 만든다: naesin/<prefix>/exam.json, naesin/<prefix>/0001.png, …/0001-v1.png,
   시험 목록 naesin/naesin-exams.json. naesin/ 밖 키는 put 직전에 코드로 막는다. 지우기 기능은 없다.
 - 이미 있는 키는 건너뛴다(--overwrite 일 때만 덮어씀). 시험 목록 파일은 R2 에 있던 목록과 이번 시험을 합친 것으로,
-  새 시험이 더해질 때만 다시 쓴다(빠지는 시험 없음).
+  내용이 달라질 때만 다시 쓴다(빠지는 시험 없음). 목록 파일에는 메뉴 요약(summaries, naesin_source.build_index)도
+  담아 화면이 R2 를 1번만 읽게 한다. 요약은 원천 폴더 exam.json → 없으면 예전 목록 파일 요약 → 없으면 R2 exam.json 순.
 - 원천 폴더의 _ 로 시작하는 폴더(_checks 등)는 보지 않는다. exam.json 에 적힌 그림만 올린다.
 - R2 접속 설정은 .env.local / 환경변수(R2_*)에서 storage_backend 가 읽는다. 값은 출력하지 않는다.
 """
@@ -129,11 +130,28 @@ def main() -> None:
     # 시험 목록: R2 에 있던 목록 + 이번 시험 (빠지는 시험 없음)
     index_key = naesin_source.r2_key(None, naesin_source.R2_INDEX_NAME)
     old_exams: list[str] = []
+    old_body = b""
+    old_summaries: dict[str, dict] = {}
     if index_key in remote:
-        old_exams = json.loads(client.get_object(Bucket=bucket, Key=index_key)["Body"].read().decode("utf-8-sig")).get("exams") or []
+        old_body = client.get_object(Bucket=bucket, Key=index_key)["Body"].read()
+        old_index = json.loads(old_body.decode("utf-8-sig"))
+        old_exams = old_index.get("exams") or []
+        old_summaries = {e.get("prefix"): e for e in old_index.get("summaries") or [] if isinstance(e, dict)}
     merged = sorted(set(old_exams) | set(prefixes))
-    index_body = (json.dumps({"exams": merged}, ensure_ascii=False, indent=1) + "\n").encode("utf-8")
-    index_changed = merged != sorted(old_exams) or index_key not in remote
+    summaries = []
+    for prefix in merged:
+        local_exam = source / prefix / "exam.json"
+        if local_exam.is_file():
+            exam = json.loads(local_exam.read_text(encoding="utf-8-sig"))
+        elif prefix in old_summaries:
+            summaries.append(old_summaries[prefix])
+            continue
+        else:
+            exam_key = naesin_source.r2_key(prefix, "exam.json")
+            exam = json.loads(client.get_object(Bucket=bucket, Key=exam_key)["Body"].read().decode("utf-8-sig"))
+        summaries.append(naesin_source.exam_summary(exam))
+    index_body = (json.dumps(naesin_source.build_index(summaries), ensure_ascii=False, indent=1) + "\n").encode("utf-8")
+    index_changed = index_body != old_body
 
     to_upload = [f for f in files if args.overwrite or f["key"] not in remote]
     skipped = [f for f in files if f not in to_upload]

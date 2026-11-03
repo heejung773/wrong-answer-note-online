@@ -30,7 +30,7 @@ import { GoToMainLogin } from '../admin/go-to-login';
  *      오른쪽 지금 보는 문항의 원본(작게, 위에 고정) + 변형(크게, 위아래), 변형마다 '넣기' 체크, 그림 누르면 크게.
  *      위쪽 줄: 학생 이름, 원본도 같이 넣기(기본 켬), 표지, 손풀이 QR, 미리보기(화면 가득 창)·다운로드.
  *      변형 번호는 exam.json variants 배열 순서(변형1·2·3) 고정. 휴대폰 폭은 왼쪽 목록 → 오른쪽 변형 순서로 위아래.
- * 서버(/api/generate, 파이썬): 목록 GET ?list=naesin, 원본 전부 GET ?naesinOriginals=<prefix>,
+ * 서버(파이썬): 목록 GET /api/naesin_list(가벼운 함수, generate ?list=naesin 과 같은 결과), /api/generate 의 원본 전부 GET ?naesinOriginals=<prefix>,
  *  한 번호 원본+변형 GET ?naesinProblem=<prefix>&no=9, PDF POST textbook='naesin'
  *  (+ 변형 모드 naesinVariantKeys·includeOriginals → 서버가 key 를 exam.json 과 대조, 표지 제목 '… 변형').
  * 손풀이 QR(includeSolutionQr): 원본 문항 중 Supabase naesin_solution_links 에 링크가 있는 것만. 변형은 QR 없음.
@@ -62,8 +62,9 @@ type NaesinExam = {
   problems: NaesinProblem[];
 };
 
-type GalleryItem = { key: string; label: string; variant: number; difficulty: string; image: string };
-type OriginalItem = { no: number; key: string; difficulty: string; variants: number; image: string };
+// width: 그림 원래 폭(px). 원본(약 900)·변형(880)을 같은 배율로 보이게 할 때 쓴다
+type GalleryItem = { key: string; label: string; variant: number; difficulty: string; image: string; width?: number };
+type OriginalItem = { no: number; key: string; difficulty: string; variants: number; image: string; width?: number };
 type Loaded<T> = { items?: T[]; error?: string };
 type Mode = 'note' | 'variants';
 type Zoom = { title: string; image: string; key?: string };
@@ -86,6 +87,9 @@ const DIFFICULTY_CLASS: Record<string, string> = {
 
 // 트윈 화면과 같은 '고른 문항' 색
 const PICK = '#d63fd0';
+const CHECKED = '#818cf8';
+// 같은 배율의 기준 폭: 그림 중 가장 넓은 폭(없으면 원본 최대 폭 근처)
+const BASE_WIDTH = 914;
 
 function examHeading(exam: NaesinExam) {
   return [exam.school, exam.grade, exam.exam].filter(Boolean).join(' ');
@@ -122,6 +126,9 @@ export default function NaesinPage() {
   const [includeOriginals, setIncludeOriginals] = useState(true);
   const [picked, setPicked] = useState<string[]>([]);
   const [active, setActive] = useState<number | null>(null);
+  const leftPane = useRef<HTMLDivElement | null>(null);
+  const rightPane = useRef<HTMLDivElement | null>(null);
+  const [paneWidth, setPaneWidth] = useState(0);
 
   const [originals, setOriginals] = useState<Record<string, Loaded<OriginalItem>>>({});
   const [gallery, setGallery] = useState<Record<string, Loaded<GalleryItem>>>({});
@@ -134,7 +141,8 @@ export default function NaesinPage() {
   const [previews, setPreviews] = useState<Record<Mode, string>>({ note: '', variants: '' });
   const previewsRef = useRef<Record<Mode, string>>({ note: '', variants: '' });
   const previewAbort = useRef<AbortController | null>(null);
-  const [previewViewMode, setPreviewViewMode] = useState<'Fit' | 'FitH'>('Fit');
+  // 기본은 가로폭 맞춤: A4 한 쪽이 미리보기 칸 너비를 꽉 채운다
+  const [previewViewMode, setPreviewViewMode] = useState<'Fit' | 'FitH'>('FitH');
   const [previewExpanded, setPreviewExpanded] = useState(false);
   const [variantPreviewOpen, setVariantPreviewOpen] = useState(false);
 
@@ -152,7 +160,8 @@ export default function NaesinPage() {
         setLoginRequired(true);
         return;
       }
-      const response = await fetch('/api/generate?list=naesin', {
+      // 가벼운 목록 함수(api/naesin_list.py): PDF 라이브러리 없이 R2 목록 파일 1번 읽기
+      const response = await fetch('/api/naesin_list', {
         headers: { Authorization: `Bearer ${accessToken}` },
         cache: 'no-store',
       });
@@ -224,23 +233,26 @@ export default function NaesinPage() {
     return new Map(selected.map((no) => [no, variantKeysOf(problemByNo.get(no)).filter((k) => set.has(k)).length]));
   }, [picked, selected, problemByNo]);
 
-  const activeNo = active !== null && problemByNo.has(active) ? active : (selected[0] ?? exam?.problems[0]?.no ?? null);
+  const focusNo = active !== null && problemByNo.has(active) ? active : null;
+  const setCount = Math.max(0, ...(exam?.problems ?? []).map((p) => p.variants));
   const totalItems = mode === 'note' ? selected.length : (includeOriginals ? selected.length : 0) + pickedKeys.length;
 
-  // [변형문제 만들기] 그림: 원본 전부(왼쪽) 한 번, 지금 보는 번호의 원본+변형(오른쪽) 한 번씩
+  // [변형문제 만들기] 그림: 원본 전부(왼쪽) 한 번, 체크한 번호의 원본+변형(오른쪽) 번호마다 한 번
   useEffect(() => {
     if (mode !== 'variants' || !examPrefix) return;
     const jobs: { id: string; url: string; target: 'originals' | 'gallery' }[] = [];
     if (!originals[examPrefix] && !inFlight.current.has(`o|${examPrefix}`)) {
       jobs.push({ id: `o|${examPrefix}`, url: `/api/generate?naesinOriginals=${encodeURIComponent(examPrefix)}`, target: 'originals' });
     }
-    const galleryId = `${examPrefix}|${activeNo}`;
-    if (activeNo !== null && !gallery[galleryId] && !inFlight.current.has(`g|${galleryId}`)) {
-      jobs.push({
-        id: `g|${galleryId}`,
-        url: `/api/generate?naesinProblem=${encodeURIComponent(examPrefix)}&no=${activeNo}`,
-        target: 'gallery',
-      });
+    for (const no of selected) {
+      const galleryId = `${examPrefix}|${no}`;
+      if (!gallery[galleryId] && !inFlight.current.has(`g|${galleryId}`)) {
+        jobs.push({
+          id: `g|${galleryId}`,
+          url: `/api/generate?naesinProblem=${encodeURIComponent(examPrefix)}&no=${no}`,
+          target: 'gallery',
+        });
+      }
     }
     if (!jobs.length) return;
     const timer = window.setTimeout(() => {
@@ -269,12 +281,51 @@ export default function NaesinPage() {
       }
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [mode, examPrefix, activeNo, originals, gallery, token]);
+  }, [mode, examPrefix, selected, originals, gallery, token]);
+
+  // 두 칸 중 좁은 칸 너비 → 원본·변형을 같은 배율 k 로 보이게 한다(칸 너비에 억지로 맞추지 않음)
+  useEffect(() => {
+    if (mode !== 'variants') return;
+    const panes = [leftPane.current, rightPane.current].filter(Boolean) as HTMLDivElement[];
+    if (!panes.length) return;
+    const measure = () => setPaneWidth(Math.min(...panes.map((el) => el.clientWidth)));
+    const observer = new ResizeObserver(measure);
+    panes.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [mode, exam]);
 
   function resetSelection() {
     setSelected([]);
     setPicked([]);
     setActive(null);
+  }
+
+  // 트윈처럼: 한쪽 칸에서 누르면 다른 칸을 그 문항 위치로 바로 옮긴다
+  function scrollPaneTo(pane: HTMLDivElement | null, id: string, pad: number) {
+    const el = pane?.querySelector<HTMLElement>(`#${id}`);
+    if (!pane || !el) return;
+    pane.scrollTo({ top: el.getBoundingClientRect().top - pane.getBoundingClientRect().top + pane.scrollTop - pad });
+  }
+
+  function focusFromLeft(no: number) {
+    setActive(no);
+    scrollPaneTo(rightPane.current, `naesin-v-${no}`, 12);
+  }
+
+  function focusFromRight(no: number) {
+    setActive(no);
+    scrollPaneTo(leftPane.current, `naesin-o-${no}`, 12);
+  }
+
+  // 위쪽 '한 번에 넣기': 체크한 모든 문항에 같은 변형 번호(1·2·3)만, 또는 모두·해제
+  function pickSet(which: number | 'all' | 'none') {
+    const keys = selected.flatMap((no) => {
+      const list = variantKeysOf(problemByNo.get(no));
+      if (which === 'none') return [];
+      if (which === 'all') return list;
+      return list[which - 1] ? [list[which - 1]] : [];
+    });
+    setPicked(keys);
   }
 
   function toggleNo(no: number) {
@@ -435,13 +486,26 @@ export default function NaesinPage() {
 
   const notePreview = previews.note;
   const variantPreview = previews.variants;
-  const activeProblem = activeNo !== null ? problemByNo.get(activeNo) : undefined;
-  const activeGallery = activeNo !== null ? gallery[`${examPrefix}|${activeNo}`] : undefined;
-  const activeOriginal = activeGallery?.items?.find((item) => item.variant === 0);
-  const activeVariants = activeGallery?.items?.filter((item) => item.variant > 0) ?? [];
-  const activeKeys = variantKeysOf(activeProblem);
-  const activeChosen = activeKeys.filter((k) => picked.includes(k)).length;
   const originalList = originals[examPrefix];
+  // 같은 배율 k: 가장 넓은 그림이 칸 안에 들어가게(최대 1배). 원본·변형 모두 '원래 폭 × k' 로 보인다
+  const widest = Math.max(BASE_WIDTH, ...(originalList?.items ?? []).map((item) => item.width ?? 0));
+  const scale = paneWidth ? Math.min(1, (paneWidth - 56) / widest) : 0;
+  const shownWidth = (width?: number) => (scale && width ? `${Math.round(width * scale)}px` : '100%');
+  const setState = (() => {
+    const set = new Set(pickedKeys);
+    const all = selected.flatMap((no) => variantKeysOf(problemByNo.get(no)));
+    if (!all.length) return null;
+    if (!set.size) return 'none';
+    if (all.every((k) => set.has(k))) return 'all';
+    for (let i = 1; i <= setCount; i++) {
+      const want = selected.flatMap((no) => {
+        const list = variantKeysOf(problemByNo.get(no));
+        return list[i - 1] ? [list[i - 1]] : [];
+      });
+      if (want.length === set.size && want.every((k) => set.has(k))) return i;
+    }
+    return null;
+  })();
   const zoomKey = zoom?.key;
   const zoomNo = zoomKey ? exam?.problems.find((p) => variantKeysOf(p).includes(zoomKey))?.no : undefined;
 
@@ -581,7 +645,7 @@ export default function NaesinPage() {
         </section>
 
         {exam && mode === 'note' && (
-          <main className="generator-grid">
+          <main className="generator-grid naesin-note-grid">
             <section className="generator-settings" aria-label="오답노트 설정">
               <div className="generator-step">
                 <div className="generator-step-header flex items-center justify-between border-b px-4 py-3">
@@ -704,7 +768,7 @@ export default function NaesinPage() {
                     src={`${notePreview}#toolbar=${previewExpanded ? 1 : 0}&navpanes=0&view=${previewViewMode}`}
                     title="내신 오답노트 미리보기"
                     className="h-full w-full rounded-lg border-0 bg-white shadow-md"
-                    style={previewExpanded ? undefined : { minHeight: '720px' }}
+                    style={previewExpanded ? undefined : { height: 'calc(100vh - 120px)', minHeight: '800px' }}
                   />
                 ) : (
                   <div className="generator-empty">
@@ -804,14 +868,19 @@ export default function NaesinPage() {
               {notice && <p className="w-full text-[13px] text-amber-200">{notice}</p>}
             </div>
 
-            {/* 트윈 시험지 만들기처럼 두 칸, 칸마다 따로 스크롤 */}
+            {/* 트윈 시험지 만들기(D:\변형문제\site\exam.html)와 같은 두 칸, 칸마다 따로 스크롤.
+                왼쪽 원본 시험지: 번호 앞 체크 = 오답, 문항을 누르면 오른쪽이 그 문항 변형으로 이동.
+                오른쪽 변형 문제지: 체크한 문항의 변형만 번호 순서로, 변형마다 '넣기'. 원본·변형은 같은 배율로 보인다. */}
             <div className="grid gap-3 lg:h-[calc(100vh-250px)] lg:min-h-[560px] lg:grid-cols-2">
               <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[#1d2733] bg-[#0a0e13]" aria-label="원본 시험지">
                 <h2 className="flex flex-wrap items-baseline gap-2 border-b-2 border-[#1d2733] bg-[#11161d] px-4 py-2.5 text-[15px] font-bold text-slate-100">
                   원본 시험지
-                  <small className="text-[12px] font-normal text-[#8d9aa8]">누르면 오답으로 골라지고, 다시 누르면 빠져요</small>
+                  <small className="text-[12px] font-normal text-[#8d9aa8]">번호 앞 체크 = 틀린 문항 · 문항을 누르면 오른쪽 변형으로 이동</small>
+                  <span className="ml-auto text-[12px] font-normal text-[#8d9aa8]">
+                    오답 <b style={{ color: CHECKED }}>{selected.length}</b>/{exam.problems.length}
+                  </span>
                 </h2>
-                <div className="max-h-[60vh] flex-1 space-y-4 overflow-auto p-3 sm:p-4 lg:max-h-none">
+                <div ref={leftPane} className="max-h-[60vh] flex-1 space-y-3 overflow-auto p-3 sm:p-4 lg:max-h-none">
                   {!originalList ? (
                     <p className="flex items-center gap-2 text-sm text-slate-400">
                       <Loader2 className="size-4 animate-spin" /> 원본 문항 그림을 불러오는 중…
@@ -822,48 +891,55 @@ export default function NaesinPage() {
                     originalList.items?.map((item) => {
                       const on = selected.includes(item.no);
                       const chosen = pickedCountByNo.get(item.no) ?? 0;
-                      const isActive = activeNo === item.no;
+                      const isFocus = focusNo === item.no;
                       return (
                         <article
                           key={item.key}
-                          className={'relative mx-auto max-w-[820px] rounded-md ' + (isActive ? 'ring-2 ring-[#2dd4bf]' : '')}
+                          id={`naesin-o-${item.no}`}
+                          className="overflow-hidden rounded-md border-2 bg-white"
+                          style={{ borderColor: isFocus ? PICK : on ? CHECKED : '#2c3a4a' }}
                         >
-                          <div className="flex items-center gap-2 px-1 pb-1 text-[13px]">
-                            <span className="font-bold text-slate-100">{item.no}번</span>
-                            {item.difficulty && (
-                              <span className={DIFFICULTY_CLASS[item.difficulty] ?? 'text-slate-400'}>{item.difficulty}</span>
-                            )}
+                          <div
+                            className="flex items-center gap-2 border-b px-3 py-1.5 text-[13px]"
+                            style={{ background: on ? '#eef2ff' : '#f8fafc', borderColor: '#e2e8f0' }}
+                          >
+                            <label className="flex cursor-pointer items-center gap-2 font-bold text-[#111]">
+                              <input
+                                type="checkbox"
+                                className="size-[18px]"
+                                checked={on}
+                                onChange={() => toggleNo(item.no)}
+                                aria-label={`${item.no}번 틀림`}
+                              />
+                              {item.no}번
+                            </label>
+                            {item.difficulty && <span className="text-[12px] text-[#667085]">{item.difficulty}</span>}
                             {on && (
-                              <span className="rounded px-2 py-0.5 text-[12px] font-bold text-white" style={{ background: PICK }}>
-                                오답 · 변형 {chosen}개
+                              <span
+                                className="rounded px-2 py-0.5 text-[11px] font-bold text-white"
+                                style={{ background: chosen ? PICK : CHECKED }}
+                              >
+                                {chosen ? `변형 ${chosen}개 넣음` : '오답'}
                               </span>
                             )}
-                            <button
-                              type="button"
-                              onClick={() => setActive(item.no)}
-                              className={
-                                'ml-auto rounded-md border px-2 py-0.5 text-[12px] ' +
-                                (isActive
-                                  ? 'border-[#2dd4bf] text-[#99f6e4]'
-                                  : 'border-[#334155] text-slate-400 hover:text-slate-200')
-                              }
-                            >
-                              변형 {item.variants}개 보기 →
-                            </button>
+                            <span className="ml-auto text-[11px] text-[#98a2b3]">변형 {item.variants}개</span>
                           </div>
                           <button
                             type="button"
-                            aria-pressed={on}
-                            onClick={() => {
-                              toggleNo(item.no);
-                              setActive(item.no);
-                            }}
-                            className="block w-full rounded-md border-2 bg-white p-2 text-left transition-colors"
-                            style={{ borderColor: on ? PICK : 'transparent', background: on ? '#fdf2fd' : '#fff' }}
-                            title={on ? '다시 누르면 오답에서 빠져요' : '누르면 오답으로 골라져요'}
+                            onClick={() => focusFromLeft(item.no)}
+                            className="block w-full p-2 text-left"
+                            style={{ background: isFocus ? '#fdf2fd' : '#fff' }}
+                            title={on ? '오른쪽에서 이 문항 변형으로 이동' : '틀린 문항이면 번호 앞을 체크하세요'}
                           >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={item.image} alt={`${item.no}번 원본`} className="mx-auto h-auto w-full" loading="lazy" />
+                            <img
+                              src={item.image}
+                              alt={`${item.no}번 원본`}
+                              className="mx-auto block h-auto max-w-full"
+                              style={{ width: shownWidth(item.width) }}
+                              loading="lazy"
+                              decoding="async"
+                            />
                           </button>
                         </article>
                       );
@@ -872,104 +948,147 @@ export default function NaesinPage() {
                 </div>
               </section>
 
-              <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[#1d2733] bg-[#0a0e13]" aria-label="변형 문제">
-                <h2 className="flex flex-wrap items-center gap-2 border-b-2 border-[#1d2733] bg-[#11161d] px-4 py-2.5 text-[15px] font-bold text-slate-100">
-                  {activeNo !== null ? `${activeNo}번 변형` : '변형 문제'}
+              <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[#1d2733] bg-[#0a0e13]" aria-label="변형 문제지">
+                <h2 className="flex flex-wrap items-center gap-2 border-b-2 border-[#1d2733] bg-[#11161d] px-4 py-2 text-[15px] font-bold text-slate-100">
+                  변형 문제지
                   <small className="text-[12px] font-normal text-[#8d9aa8]">
-                    {activeKeys.length}개 중 <b className="text-[#f0a6ed]">{activeChosen}</b>개 넣기
+                    넣은 변형 <b className="text-[#f0a6ed]">{pickedKeys.length}</b>개
                   </small>
-                  {activeNo !== null && activeKeys.length > 0 && (
-                    <span className="ml-auto flex gap-1.5">
-                      <button
-                        type="button"
-                        disabled={activeChosen === activeKeys.length}
-                        onClick={() => pickAll(activeNo, true)}
-                        className="rounded-md border border-[#334155] px-2.5 py-1 text-[12px] text-slate-300 hover:border-slate-400 disabled:opacity-40"
-                      >
-                        모두 넣기
-                      </button>
-                      <button
-                        type="button"
-                        disabled={!activeChosen}
-                        onClick={() => pickAll(activeNo, false)}
-                        className="rounded-md border border-[#334155] px-2.5 py-1 text-[12px] text-slate-300 hover:border-slate-400 disabled:opacity-40"
-                      >
-                        해제
-                      </button>
+                  {selected.length > 0 && setCount > 0 && (
+                    <span className="ml-auto inline-flex overflow-hidden rounded-lg border border-[#334155]" title="체크한 모든 문항에 한 번에">
+                      {[...Array.from({ length: setCount }, (_, i) => i + 1), 'all' as const, 'none' as const].map((which) => (
+                        <button
+                          key={String(which)}
+                          type="button"
+                          aria-pressed={setState === which}
+                          onClick={() => pickSet(which)}
+                          className={
+                            'px-2.5 py-1 text-[12px] font-semibold ' +
+                            (setState === which ? 'bg-[#0f6e62] text-white' : 'text-slate-300 hover:bg-[#1d2733]')
+                          }
+                        >
+                          {which === 'all' ? '모두' : which === 'none' ? '해제' : `전체 변형${which}`}
+                        </button>
+                      ))}
                     </span>
                   )}
                 </h2>
-                <div className="flex-1 overflow-auto p-3 sm:p-4">
-                  {activeNo === null ? (
-                    <p className="text-sm text-slate-400">왼쪽에서 문항을 누르면 그 문항의 변형이 여기에 나와요.</p>
-                  ) : !activeGallery ? (
-                    <p className="flex items-center gap-2 text-sm text-slate-400">
-                      <Loader2 className="size-4 animate-spin" /> 변형 그림을 불러오는 중…
+                <div ref={rightPane} className="flex-1 space-y-4 overflow-auto p-3 sm:p-4">
+                  {!selected.length ? (
+                    <p className="rounded-lg border border-dashed border-[#334155] p-8 text-center text-sm text-slate-400">
+                      왼쪽에서 틀린 문항을 체크하세요.
+                      <br />
+                      체크한 문항의 변형이 여기에 번호 순서대로 나와요.
                     </p>
-                  ) : activeGallery.error ? (
-                    <p className="text-sm text-amber-300">{activeGallery.error}</p>
                   ) : (
-                    <div className="space-y-4">
-                      {activeOriginal && (
-                        <div className="sticky top-0 z-10 rounded-lg border border-[#334155] bg-[#11161d] p-2 shadow-lg">
-                          <div className="mb-1 flex items-center gap-2 text-[12px] text-sky-200">
-                            <b>{activeNo}번 원본</b>
-                            <span className="text-[#8d9aa8]">비교용 · 누르면 크게</span>
-                            {!selected.includes(activeNo) && (
-                              <span className="ml-auto text-amber-300">오답으로 안 골랐어요 (변형을 체크하면 같이 골라져요)</span>
-                            )}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setZoom({ title: `${activeNo}번 원본`, image: activeOriginal.image })}
-                            className="block w-full rounded bg-white p-1"
-                            aria-label={`${activeNo}번 원본 크게 보기`}
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={activeOriginal.image} alt={`${activeNo}번 원본`} className="mx-auto max-h-36 w-auto max-w-full object-contain" />
-                          </button>
-                        </div>
-                      )}
-                      {!activeVariants.length && <p className="text-sm text-slate-400">이 문항은 변형이 없어요.</p>}
-                      {activeVariants.map((item) => {
-                        const on = picked.includes(item.key);
-                        return (
-                          <article
-                            key={item.key}
-                            className="overflow-hidden rounded-lg border-2"
-                            style={{ borderColor: on ? PICK : '#1d2733' }}
-                          >
-                            <label className="flex cursor-pointer items-center gap-2 bg-[#11161d] px-3 py-2 text-[14px] font-semibold text-slate-100">
-                              <input
-                                type="checkbox"
-                                className="size-5"
-                                checked={on}
-                                onChange={() => togglePick(activeNo, item.key)}
-                              />
-                              넣기
-                              <span className="text-[#f0a6ed]">{item.label}</span>
-                              {item.difficulty && (
-                                <span className={'text-[12px] ' + (DIFFICULTY_CLASS[item.difficulty] ?? 'text-slate-400')}>
-                                  {item.difficulty}
-                                </span>
-                              )}
-                            </label>
+                    selected.map((no) => {
+                      const entry = gallery[`${examPrefix}|${no}`];
+                      const variants = entry?.items?.filter((item) => item.variant > 0) ?? [];
+                      const keys = variantKeysOf(problemByNo.get(no));
+                      const chosen = keys.filter((k) => picked.includes(k)).length;
+                      const isFocus = focusNo === no;
+                      return (
+                        <section
+                          key={no}
+                          id={`naesin-v-${no}`}
+                          aria-label={`${no}번 변형`}
+                          className="overflow-hidden rounded-md border-2 bg-white"
+                          style={{ borderColor: isFocus ? PICK : '#2c3a4a' }}
+                        >
+                          <div className="flex items-center gap-2 border-b border-[#e2e8f0] bg-[#f8fafc] px-3 py-1.5">
                             <button
                               type="button"
-                              onClick={() =>
-                                setZoom({ title: `${activeNo}번 ${item.label}`, image: item.image, key: item.key })
-                              }
-                              className="block w-full p-2"
-                              style={{ background: on ? '#fdf2fd' : '#fff' }}
-                              aria-label={`${activeNo}번 ${item.label} 크게 보기`}
+                              onClick={() => focusFromRight(no)}
+                              className="text-[15px] font-bold text-[#111] hover:underline"
+                              title="왼쪽 원본으로 이동"
                             >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={item.image} alt={`${activeNo}번 ${item.label}`} className="mx-auto h-auto w-full" />
+                              {no}번 변형
                             </button>
-                          </article>
-                        );
-                      })}
-                    </div>
+                            <span className="text-[12px] text-[#667085]">
+                              {keys.length}개 중 <b style={{ color: PICK }}>{chosen}</b>개 넣기
+                            </span>
+                            {keys.length > 0 && (
+                              <span className="ml-auto flex gap-1">
+                                <button
+                                  type="button"
+                                  disabled={chosen === keys.length}
+                                  onClick={() => pickAll(no, true)}
+                                  className="rounded border border-[#cbd5e1] px-2 py-0.5 text-[12px] text-[#334155] disabled:opacity-40"
+                                >
+                                  모두
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={!chosen}
+                                  onClick={() => pickAll(no, false)}
+                                  className="rounded border border-[#cbd5e1] px-2 py-0.5 text-[12px] text-[#334155] disabled:opacity-40"
+                                >
+                                  해제
+                                </button>
+                              </span>
+                            )}
+                          </div>
+                          {!entry ? (
+                            <p className="flex items-center gap-2 p-3 text-sm text-[#667085]">
+                              <Loader2 className="size-4 animate-spin" /> 변형 그림을 불러오는 중…
+                            </p>
+                          ) : entry.error ? (
+                            <p className="p-3 text-sm text-amber-700">{entry.error}</p>
+                          ) : !variants.length ? (
+                            <p className="p-3 text-sm text-[#667085]">이 문항은 변형이 없어요.</p>
+                          ) : (
+                            variants.map((item) => {
+                              const on = picked.includes(item.key);
+                              return (
+                                <div
+                                  key={item.key}
+                                  className="border-t border-[#eef2f6] first:border-t-0"
+                                  style={{ background: on ? '#fdf2fd' : '#fff' }}
+                                >
+                                  <div className="flex items-center gap-2 px-3 pt-2 text-[13px]">
+                                    <label className="flex cursor-pointer items-center gap-2 font-semibold text-[#111]">
+                                      <input
+                                        type="checkbox"
+                                        className="size-[18px]"
+                                        checked={on}
+                                        onChange={() => togglePick(no, item.key)}
+                                      />
+                                      넣기
+                                      <span style={{ color: PICK }}>{item.label}</span>
+                                    </label>
+                                    {item.difficulty && <span className="text-[12px] text-[#667085]">{item.difficulty}</span>}
+                                    <button
+                                      type="button"
+                                      onClick={() => setZoom({ title: `${no}번 ${item.label}`, image: item.image, key: item.key })}
+                                      className="ml-auto rounded border border-[#cbd5e1] px-2 py-0.5 text-[12px] text-[#334155]"
+                                    >
+                                      크게
+                                    </button>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => focusFromRight(no)}
+                                    className="block w-full p-2"
+                                    title="왼쪽 원본으로 이동"
+                                    aria-label={`${no}번 ${item.label} (왼쪽 원본으로 이동)`}
+                                  >
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                      src={item.image}
+                                      alt={`${no}번 ${item.label}`}
+                                      className="mx-auto block h-auto max-w-full"
+                                      style={{ width: shownWidth(item.width) }}
+                                      loading="lazy"
+                                      decoding="async"
+                                    />
+                                  </button>
+                                </div>
+                              );
+                            })
+                          )}
+                        </section>
+                      );
+                    })
                   )}
                 </div>
               </section>

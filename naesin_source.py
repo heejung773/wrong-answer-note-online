@@ -12,7 +12,8 @@
   NAESIN_EXPORT_DIR  = local 일 때 읽을 폴더 (기본 D:\\변형문제\\output\\naesin_export)
   r2 일 때는 기존 textbook-problems 버킷 안 맨 위 R2_ROOT(naesin/) 폴더에서만 읽는다(교재 그림과 섞지 않음):
     naesin/<prefix>/exam.json, naesin/<prefix>/0001.png, naesin/<prefix>/0001-v1.png
-    시험 목록 naesin/naesin-exams.json ({"exams": ["<prefix>", ...]})
+    시험 목록 naesin/naesin-exams.json ({"exams": ["<prefix>", ...], "summaries": [exam_summary(...), ...]})
+    summaries 가 있으면 메뉴는 R2 를 이 파일 1번만 읽는다(없거나 모자라면 그 시험 exam.json 만 병렬로 더 읽음).
   exam.json 의 prefix·문항 key 에는 naesin/ 을 붙이지 않는다(R2 읽을 때만 r2_key() 가 붙인다).
 손풀이 링크는 Supabase 표 naesin_solution_links(name 기본키 = 트윈 문제 번호, key = 원본 문항 키, url)에서
 solution_links_for() 가 서버 비밀 키로 읽는다. 원본 문항만 링크가 있고 변형은 QR 을 넣지 않는다.
@@ -40,6 +41,8 @@ ORIGINAL_KEY_RE = re.compile(PREFIX_RE.pattern + r"/\d{4}")
 SOLUTION_TABLE = "naesin_solution_links"
 _YOUTUBE_ID_RE = re.compile(r"[A-Za-z0-9_-]{11}")
 MAX_ITEMS = 100
+LIST_CACHE_SECONDS = 60  # 함수가 깨어 있는 동안 시험 목록을 잠깐 기억(새 시험은 1분 안에 보임)
+_list_cache: dict[str, tuple[float, list[dict]]] = {}
 
 
 def source_kind() -> str:
@@ -93,11 +96,15 @@ def _read_object(prefix: str, name: str) -> bytes:
     return path.read_bytes()
 
 
-def _list_prefixes() -> list[str]:
-    if source_kind() == "r2":
-        from storage_backend import fetch_r2_object
+def _read_index() -> dict:
+    from storage_backend import fetch_r2_object
 
-        index = json.loads(fetch_r2_object(r2_key(None, R2_INDEX_NAME)).decode("utf-8-sig"))
+    return json.loads(fetch_r2_object(r2_key(None, R2_INDEX_NAME)).decode("utf-8-sig"))
+
+
+def _list_prefixes(index: dict | None = None) -> list[str]:
+    if source_kind() == "r2":
+        index = index if index is not None else _read_index()
         return [p for p in (index.get("exams") or []) if PREFIX_RE.fullmatch(str(p))]
     base = export_dir()
     if not base.is_dir():
@@ -159,16 +166,49 @@ def exam_summary(exam: dict) -> dict:
     }
 
 
+def build_index(summaries: list[dict]) -> dict:
+    """R2 시험 목록 파일 내용: 시험 prefix 목록 + 메뉴 요약(exam_summary). 업로드 스크립트가 이 함수로 만든다."""
+    ordered = sorted(summaries, key=lambda e: e["prefix"])
+    return {"exams": [e["prefix"] for e in ordered], "summaries": ordered}
+
+
 def list_exams() -> list[dict]:
-    """시험 목록. 폴더(또는 r2 목록)에 exam.json 을 하나 더 넣으면 메뉴에 바로 나온다."""
-    result = []
-    for prefix in _list_prefixes():
+    """시험 목록. 폴더(또는 r2 목록)에 exam.json 을 하나 더 넣으면 메뉴에 바로 나온다.
+    r2: 목록 파일 1번 읽기(요약 포함). 요약이 없는 시험만 exam.json 을 병렬로 읽는다. 1분 동안 기억한다."""
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+
+    cache_key = f"{source_kind()}|{export_dir() if source_kind() == 'local' else R2_ROOT}"
+    cached = _list_cache.get(cache_key)
+    if cached and time.monotonic() - cached[0] < LIST_CACHE_SECONDS:
+        return [dict(e) for e in cached[1]]
+    known: dict[str, dict] = {}
+    if source_kind() == "r2":
+        index = _read_index()
+        prefixes = _list_prefixes(index)
+        for item in index.get("summaries") or []:
+            if isinstance(item, dict) and item.get("prefix") in prefixes and isinstance(item.get("problems"), list):
+                known[item["prefix"]] = item
+    else:
+        prefixes = _list_prefixes()
+
+    def one(prefix: str) -> dict | None:
         try:
-            result.append(exam_summary(load_exam(prefix)))
+            return exam_summary(load_exam(prefix))
         except Exception as error:  # 한 시험 자료가 깨져도 나머지 메뉴는 보여 준다
             print("[-] naesin exam skipped:", prefix, type(error).__name__, error)
+            return None
+
+    missing = [p for p in prefixes if p not in known]
+    if missing:
+        with ThreadPoolExecutor(max_workers=min(8, len(missing))) as pool:
+            for prefix, summary in zip(missing, pool.map(one, missing)):
+                if summary:
+                    known[prefix] = summary
+    result = [known[p] for p in prefixes if p in known]
     result.sort(key=lambda e: (e["school"], e["grade"], -(e["year"] or 0), e["exam"]))
-    return result
+    _list_cache[cache_key] = (time.monotonic(), result)
+    return [dict(e) for e in result]
 
 
 def exam_heading(exam: dict) -> str:
