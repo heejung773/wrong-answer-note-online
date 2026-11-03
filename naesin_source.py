@@ -8,7 +8,7 @@
 그림은 트윈이 뽑은 사본이므로 여기서는 읽기만 하고 고치거나 다시 저장하지 않는다.
 
 저장 위치를 바꾸기 쉽도록 내신 자료는 모두 이 파일 한 곳에서만 읽는다.
-  NAESIN_SOURCE      = local(기본) | r2
+  NAESIN_SOURCE      = local | r2 (없으면 Vercel 위=r2, 로컬=local)
   NAESIN_EXPORT_DIR  = local 일 때 읽을 폴더 (기본 D:\\변형문제\\output\\naesin_export)
   r2 일 때는 기존 textbook-problems 버킷 안 맨 위 R2_ROOT(naesin/) 폴더에서만 읽는다(교재 그림과 섞지 않음):
     naesin/<prefix>/exam.json, naesin/<prefix>/0001.png, naesin/<prefix>/0001-v1.png
@@ -35,7 +35,9 @@ MAX_ITEMS = 100
 
 
 def source_kind() -> str:
-    kind = os.environ.get("NAESIN_SOURCE", "local").strip().lower()
+    # NAESIN_SOURCE 를 적으면 그 값이 이긴다. 없으면 Vercel 위(VERCEL 환경변수)는 r2, 로컬은 local.
+    default = "r2" if os.environ.get("VERCEL") else "local"
+    kind = (os.environ.get("NAESIN_SOURCE") or default).strip().lower()
     if kind not in {"local", "r2"}:
         raise ValueError("NAESIN_SOURCE must be local or r2")
     return kind
