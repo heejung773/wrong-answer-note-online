@@ -14,7 +14,9 @@
     naesin/<prefix>/exam.json, naesin/<prefix>/0001.png, naesin/<prefix>/0001-v1.png
     시험 목록 naesin/naesin-exams.json ({"exams": ["<prefix>", ...]})
   exam.json 의 prefix·문항 key 에는 naesin/ 을 붙이지 않는다(R2 읽을 때만 r2_key() 가 붙인다).
-손풀이 링크는 아직 없다: solution_links_for() 가 빈 값을 돌려주고, 나중에 Supabase 새 표에서 키로 받는다.
+손풀이 링크는 Supabase 표 naesin_solution_links(name 기본키 = 트윈 문제 번호, key = 원본 문항 키, url)에서
+solution_links_for() 가 서버 비밀 키로 읽는다. 원본 문항만 링크가 있고 변형은 QR 을 넣지 않는다.
+표가 아직 없거나 서버 설정이 없거나 읽기에 실패하면 빈 값 → PDF 는 QR 없이 그대로 만든다.
 테스트지만들기에서도 그대로 옮겨 쓸 수 있게 오답노트 코드(api/generate.py)에 기대지 않는다.
 """
 from __future__ import annotations
@@ -24,6 +26,8 @@ import json
 import os
 from pathlib import Path
 import re
+import urllib.parse
+import urllib.request
 
 DEFAULT_EXPORT_DIR = r"D:\변형문제\output\naesin_export"
 R2_ROOT = "naesin"  # R2 버킷 안 내신 전용 맨 앞 폴더 (이 상수 한 곳에서만 정한다)
@@ -31,6 +35,10 @@ R2_INDEX_NAME = "naesin-exams.json"
 
 PREFIX_RE = re.compile(r"naesin-[a-z0-9]+(?:-[a-z0-9]+)*/[a-z0-9-]+/[a-z0-9-]+")
 IMAGE_RE = re.compile(r"[A-Za-z0-9_-]+\.png")
+# 원본 문항 키(…/0009). 변형 키(…/0009-v1)는 여기 맞지 않아 손풀이 링크를 묻지 않는다.
+ORIGINAL_KEY_RE = re.compile(PREFIX_RE.pattern + r"/\d{4}")
+SOLUTION_TABLE = "naesin_solution_links"
+_YOUTUBE_ID_RE = re.compile(r"[A-Za-z0-9_-]{11}")
 MAX_ITEMS = 100
 
 
@@ -132,6 +140,11 @@ def exam_summary(exam: dict) -> dict:
             "unit": item.get("unit") or "",
             "type": item.get("type") or "",
             "variants": len(item.get("variants") or []),
+            # 변형 고르기 화면용: variants 배열 순서 그대로(화면·PDF 의 '변형1·2·3' 번호가 이 순서로 고정)
+            "variantList": [
+                {"key": str(v.get("key") or ""), "difficulty": v.get("difficulty") or ""}
+                for v in (item.get("variants") or [])
+            ],
         })
     problems.sort(key=lambda p: p["no"])
     return {
@@ -203,8 +216,31 @@ def parse_selection(raw) -> list[int]:
     return unique
 
 
-def build_items(exam: dict, numbers: list[int], include_variants: bool) -> list[NaesinItem]:
-    """고른 번호 순서대로 원본, (켜면) 그 문항의 변형을 바로 뒤에 둔다."""
+def check_variant_keys(exam: dict, numbers: list[int], raw_keys) -> set[str]:
+    """화면에서 고른 변형 key 목록 검사: 이 시험 exam.json 의 변형이고, 고른 번호의 변형이어야 한다."""
+    if not isinstance(raw_keys, list):
+        raise ValueError("고른 변형 목록을 확인해 주세요.")
+    owner = {}
+    for problem in exam["problems"]:
+        for variant in problem.get("variants") or []:
+            owner[str(variant.get("key") or "").strip("/")] = int(problem["no"])
+    chosen = set(numbers)
+    keys: set[str] = set()
+    for raw in raw_keys:
+        key = str(raw or "").strip().strip("/")
+        if key not in owner:
+            raise ValueError(f"이 시험에 없는 변형입니다: {key}")
+        if owner[key] not in chosen:
+            raise ValueError(f"{owner[key]}번을 고르지 않았는데 그 변형이 들어 있습니다.")
+        keys.add(key)
+    return keys
+
+
+def build_items(exam: dict, numbers: list[int], include_variants: bool, variant_keys: set[str] | None = None,
+                include_originals: bool = True) -> list[NaesinItem]:
+    """고른 번호 순서대로 원본, 그 뒤에 그 문항의 변형을 둔다.
+    variant_keys 가 있으면 그 변형만([변형문제] 탭), 없으면 include_variants 로 전부/없음.
+    include_originals=False 면 원본은 빼고 고른 변형만 넣는다([변형문제] 탭 '원본도 같이 넣기' 끔)."""
     prefix = exam["prefix"].strip("/")
     by_no = {int(p["no"]): p for p in exam["problems"]}
     missing = [n for n in numbers if n not in by_no]
@@ -213,12 +249,17 @@ def build_items(exam: dict, numbers: list[int], include_variants: bool) -> list[
     plan: list[tuple[dict, int, int, str]] = []
     for no in numbers:
         problem = by_no[no]
-        plan.append((problem, no, 0, f"{no}번"))
-        if include_variants:
-            # 키의 v 번호는 비어 있을 수 있다(v1, v3 만). 표시는 variants 배열 순서로 '변형1, 변형2'.
-            # 변형이 없는 문항은 켜도 원본만 들어간다.
-            for index, variant in enumerate(problem.get("variants") or [], start=1):
+        if include_originals:
+            plan.append((problem, no, 0, f"{no}번"))
+        # 키의 v 번호는 비어 있을 수 있다(v1, v3 만). 표시는 variants 배열 순서로 '변형1, 변형2' 고정:
+        # 변형2만 골라도 '10번 변형2' 로 찍어 같은 학생에게 다시 만들 때 헷갈리지 않게 한다.
+        for index, variant in enumerate(problem.get("variants") or [], start=1):
+            key = str(variant.get("key") or "").strip("/")
+            wanted = (key in variant_keys) if variant_keys is not None else include_variants
+            if wanted:
                 plan.append((variant, no, index, f"{no}번 변형{index}"))
+    if not plan:
+        raise ValueError("넣을 문항이 없습니다. 변형을 하나 이상 골라 주세요.")
     if len(plan) > MAX_ITEMS:
         raise ValueError(f"한 번에 최대 {MAX_ITEMS}문항(변형 포함)까지 만들 수 있습니다.")
     items = []
@@ -237,10 +278,85 @@ def build_items(exam: dict, numbers: list[int], include_variants: bool) -> list[
     return items
 
 
+def problem_gallery(exam: dict, no: int) -> list[dict]:
+    """변형 고르기 화면용: 한 번호의 원본 + 변형(variants 배열 순서) 그림. 그림은 PNG bytes."""
+    prefix = exam["prefix"].strip("/")
+    problem = next((p for p in exam["problems"] if int(p["no"]) == int(no)), None)
+    if problem is None:
+        raise ValueError(f"이 시험에 없는 번호입니다: {no}")
+    entries = [(problem, "원본", 0)]
+    entries += [(v, f"변형{i}", i) for i, v in enumerate(problem.get("variants") or [], start=1)]
+    gallery = []
+    for entry, label, variant in entries:
+        key = str(entry.get("key") or "").strip("/")
+        if not key.startswith(prefix + "/"):
+            raise ValueError(f"문항 키가 시험과 다릅니다: {key}")
+        image_name = entry.get("image") or (key.rsplit("/", 1)[1] + ".png")
+        gallery.append({
+            "key": key,
+            "label": label,
+            "variant": variant,
+            "difficulty": entry.get("difficulty") or "",
+            "image": _read_object(prefix, image_name),
+        })
+    return gallery
+
+
+def is_original_key(key: str) -> bool:
+    return bool(ORIGINAL_KEY_RE.fullmatch(str(key or "").strip("/")))
+
+
+def youtube_qr_link(link: str) -> str | None:
+    """QR 에 넣을 짧은 주소 https://youtu.be/<영상ID>?t=<초>. 유튜브 https 주소가 아니면 None.
+    youtu.be/ID?t=83, youtube.com/watch?v=ID&t=83s 모두 받는다(si 같은 추적값은 버린다)."""
+    text = str(link or "").strip()
+    try:
+        parts = urllib.parse.urlsplit(text)
+    except ValueError:
+        return None
+    if parts.scheme != "https":
+        return None
+    query = urllib.parse.parse_qs(parts.query)
+    host = parts.netloc.lower()
+    if host == "youtu.be":
+        video_id = parts.path.strip("/")
+    elif host in ("youtube.com", "www.youtube.com", "m.youtube.com") and parts.path == "/watch":
+        video_id = (query.get("v") or [""])[0]
+    else:
+        return None
+    if not _YOUTUBE_ID_RE.fullmatch(video_id):
+        return None
+    seconds = (query.get("t") or [""])[0].rstrip("s")
+    return f"https://youtu.be/{video_id}" + (f"?t={int(seconds)}" if seconds.isdigit() else "")
+
+
 def solution_links_for(keys: list[str]) -> dict[str, str]:
-    """문항 키 → 손풀이 링크. 아직 연결 전이라 항상 비어 있다(빈칸이면 QR 을 안 그린다).
-    나중에 Supabase 새 표(문항 키 기본키)에서 읽도록 이 함수만 바꾼다."""
-    return {}
+    """원본 문항 키 → 손풀이 QR 주소 (Supabase naesin_solution_links 표, 서버 비밀 키로 읽기만).
+    변형 키는 묻지 않는다. 표가 없거나(아직 안 만듦) 서버 설정이 없거나 실패하면 {} → QR 없이 만든다."""
+    wanted = sorted({str(k).strip("/") for k in keys if is_original_key(k)})
+    url = (os.environ.get("NEXT_PUBLIC_SUPABASE_URL") or "").rstrip("/")
+    secret = os.environ.get("SUPABASE_SECRET_KEY") or ""
+    if not wanted or not url or not secret:
+        return {}
+    quoted = ",".join('"' + k + '"' for k in wanted)
+    query = urllib.parse.urlencode({"select": "key,url", "key": f"in.({quoted})"})
+    request = urllib.request.Request(
+        f"{url}/rest/v1/{SOLUTION_TABLE}?{query}",
+        headers={"apikey": secret, "Authorization": f"Bearer {secret}", "Accept": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=8) as response:
+            rows = json.loads(response.read() or b"[]")
+    except Exception as error:  # 표가 아직 없으면 404(PGRST205). 값은 남기지 않고 종류만
+        print("[-] naesin solution links skipped:", type(error).__name__, getattr(error, "code", ""))
+        return {}
+    links: dict[str, str] = {}
+    for row in rows if isinstance(rows, list) else []:
+        key = str((row or {}).get("key") or "").strip("/")
+        link = youtube_qr_link((row or {}).get("url"))
+        if key in wanted and link:
+            links[key] = link
+    return links
 
 
 _CIRCLED = {str(n): ch for n, ch in zip(range(1, 6), "①②③④⑤")}

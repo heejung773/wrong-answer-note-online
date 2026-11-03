@@ -2107,6 +2107,16 @@ export default function Home() {
   const handleRefreshPreviewRef = useRef(handleRefreshPreview);
   handleRefreshPreviewRef.current = handleRefreshPreview;
 
+  // '창 대형 확대'는 화면 가득 덮는 창이 되므로 Esc 로 닫는다
+  useEffect(() => {
+    if (!previewExpanded) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setPreviewExpanded(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [previewExpanded]);
+
   useEffect(() => {
     if (sessionToken && textbook) {
       void handleRefreshPreviewRef.current(textbook);
@@ -4454,8 +4464,8 @@ export default function Home() {
                       className="px-2.5 py-1 text-[13px] font-semibold rounded-lg bg-[#253349] hover:bg-[#334155] border border-[#475569] text-slate-300 hover:text-slate-100 transition-all cursor-pointer"
                       title={
                         previewExpanded
-                          ? '기본 높이로 복원'
-                          : '미리보기 창 대형 확대'
+                          ? '원래 자리로 (Esc)'
+                          : '미리보기를 화면 가득 크게 (PDF 확대 단추 보임)'
                       }
                     >
                       {previewExpanded ? '창 기본 크기' : '⤢ 창 대형 확대'}
@@ -4498,11 +4508,11 @@ export default function Home() {
 
                 {previewPdfUrl ? (
                   <iframe
-                    key={`${previewPdfUrl}-${previewViewMode}-${previewPage}`}
-                    src={`${previewPdfUrl}#toolbar=0&navpanes=0&view=${previewViewMode}&page=${previewPage}`}
+                    key={`${previewPdfUrl}-${previewViewMode}-${previewPage}-${previewExpanded ? 'big' : 'base'}`}
+                    src={`${previewPdfUrl}#toolbar=${previewExpanded ? 1 : 0}&navpanes=0&view=${previewViewMode}&page=${previewPage}`}
                     title="오답노트 실시간 미리보기"
                     className="w-full h-full rounded-lg border-0 bg-white shadow-md transition-all"
-                    style={{ minHeight: previewExpanded ? '1000px' : '720px' }}
+                    style={previewExpanded ? undefined : { minHeight: '720px' }}
                   />
                 ) : (
                   <div className="generator-empty">

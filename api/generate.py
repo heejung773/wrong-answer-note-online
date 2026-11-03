@@ -1137,18 +1137,32 @@ def create_pdf(student: str, grade: str, images: list[tuple[int, bytes]], answer
 NAESIN_GRADES = {"고1": "1학년", "고2": "2학년", "고3": "3학년", "중1": "1학년", "중2": "2학년", "중3": "3학년"}
 
 
-def prepare_naesin(prefix: str, raw_numbers: Any, include_variants: bool, cover_options: dict | None = None) -> tuple[dict, list, dict]:
-    """내신 시험 + 고른 번호 → (exam, items, PDF 옵션). 문항 키 처리는 naesin_source 에, 그리기는 create_pdf 에 맡긴다."""
+def prepare_naesin(prefix: str, raw_numbers: Any, include_variants: bool, cover_options: dict | None = None,
+                   raw_variant_keys: Any = None, include_originals: bool = True) -> tuple[dict, list, dict]:
+    """내신 시험 + 고른 번호 → (exam, items, PDF 옵션). 문항 키 처리는 naesin_source 에, 그리기는 create_pdf 에 맡긴다.
+    raw_variant_keys([변형문제] 탭에서 고른 변형 key 목록)가 있으면 그 변형만 + 표지 제목에 '변형' 표시,
+    없으면 include_variants 로 전부/없음([오답노트] 탭은 원본만)."""
     exam = naesin_source.load_exam(prefix)
     numbers = naesin_source.parse_selection(raw_numbers)
-    items = naesin_source.build_items(exam, numbers, include_variants)
+    variant_mode = raw_variant_keys is not None
+    variant_keys = naesin_source.check_variant_keys(exam, numbers, raw_variant_keys) if variant_mode else None
+    items = naesin_source.build_items(exam, numbers, include_variants, variant_keys,
+                                      include_originals=include_originals or not variant_mode)
     heading = naesin_source.exam_heading(exam)
     opts = dict(cover_options or {})
     variant_count = sum(1 for item in items if item.variant)
     subject = str(exam.get("subject") or "").strip()
-    count_text = f"원본 {len(items) - variant_count}문항 + 변형 {variant_count}문항" if variant_count else f"{len(items)}문항"
-    opts["title"] = opts.get("title") or heading
-    opts["subtitle"] = opts.get("subtitle") or " · ".join(p for p in (subject, "내신 기출 오답노트", count_text) if p)
+    original_count = len(items) - variant_count
+    if not variant_count:
+        count_text = f"{len(items)}문항"
+    elif original_count:
+        count_text = f"원본 {original_count}문항 + 변형 {variant_count}문항"
+    else:
+        count_text = f"변형 {variant_count}문항"
+    # [변형문제] 탭: 머리말의 학교 이름은 그대로, 표지 제목에만 '변형' 표시
+    opts["title"] = opts.get("title") or (f"{heading} 변형" if variant_mode else heading)
+    kind = "내신 변형문제" if variant_mode else "내신 기출 오답노트"
+    opts["subtitle"] = opts.get("subtitle") or " · ".join(p for p in (subject, kind, count_text) if p)
     opts["page_header"] = heading
     opts["answer_source"] = f"출처: {heading} (변형 문항 포함)" if variant_count else f"출처: {heading}"
     school_level = "중등" if str(exam.get("grade", "")).startswith("중") else "고등"
@@ -1157,12 +1171,26 @@ def prepare_naesin(prefix: str, raw_numbers: Any, include_variants: bool, cover_
     return exam, items, opts
 
 
-def create_naesin_pdf(student: str, grade: str, items: list, cover_options: dict) -> bytes:
-    """내신: images 정수는 1부터 순번, 칸 번호는 '3번'·'3번 변형1'. 손풀이 링크 빈칸이면 QR 없음."""
+def naesin_solution_links(items: list, include: bool = True) -> dict[str, str]:
+    """원본 문항 키 → 손풀이 QR 주소. 변형은 원본 링크를 쓰지 않으므로 원본 키만 묻는다.
+    표가 없거나 조회에 실패해도 오답노트는 QR 없이 만든다."""
+    if not include:
+        return {}
+    try:
+        return naesin_source.solution_links_for([item.key for item in items if not item.variant])
+    except Exception as error:
+        print("[-] naesin solution links lookup failed:", type(error).__name__)
+        return {}
+
+
+def create_naesin_pdf(student: str, grade: str, items: list, cover_options: dict, links_by_key: dict[str, str] | None = None) -> bytes:
+    """내신: images 정수는 1부터 순번, 칸 번호는 '3번'·'3번 변형1'.
+    links_by_key(원본 키 → QR 주소)에 있는 원본 문항만 QR. 변형 칸은 언제나 QR 없음."""
     images = [(index, item.image) for index, item in enumerate(items, start=1)]
     labels = {index: item.label for index, item in enumerate(items, start=1)}
-    by_key = naesin_source.solution_links_for([item.key for item in items])
-    links = {index: by_key[item.key] for index, item in enumerate(items, start=1) if by_key.get(item.key)}
+    by_key = links_by_key or {}
+    links = {index: by_key[item.key] for index, item in enumerate(items, start=1)
+             if not item.variant and by_key.get(item.key)}
     answers = {index: naesin_source.plain_answer(item.answer, item.format) for index, item in enumerate(items, start=1)}
     has_answers = any(answers.values())
     return create_pdf(student, grade, images, answers if has_answers else None, "naesin", cover_options, links, labels)
@@ -2090,6 +2118,8 @@ class handler(BaseHTTPRequestHandler):
         query = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)
         if query.get("list") == ["naesin"]:
             return self.send_naesin_exams()
+        if query.get("naesinProblem"):
+            return self.send_naesin_gallery(query["naesinProblem"][0], (query.get("no") or [""])[0])
         body = json.dumps(
             {"status": "ok", "textbooks": sorted(TEXTBOOKS)},
             ensure_ascii=False,
@@ -2117,6 +2147,33 @@ class handler(BaseHTTPRequestHandler):
             self.send_json(401 if error.code in (401, 403) else 502, "로그인 또는 저장소 접근을 확인해 주세요.")
         except Exception as error:
             self.send_json(500, f"내신 시험 목록을 읽지 못했습니다: {type(error).__name__}")
+
+    def send_naesin_gallery(self, prefix: str, raw_no: str) -> None:
+        """GET /api/generate?naesinProblem=<prefix>&no=9 : 변형 고르기 화면용 원본·변형 그림(로그인한 사용자만)."""
+        try:
+            supabase_url = os.environ["NEXT_PUBLIC_SUPABASE_URL"].rstrip("/")
+            publishable_key = os.environ["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]
+            auth = self.headers.get("Authorization", "")
+            if not auth.startswith("Bearer "):
+                return self.send_json(401, "로그인이 필요합니다.")
+            if not str(verify_user(supabase_url, publishable_key, auth[7:]).get("id", "")):
+                return self.send_json(401, "로그인이 필요합니다.")
+            if not raw_no.isdigit():
+                return self.send_json(400, "문항 번호를 확인해 주세요.")
+            exam = naesin_source.load_exam(prefix)
+            gallery = naesin_source.problem_gallery(exam, int(raw_no))
+            items = [{**{k: v for k, v in entry.items() if k != "image"},
+                      "image": "data:image/png;base64," + base64.b64encode(entry["image"]).decode("ascii")}
+                     for entry in gallery]
+            self.send_json_data(200, {"no": int(raw_no), "items": items})
+        except KeyError:
+            self.send_json(503, "서버 연결 설정이 아직 완료되지 않았습니다.")
+        except ValueError as error:
+            self.send_json(400, str(error))
+        except urllib.error.HTTPError as error:
+            self.send_json(401 if error.code in (401, 403) else 502, "로그인 또는 저장소 접근을 확인해 주세요.")
+        except Exception as error:
+            self.send_json(500, f"문항 그림을 읽지 못했습니다: {type(error).__name__}")
 
     def do_POST(self):
         try:
@@ -2216,12 +2273,19 @@ class handler(BaseHTTPRequestHandler):
                     payload.get("naesinNumbers"),
                     payload.get("includeVariants") in (True, "true", "1", 1),
                     cover_options,
+                    payload.get("naesinVariantKeys"),
+                    payload.get("includeOriginals", True) not in (False, "false", "0", 0),
                 )
                 naesin_heading = naesin_source.exam_heading(naesin_exam)
                 problem_count = len(naesin_items)
+                # 손풀이 QR: 원본 문항 중 표(naesin_solution_links)에 링크가 있는 것만. 한 번만 읽는다.
+                naesin_include_qr = payload.get("includeSolutionQr", True)
+                if isinstance(naesin_include_qr, str):
+                    naesin_include_qr = naesin_include_qr.lower() not in ("false", "0", "no")
+                naesin_links = naesin_solution_links(naesin_items, bool(naesin_include_qr))
 
                 def make_pdf(st: str) -> bytes:
-                    return create_naesin_pdf(st, grade, naesin_items, naesin_options)
+                    return create_naesin_pdf(st, grade, naesin_items, naesin_options, naesin_links)
 
             elif textbook == "olympus-calculus":
                 raw_items = payload.get("olympusItems")
