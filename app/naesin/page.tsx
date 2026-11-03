@@ -21,15 +21,17 @@ import {
 import { GoToMainLogin } from '../admin/go-to-login';
 
 /**
- * 내신 기출 (2026-11-03 선생님 결정 3차).
+ * 내신 기출 (2026-11-03 선생님 결정 5차).
  * 맨 위에서 [오답노트 만들기] / [변형문제 만들기] 를 고른다. 학교 → 학년 → 시험은 두 모드가 같이 쓴다.
- *  [오답노트 만들기] 교재 오답노트 생성기(app/page.tsx)와 같은 양식·배치·CSS(generator-*):
- *      왼쪽 입력(틀린 번호, 학생, 표지·손풀이 QR, 미리보기 갱신·다운로드), 오른쪽 PDF 미리보기. 원본만 넣는다.
- *  [변형문제 만들기] 트윈 시험지 만들기 화면처럼 두 칸(각자 스크롤):
- *      왼쪽 이 시험 원본 문항 그림을 번호 순서로 세로 나열, 누르면 '오답'으로 골라지고 다시 누르면 빠짐(고른 변형 수 표시).
- *      오른쪽 지금 보는 문항의 원본(작게, 위에 고정) + 변형(크게, 위아래), 변형마다 '넣기' 체크, 그림 누르면 크게.
+ *  [오답노트 만들기] 교재 오답노트 생성기(app/page.tsx)와 같은 양식·CSS(generator-*), 입력 1 : 미리보기 2.
+ *      왼쪽 입력(틀린 번호, 학생, 표지·손풀이 QR, 미리보기 갱신·다운로드), 오른쪽 PDF 미리보기(높이 화면 맞춤, 가로폭 맞춤). 원본만.
+ *  [변형문제 만들기] 트윈 시험지 만들기(D:\변형문제\site\exam.html)와 같은 두 칸(각자 스크롤):
+ *      왼쪽 '원본 시험지' 번호 앞 체크 = 오답, 문항을 누르면 오른쪽 그 문항 변형으로 이동.
+ *      오른쪽 '변형 문제지' 체크한 문항마다 변형 1개. 기본은 위쪽 세트 '변형 1/2/3'(처음 변형 1, 그 변형이 없으면 마지막),
+ *      문항마다 '⇄ 문항 바꾸기 k/n' → 후보 창(원본 + 변형 후보, '이 문항으로 바꾸기'), 바꾼 문항은 '바뀜'·'바꾼 문항 n개 · 원래대로'.
+ *      세트를 바꾸면 문항별로 바꾼 것은 처음부터(트윈 chooseSet). 원본·변형 그림은 같은 배율.
  *      위쪽 줄: 학생 이름, 원본도 같이 넣기(기본 켬), 표지, 손풀이 QR, 미리보기(화면 가득 창)·다운로드.
- *      변형 번호는 exam.json variants 배열 순서(변형1·2·3) 고정. 휴대폰 폭은 왼쪽 목록 → 오른쪽 변형 순서로 위아래.
+ *      PDF 에는 체크한 원본마다 지금 보이는 변형 1개(원본도 넣기면 원본 바로 뒤). 휴대폰 폭은 위아래.
  * 서버(파이썬): 목록 GET /api/naesin_list(가벼운 함수, generate ?list=naesin 과 같은 결과), /api/generate 의 원본 전부 GET ?naesinOriginals=<prefix>,
  *  한 번호 원본+변형 GET ?naesinProblem=<prefix>&no=9, PDF POST textbook='naesin'
  *  (+ 변형 모드 naesinVariantKeys·includeOriginals → 서버가 key 를 exam.json 과 대조, 표지 제목 '… 변형').
@@ -124,7 +126,12 @@ export default function NaesinPage() {
   const [includeCover, setIncludeCover] = useState(true);
   const [includeSolutionQr, setIncludeSolutionQr] = useState(true);
   const [includeOriginals, setIncludeOriginals] = useState(true);
-  const [picked, setPicked] = useState<string[]>([]);
+  // 트윈 시험지 만들기와 같이: 문항마다 변형 1개. 기본은 위쪽 세트(변형 1·2·3), 문항별로 '바꾸기' 한 것은 swap
+  const [setNo, setSetNo] = useState(1);
+  const [swap, setSwap] = useState<Record<number, number>>({});
+  const [swapNo, setSwapNo] = useState<number | null>(null);
+  const pickerGrid = useRef<HTMLDivElement | null>(null);
+  const [pickerImgWidth, setPickerImgWidth] = useState(0);
   const [active, setActive] = useState<number | null>(null);
   const leftPane = useRef<HTMLDivElement | null>(null);
   const rightPane = useRef<HTMLDivElement | null>(null);
@@ -198,16 +205,17 @@ export default function NaesinPage() {
 
   // 큰 그림 → 변형 미리보기 창 → 오답노트 대형 확대 순서로 Esc 가 닫는다
   useEffect(() => {
-    if (!zoom && !variantPreviewOpen && !previewExpanded) return;
+    if (!zoom && swapNo === null && !variantPreviewOpen && !previewExpanded) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       if (zoom) setZoom(null);
+      else if (swapNo !== null) setSwapNo(null);
       else if (variantPreviewOpen) setVariantPreviewOpen(false);
       else setPreviewExpanded(false);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [zoom, variantPreviewOpen, previewExpanded]);
+  }, [zoom, swapNo, variantPreviewOpen, previewExpanded]);
 
   const schools = useMemo(() => uniqueSorted(exams.map((e) => e.school)), [exams]);
   const grades = useMemo(
@@ -223,15 +231,23 @@ export default function NaesinPage() {
   const examPrefix = exam?.prefix ?? '';
   const problemByNo = useMemo(() => new Map((exam?.problems ?? []).map((p) => [p.no, p])), [exam]);
 
-  // 고른 변형: 지금 고른 번호의 변형만 유효. 순서는 번호 순 → variants 배열 순(서버도 같은 순서)
-  const pickedKeys = useMemo(() => {
-    const set = new Set(picked);
-    return selected.flatMap((no) => variantKeysOf(problemByNo.get(no)).filter((key) => set.has(key)));
-  }, [picked, selected, problemByNo]);
-  const pickedCountByNo = useMemo(() => {
-    const set = new Set(picked);
-    return new Map(selected.map((no) => [no, variantKeysOf(problemByNo.get(no)).filter((k) => set.has(k)).length]));
-  }, [picked, selected, problemByNo]);
+  // 문항마다 지금 쓰는 변형 순서(1부터, variants 배열 순서). 바꾼 것이 없으면 세트 번호, 그 변형이 없으면 마지막 변형(트윈 curIdx 와 같음)
+  const setIdx = useCallback(
+    (no: number) => Math.min(setNo, variantKeysOf(problemByNo.get(no)).length),
+    [setNo, problemByNo],
+  );
+  const curIdx = useCallback((no: number) => swap[no] ?? setIdx(no), [swap, setIdx]);
+  const isSwapped = (no: number) => swap[no] !== undefined && swap[no] !== setIdx(no);
+  // PDF 에 넣을 변형: 체크한 문항마다 지금 보이는 변형 1개(번호 순)
+  const pickedKeys = useMemo(
+    () =>
+      selected.flatMap((no) => {
+        const key = variantKeysOf(problemByNo.get(no))[curIdx(no) - 1];
+        return key ? [key] : [];
+      }),
+    [selected, problemByNo, curIdx],
+  );
+  const swappedCount = selected.filter((no) => isSwapped(no)).length;
 
   const focusNo = active !== null && problemByNo.has(active) ? active : null;
   const setCount = Math.max(0, ...(exam?.problems ?? []).map((p) => p.variants));
@@ -294,9 +310,20 @@ export default function NaesinPage() {
     return () => observer.disconnect();
   }, [mode, exam]);
 
+  // 바꾸기 창: 후보 칸의 그림 자리 폭 → 원본·후보를 같은 배율로(원본 줄도 후보와 같은 k)
+  useEffect(() => {
+    const grid = pickerGrid.current;
+    if (swapNo === null || !grid) return;
+    const measure = () => setPickerImgWidth(grid.querySelector<HTMLElement>('[data-pk-img]')?.clientWidth ?? 0);
+    const observer = new ResizeObserver(measure);
+    observer.observe(grid);
+    return () => observer.disconnect();
+  }, [swapNo, gallery]);
+
   function resetSelection() {
     setSelected([]);
-    setPicked([]);
+    setSwap({});
+    setSwapNo(null);
     setActive(null);
   }
 
@@ -317,32 +344,25 @@ export default function NaesinPage() {
     scrollPaneTo(leftPane.current, `naesin-o-${no}`, 12);
   }
 
-  // 위쪽 '한 번에 넣기': 체크한 모든 문항에 같은 변형 번호(1·2·3)만, 또는 모두·해제
-  function pickSet(which: number | 'all' | 'none') {
-    const keys = selected.flatMap((no) => {
-      const list = variantKeysOf(problemByNo.get(no));
-      if (which === 'none') return [];
-      if (which === 'all') return list;
-      return list[which - 1] ? [list[which - 1]] : [];
+  // 위쪽 세트 버튼(트윈 setSeg): 모든 문항을 같은 변형 번호로. 바꾸면 문항별로 바꾼 것은 처음부터(트윈 chooseSet)
+  function chooseSet(n: number) {
+    setSetNo(n);
+    setSwap({});
+  }
+
+  // '바꾸기' 창에서 '이 문항으로 바꾸기'(트윈 applySwap): 세트와 같으면 바꾼 표시를 지운다
+  function applySwap(no: number, idx: number) {
+    setSwap((old) => {
+      const next = { ...old };
+      if (idx === setIdx(no)) delete next[no];
+      else next[no] = idx;
+      return next;
     });
-    setPicked(keys);
+    setSwapNo(null);
   }
 
   function toggleNo(no: number) {
     setSelected((list) => (list.includes(no) ? list.filter((n) => n !== no) : [...list, no].sort((a, b) => a - b)));
-  }
-
-  function togglePick(no: number, key: string) {
-    const on = !picked.includes(key);
-    setPicked((list) => (on ? [...list, key] : list.filter((k) => k !== key)));
-    // 오답으로 안 고른 문항의 변형을 체크하면 그 문항도 같이 고른다
-    if (on && !selected.includes(no)) setSelected((list) => [...list, no].sort((a, b) => a - b));
-  }
-
-  function pickAll(no: number, on: boolean) {
-    const keys = variantKeysOf(problemByNo.get(no));
-    setPicked((list) => (on ? [...new Set([...list, ...keys])] : list.filter((k) => !keys.includes(k))));
-    if (on && keys.length && !selected.includes(no)) setSelected((list) => [...list, no].sort((a, b) => a - b));
   }
 
   function setPreview(which: Mode, url: string) {
@@ -399,7 +419,7 @@ export default function NaesinPage() {
 
   function readyMessage(which: Mode) {
     if (!selected.length) return '틀린 번호를 하나 이상 골라 주세요.';
-    if (which === 'variants' && !pickedKeys.length) return '넣을 변형을 하나 이상 체크해 주세요.';
+    if (which === 'variants' && !pickedKeys.length) return '체크한 문항에 변형이 없어요.';
     return '';
   }
 
@@ -491,23 +511,11 @@ export default function NaesinPage() {
   const widest = Math.max(BASE_WIDTH, ...(originalList?.items ?? []).map((item) => item.width ?? 0));
   const scale = paneWidth ? Math.min(1, (paneWidth - 56) / widest) : 0;
   const shownWidth = (width?: number) => (scale && width ? `${Math.round(width * scale)}px` : '100%');
-  const setState = (() => {
-    const set = new Set(pickedKeys);
-    const all = selected.flatMap((no) => variantKeysOf(problemByNo.get(no)));
-    if (!all.length) return null;
-    if (!set.size) return 'none';
-    if (all.every((k) => set.has(k))) return 'all';
-    for (let i = 1; i <= setCount; i++) {
-      const want = selected.flatMap((no) => {
-        const list = variantKeysOf(problemByNo.get(no));
-        return list[i - 1] ? [list[i - 1]] : [];
-      });
-      if (want.length === set.size && want.every((k) => set.has(k))) return i;
-    }
-    return null;
-  })();
-  const zoomKey = zoom?.key;
-  const zoomNo = zoomKey ? exam?.problems.find((p) => variantKeysOf(p).includes(zoomKey))?.no : undefined;
+  const swapEntry = swapNo !== null ? gallery[`${examPrefix}|${swapNo}`] : undefined;
+  const swapOriginal = swapEntry?.items?.find((item) => item.variant === 0);
+  const swapCandidates = swapEntry?.items?.filter((item) => item.variant > 0) ?? [];
+  const pickerScale = pickerImgWidth ? Math.min(1, (pickerImgWidth - 12) / widest) : 0;
+  const pickerWidth = (width?: number) => (pickerScale && width ? `${Math.round(width * pickerScale)}px` : '100%');
 
   return (
     <div className="generator-canvas min-h-screen">
@@ -890,7 +898,7 @@ export default function NaesinPage() {
                   ) : (
                     originalList.items?.map((item) => {
                       const on = selected.includes(item.no);
-                      const chosen = pickedCountByNo.get(item.no) ?? 0;
+                      const useIdx = on ? curIdx(item.no) : 0;
                       const isFocus = focusNo === item.no;
                       return (
                         <article
@@ -917,9 +925,9 @@ export default function NaesinPage() {
                             {on && (
                               <span
                                 className="rounded px-2 py-0.5 text-[11px] font-bold text-white"
-                                style={{ background: chosen ? PICK : CHECKED }}
+                                style={{ background: useIdx ? PICK : CHECKED }}
                               >
-                                {chosen ? `변형 ${chosen}개 넣음` : '오답'}
+                                {useIdx ? `오답 · 변형${useIdx}${isSwapped(item.no) ? ' 바뀜' : ''}` : '오답'}
                               </span>
                             )}
                             <span className="ml-auto text-[11px] text-[#98a2b3]">변형 {item.variants}개</span>
@@ -951,81 +959,97 @@ export default function NaesinPage() {
               <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[#1d2733] bg-[#0a0e13]" aria-label="변형 문제지">
                 <h2 className="flex flex-wrap items-center gap-2 border-b-2 border-[#1d2733] bg-[#11161d] px-4 py-2 text-[15px] font-bold text-slate-100">
                   변형 문제지
-                  <small className="text-[12px] font-normal text-[#8d9aa8]">
-                    넣은 변형 <b className="text-[#f0a6ed]">{pickedKeys.length}</b>개
-                  </small>
-                  {selected.length > 0 && setCount > 0 && (
-                    <span className="ml-auto inline-flex overflow-hidden rounded-lg border border-[#334155]" title="체크한 모든 문항에 한 번에">
-                      {[...Array.from({ length: setCount }, (_, i) => i + 1), 'all' as const, 'none' as const].map((which) => (
+                  <small className="text-[12px] font-normal text-[#8d9aa8]">문항마다 변형 1개</small>
+                  {swappedCount > 0 && (
+                    <span className="inline-flex items-center gap-1.5 text-[12.5px] font-normal text-[#8d9aa8]">
+                      바꾼 문항 <b className="text-[#5eead4]">{swappedCount}</b>개
+                      <button
+                        type="button"
+                        onClick={() => setSwap({})}
+                        className="rounded-[5px] border border-[#1d2733] bg-[#11161d] px-2 py-px text-[12px] text-slate-200"
+                      >
+                        원래대로
+                      </button>
+                    </span>
+                  )}
+                  {setCount > 1 && (
+                    <span
+                      className="ml-auto inline-flex overflow-hidden rounded-md border border-[#1d2733]"
+                      title="변형: 모든 문항을 같은 변형(1·2·3)으로 한 번에"
+                    >
+                      {Array.from({ length: setCount }, (_, i) => i + 1).map((n) => (
                         <button
-                          key={String(which)}
+                          key={n}
                           type="button"
-                          aria-pressed={setState === which}
-                          onClick={() => pickSet(which)}
+                          aria-pressed={setNo === n}
+                          onClick={() => chooseSet(n)}
                           className={
-                            'px-2.5 py-1 text-[12px] font-semibold ' +
-                            (setState === which ? 'bg-[#0f6e62] text-white' : 'text-slate-300 hover:bg-[#1d2733]')
+                            'px-2.5 py-0.5 text-[12px] ' +
+                            (setNo === n ? 'bg-[#2dd4bf] font-bold text-white' : 'text-[#8d9aa8] hover:text-slate-200')
                           }
                         >
-                          {which === 'all' ? '모두' : which === 'none' ? '해제' : `전체 변형${which}`}
+                          변형 {n}
                         </button>
                       ))}
                     </span>
                   )}
                 </h2>
-                <div ref={rightPane} className="flex-1 space-y-4 overflow-auto p-3 sm:p-4">
+                <div ref={rightPane} className="flex-1 space-y-7 overflow-auto px-3 pb-4 pt-7 sm:px-4">
                   {!selected.length ? (
                     <p className="rounded-lg border border-dashed border-[#334155] p-8 text-center text-sm text-slate-400">
                       왼쪽에서 틀린 문항을 체크하세요.
                       <br />
-                      체크한 문항의 변형이 여기에 번호 순서대로 나와요.
+                      체크한 문항의 변형이 여기에 번호 순서대로 하나씩 나와요.
                     </p>
                   ) : (
                     selected.map((no) => {
                       const entry = gallery[`${examPrefix}|${no}`];
-                      const variants = entry?.items?.filter((item) => item.variant > 0) ?? [];
                       const keys = variantKeysOf(problemByNo.get(no));
-                      const chosen = keys.filter((k) => picked.includes(k)).length;
+                      const idx = curIdx(no);
+                      const item = entry?.items?.find((v) => v.variant === idx);
                       const isFocus = focusNo === no;
+                      const swapped = isSwapped(no);
                       return (
                         <section
                           key={no}
                           id={`naesin-v-${no}`}
                           aria-label={`${no}번 변형`}
-                          className="overflow-hidden rounded-md border-2 bg-white"
-                          style={{ borderColor: isFocus ? PICK : '#2c3a4a' }}
+                          className="relative rounded-md border-2 bg-white"
+                          style={{ borderColor: isFocus ? PICK : '#2c3a4a', background: isFocus ? '#fdf2fd' : '#fff' }}
                         >
-                          <div className="flex items-center gap-2 border-b border-[#e2e8f0] bg-[#f8fafc] px-3 py-1.5">
+                          {/* 트윈 .q .tag / .swaptag: 상자 위에 붙은 이름표와 '문항 바꾸기' */}
+                          <span
+                            className="absolute -left-0.5 -top-[22px] rounded-t px-2 py-px text-[12px] font-bold text-white"
+                            style={{ background: isFocus ? PICK : '#475569' }}
+                          >
+                            {no}번 변형
+                          </span>
+                          {keys.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => setSwapNo(no)}
+                              className="absolute -right-0.5 -top-6 z-[2] rounded-t-[5px] px-2.5 py-0.5 text-[12px] font-bold text-white hover:brightness-110"
+                              style={{ background: PICK }}
+                              title="후보를 보고 고르기"
+                            >
+                              ⇄ 문항 바꾸기 {idx}/{keys.length}
+                            </button>
+                          )}
+                          <div className="flex items-center gap-2 px-3 pt-2 text-[13px] text-[#111]">
                             <button
                               type="button"
                               onClick={() => focusFromRight(no)}
-                              className="text-[15px] font-bold text-[#111] hover:underline"
+                              className="font-serif text-[18px] font-bold hover:underline"
                               title="왼쪽 원본으로 이동"
                             >
-                              {no}번 변형
+                              {String(no).padStart(2, '0')}
                             </button>
-                            <span className="text-[12px] text-[#667085]">
-                              {keys.length}개 중 <b style={{ color: PICK }}>{chosen}</b>개 넣기
+                            <span className="font-semibold" style={{ color: PICK }}>
+                              변형{idx}
                             </span>
-                            {keys.length > 0 && (
-                              <span className="ml-auto flex gap-1">
-                                <button
-                                  type="button"
-                                  disabled={chosen === keys.length}
-                                  onClick={() => pickAll(no, true)}
-                                  className="rounded border border-[#cbd5e1] px-2 py-0.5 text-[12px] text-[#334155] disabled:opacity-40"
-                                >
-                                  모두
-                                </button>
-                                <button
-                                  type="button"
-                                  disabled={!chosen}
-                                  onClick={() => pickAll(no, false)}
-                                  className="rounded border border-[#cbd5e1] px-2 py-0.5 text-[12px] text-[#334155] disabled:opacity-40"
-                                >
-                                  해제
-                                </button>
-                              </span>
+                            {item?.difficulty && <span className="text-[12px] text-[#667085]">{item.difficulty}</span>}
+                            {swapped && (
+                              <span className="rounded-[3px] bg-[#0f6e62] px-1 text-[10px] font-bold text-white">바뀜</span>
                             )}
                           </div>
                           {!entry ? (
@@ -1034,57 +1058,26 @@ export default function NaesinPage() {
                             </p>
                           ) : entry.error ? (
                             <p className="p-3 text-sm text-amber-700">{entry.error}</p>
-                          ) : !variants.length ? (
+                          ) : !item ? (
                             <p className="p-3 text-sm text-[#667085]">이 문항은 변형이 없어요.</p>
                           ) : (
-                            variants.map((item) => {
-                              const on = picked.includes(item.key);
-                              return (
-                                <div
-                                  key={item.key}
-                                  className="border-t border-[#eef2f6] first:border-t-0"
-                                  style={{ background: on ? '#fdf2fd' : '#fff' }}
-                                >
-                                  <div className="flex items-center gap-2 px-3 pt-2 text-[13px]">
-                                    <label className="flex cursor-pointer items-center gap-2 font-semibold text-[#111]">
-                                      <input
-                                        type="checkbox"
-                                        className="size-[18px]"
-                                        checked={on}
-                                        onChange={() => togglePick(no, item.key)}
-                                      />
-                                      넣기
-                                      <span style={{ color: PICK }}>{item.label}</span>
-                                    </label>
-                                    {item.difficulty && <span className="text-[12px] text-[#667085]">{item.difficulty}</span>}
-                                    <button
-                                      type="button"
-                                      onClick={() => setZoom({ title: `${no}번 ${item.label}`, image: item.image, key: item.key })}
-                                      className="ml-auto rounded border border-[#cbd5e1] px-2 py-0.5 text-[12px] text-[#334155]"
-                                    >
-                                      크게
-                                    </button>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => focusFromRight(no)}
-                                    className="block w-full p-2"
-                                    title="왼쪽 원본으로 이동"
-                                    aria-label={`${no}번 ${item.label} (왼쪽 원본으로 이동)`}
-                                  >
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
-                                      src={item.image}
-                                      alt={`${no}번 ${item.label}`}
-                                      className="mx-auto block h-auto max-w-full"
-                                      style={{ width: shownWidth(item.width) }}
-                                      loading="lazy"
-                                      decoding="async"
-                                    />
-                                  </button>
-                                </div>
-                              );
-                            })
+                            <button
+                              type="button"
+                              onClick={() => focusFromRight(no)}
+                              className="block w-full p-2"
+                              title="왼쪽 원본으로 이동"
+                              aria-label={`${no}번 변형${idx} (왼쪽 원본으로 이동)`}
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={item.image}
+                                alt={`${no}번 변형${idx}`}
+                                className="mx-auto block h-auto max-w-full"
+                                style={{ width: shownWidth(item.width) }}
+                                loading="lazy"
+                                decoding="async"
+                              />
+                            </button>
                           )}
                         </section>
                       );
@@ -1135,6 +1128,108 @@ export default function NaesinPage() {
         </section>
       )}
 
+      {/* '문항 바꾸기' 창: 트윈 openPicker(.pk-back / .pk / .pk-orig / .pk-list / .pk-c / '이 문항으로 바꾸기') 와 같은 모양 */}
+      {swapNo !== null && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-auto px-[18px] py-7">
+          <button
+            type="button"
+            aria-label="바꾸기 창 닫기"
+            className="fixed inset-0 cursor-default bg-[rgba(5,8,12,.78)]"
+            onClick={() => setSwapNo(null)}
+          />
+          <section
+            className="relative w-full max-w-[1280px] overflow-hidden rounded-[14px] border border-[#1d2733] bg-[#11161d] text-[#e8eef4] shadow-[0_20px_60px_rgba(0,0,0,.6)]"
+            aria-label={`${swapNo}번 변형 후보`}
+          >
+            <div className="flex items-center gap-2.5 border-b border-[#1d2733] bg-[#0a0e13] px-5 py-3.5">
+              <b className="text-[17px]">{swapNo}번 문항 바꾸기</b>
+              <span className="text-[13px] opacity-85">원본과 비교해 후보를 고르세요</span>
+              <button
+                type="button"
+                onClick={() => setSwapNo(null)}
+                title="닫기 (Esc)"
+                className="ml-auto grid size-[34px] place-items-center rounded-lg bg-white/15 text-[18px] leading-none text-white"
+              >
+                ✕
+              </button>
+            </div>
+            {swapOriginal && (
+              <div className="flex items-start gap-4 border-b border-[#e3e6ea] bg-white px-5 py-3.5 text-[#111]">
+                <span className="mt-1 shrink-0 rounded px-2 py-0.5 text-[12px] font-bold text-white" style={{ background: PICK }}>
+                  {swapNo}번 원본
+                </span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={swapOriginal.image}
+                  alt={`${swapNo}번 원본`}
+                  className="block h-auto max-w-full rounded-md border border-[#e3e6ea]"
+                  style={{ width: pickerWidth(swapOriginal.width) }}
+                />
+              </div>
+            )}
+            <div ref={pickerGrid} className="grid gap-3.5 px-5 pb-5 pt-4 [grid-template-columns:repeat(auto-fit,minmax(320px,1fr))]">
+              {!swapEntry ? (
+                <p className="flex items-center gap-2 text-sm text-slate-400">
+                  <Loader2 className="size-4 animate-spin" /> 후보를 불러오는 중…
+                </p>
+              ) : (
+                swapCandidates.map((item) => {
+                  const cur = item.variant === curIdx(swapNo);
+                  return (
+                    <div
+                      key={item.key}
+                      className="flex flex-col rounded-[10px] border-2 bg-[#18212c] px-3.5 pb-3.5 pt-3"
+                      style={{
+                        borderColor: cur ? '#2dd4bf' : '#2c3a4a',
+                        boxShadow: cur ? '0 0 0 3px rgba(45,212,191,.2)' : undefined,
+                      }}
+                    >
+                      <div className="mb-1.5 flex items-center gap-1.5">
+                        <b className="text-[14px]">변형 {item.variant}</b>
+                        {item.difficulty && <span className="text-[11.5px] text-[#8292a3]">난이도 {item.difficulty}</span>}
+                        {cur && (
+                          <span className="ml-auto rounded bg-[#132426] px-2 py-px text-[11.5px] font-bold text-[#5eead4]">현재 선택</span>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setZoom({ title: `${swapNo}번 변형${item.variant}`, image: item.image })}
+                        className="block flex-1 rounded-md bg-white p-1.5"
+                        title="눌러서 크게 보기"
+                        data-pk-img
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={item.image}
+                          alt={`${swapNo}번 변형${item.variant}`}
+                          className="block h-auto max-w-full"
+                          style={{ width: pickerWidth(item.width) }}
+                        />
+                      </button>
+                      <div className="mt-2.5 flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={cur}
+                          onClick={() => applySwap(swapNo, item.variant)}
+                          className="rounded-[7px] px-3.5 py-1.5 text-[13px] font-bold disabled:cursor-default"
+                          style={
+                            cur
+                              ? { background: '#2c3a4a', color: '#64748b' }
+                              : { background: 'linear-gradient(135deg,#2dd4bf,#14b8a6)', color: '#04201c' }
+                          }
+                        >
+                          {cur ? '사용 중' : '이 문항으로 바꾸기'}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </section>
+        </div>
+      )}
+
       {zoom && (
         <section className="fixed inset-0 z-[60] flex flex-col p-2 sm:p-6" aria-label={`${zoom.title} 크게 보기`}>
           <button
@@ -1145,17 +1240,6 @@ export default function NaesinPage() {
           />
           <div className="relative mx-auto flex w-full max-w-5xl flex-wrap items-center gap-2 pb-2 text-slate-100">
             <span className="mr-auto text-[15px] font-bold">{zoom.title}</span>
-            {zoom.key && zoomNo !== undefined && (
-              <label className="flex items-center gap-2 rounded-lg border border-slate-500 bg-slate-900 px-3 py-1.5 text-sm">
-                <input
-                  type="checkbox"
-                  className="size-4"
-                  checked={picked.includes(zoom.key)}
-                  onChange={() => togglePick(zoomNo, zoom.key as string)}
-                />
-                이 변형 넣기
-              </label>
-            )}
             <button
               type="button"
               onClick={() => setZoom(null)}
