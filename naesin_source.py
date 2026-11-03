@@ -10,8 +10,10 @@
 저장 위치를 바꾸기 쉽도록 내신 자료는 모두 이 파일 한 곳에서만 읽는다.
   NAESIN_SOURCE      = local(기본) | r2
   NAESIN_EXPORT_DIR  = local 일 때 읽을 폴더 (기본 D:\\변형문제\\output\\naesin_export)
-  r2 일 때는 기존 textbook-problems 버킷에서 같은 키 모양(<prefix>/exam.json, <prefix>/0001.png)을 읽는다.
-  r2 시험 목록은 버킷 맨 위 naesin-exams.json({"exams": ["<prefix>", ...]}) — 아직 올리지 않은 제안 형식이다.
+  r2 일 때는 기존 textbook-problems 버킷 안 맨 위 R2_ROOT(naesin/) 폴더에서만 읽는다(교재 그림과 섞지 않음):
+    naesin/<prefix>/exam.json, naesin/<prefix>/0001.png, naesin/<prefix>/0001-v1.png
+    시험 목록 naesin/naesin-exams.json ({"exams": ["<prefix>", ...]})
+  exam.json 의 prefix·문항 key 에는 naesin/ 을 붙이지 않는다(R2 읽을 때만 r2_key() 가 붙인다).
 손풀이 링크는 아직 없다: solution_links_for() 가 빈 값을 돌려주고, 나중에 Supabase 새 표에서 키로 받는다.
 테스트지만들기에서도 그대로 옮겨 쓸 수 있게 오답노트 코드(api/generate.py)에 기대지 않는다.
 """
@@ -24,7 +26,8 @@ from pathlib import Path
 import re
 
 DEFAULT_EXPORT_DIR = r"D:\변형문제\output\naesin_export"
-R2_INDEX_KEY = "naesin-exams.json"
+R2_ROOT = "naesin"  # R2 버킷 안 내신 전용 맨 앞 폴더 (이 상수 한 곳에서만 정한다)
+R2_INDEX_NAME = "naesin-exams.json"
 
 PREFIX_RE = re.compile(r"naesin-[a-z0-9]+(?:-[a-z0-9]+)*/[a-z0-9-]+/[a-z0-9-]+")
 IMAGE_RE = re.compile(r"[A-Za-z0-9_-]+\.png")
@@ -49,6 +52,19 @@ def _check_prefix(prefix: str) -> str:
     return prefix
 
 
+def r2_key(prefix: str | None, name: str) -> str:
+    """R2 객체 키: naesin/<prefix>/<name> (prefix 가 None 이면 naesin/<name>, 시험 목록용).
+    업로드 스크립트도 이 함수만 써서 키를 만든다."""
+    if prefix is None:
+        if name != R2_INDEX_NAME:
+            raise ValueError("R2 내신 맨 위에는 시험 목록 파일만 둔다.")
+        return f"{R2_ROOT}/{name}"
+    prefix = _check_prefix(prefix)
+    if name != "exam.json" and not IMAGE_RE.fullmatch(name):
+        raise ValueError("내신 문항 그림 이름을 확인해 주세요.")
+    return f"{R2_ROOT}/{prefix}/{name}"
+
+
 def _read_object(prefix: str, name: str) -> bytes:
     """<prefix>/<name> 한 개를 읽는다. 저장 위치(local/r2) 분기는 여기 한 곳뿐이다."""
     prefix = _check_prefix(prefix)
@@ -57,7 +73,7 @@ def _read_object(prefix: str, name: str) -> bytes:
     if source_kind() == "r2":
         from storage_backend import fetch_r2_object  # 지연 import: 로컬 모드는 boto3 없이도 동작
 
-        return fetch_r2_object(f"{prefix}/{name}")
+        return fetch_r2_object(r2_key(prefix, name))
     base = export_dir().resolve()
     path = (base / prefix / name).resolve()
     if base not in path.parents:
@@ -71,7 +87,7 @@ def _list_prefixes() -> list[str]:
     if source_kind() == "r2":
         from storage_backend import fetch_r2_object
 
-        index = json.loads(fetch_r2_object(R2_INDEX_KEY).decode("utf-8-sig"))
+        index = json.loads(fetch_r2_object(r2_key(None, R2_INDEX_NAME)).decode("utf-8-sig"))
         return [p for p in (index.get("exams") or []) if PREFIX_RE.fullmatch(str(p))]
     base = export_dir()
     if not base.is_dir():
