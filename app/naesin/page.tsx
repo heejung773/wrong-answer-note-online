@@ -18,6 +18,7 @@ import {
   Sparkles,
   X,
 } from 'lucide-react';
+import { PreviewPager } from '@/components/preview-pager';
 import { GoToMainLogin } from '../admin/go-to-login';
 
 /**
@@ -101,6 +102,18 @@ function uniqueSorted(values: string[]) {
   return [...new Set(values)].sort((a, b) => a.localeCompare(b, 'ko'));
 }
 
+// 오답노트 쪽 수 어림: 표지 + 문제(4문항씩) + 정답표(60문항씩). 서버 create_pdf 와 같은 셈
+function notePageEstimate(count: number, cover: boolean) {
+  if (!count) return 0;
+  return (cover ? 1 : 0) + Math.ceil(count / 4) + Math.ceil(count / 60);
+}
+
+// 받은 PDF 의 실제 쪽 수(ReportLab PDF 는 쪽 객체가 압축되지 않아 /Type /Page 를 셀 수 있다)
+async function countPdfPages(blob: Blob) {
+  const text = new TextDecoder('latin1').decode(await blob.arrayBuffer());
+  return (text.match(/\/Type\s*\/Page(?![A-Za-z])/g) ?? []).length;
+}
+
 function variantKeysOf(problem: NaesinProblem | undefined) {
   return (problem?.variantList ?? []).map((v) => v.key);
 }
@@ -151,6 +164,9 @@ export default function NaesinPage() {
   // 기본은 가로폭 맞춤: A4 한 쪽이 미리보기 칸 너비를 꽉 채운다
   const [previewViewMode, setPreviewViewMode] = useState<'Fit' | 'FitH'>('FitH');
   const [previewExpanded, setPreviewExpanded] = useState(false);
+  // [오답노트 만들기] 미리보기 쪽 넘기기(교재 화면과 같은 ‹ 1/5 ›): 지금 쪽, 지금 미리보기 PDF 의 쪽 수
+  const [notePage, setNotePage] = useState(1);
+  const [notePages, setNotePages] = useState(1);
   const [variantPreviewOpen, setVariantPreviewOpen] = useState(false);
 
   const token = useCallback(async () => {
@@ -411,10 +427,12 @@ export default function NaesinPage() {
     if (type.includes('application/json')) {
       const result = (await response.json().catch(() => ({}))) as { error?: string; downloadUrl?: string };
       if (!response.ok || !result.downloadUrl) throw new Error(result.error || 'PDF 를 만들지 못했습니다.');
-      return { url: result.downloadUrl, isBlob: false };
+      return { url: result.downloadUrl, isBlob: false, pages: 0 };
     }
     if (!response.ok) throw new Error('PDF 를 만들지 못했습니다.');
-    return { url: URL.createObjectURL(await response.blob()), isBlob: true };
+    const blob = await response.blob();
+    const pages = await countPdfPages(blob).catch(() => 0);
+    return { url: URL.createObjectURL(blob), isBlob: true, pages };
   }
 
   function readyMessage(which: Mode) {
@@ -439,6 +457,11 @@ export default function NaesinPage() {
       const result = await postPdf(body, controller.signal);
       if (!result || controller.signal.aborted) return;
       setPreview(which, result.url);
+      if (which === 'note') {
+        // 쪽 수를 못 세면(큰 PDF 를 주소로 받은 경우) 문항 수로 어림
+        setNotePages(result.pages || notePageEstimate(selected.length, includeCover));
+        setNotePage(1);
+      }
       if (which === 'variants') setVariantPreviewOpen(true);
     } catch (e) {
       if (controller.signal.aborted) return;
@@ -595,11 +618,12 @@ export default function NaesinPage() {
           ) : !exams.length ? (
             <p className="text-sm text-slate-400">아직 올라온 내신 시험이 없어요.</p>
           ) : (
-            <div className="grid min-w-0 flex-1 grid-cols-2 gap-3 sm:grid-cols-[minmax(0,140px)_minmax(0,110px)_minmax(0,1fr)]">
+            // 칸 폭은 글자 길이만큼(시험 칸을 화면 끝까지 늘이지 않음). 휴대폰 폭에서는 학교·학년 한 줄, 시험 한 줄
+            <div className="grid w-full min-w-0 grid-cols-2 gap-3 sm:flex sm:w-auto sm:flex-wrap sm:items-end">
               <label className="min-w-0">
                 <span className="mb-1 block text-[12px] font-semibold text-[#b8c5d7]">학교</span>
                 <select
-                  className="w-full"
+                  className="w-full sm:w-auto sm:min-w-[140px]"
                   value={school}
                   onChange={(e) => {
                     setSchool(e.target.value);
@@ -616,7 +640,7 @@ export default function NaesinPage() {
               <label className="min-w-0">
                 <span className="mb-1 block text-[12px] font-semibold text-[#b8c5d7]">학년</span>
                 <select
-                  className="w-full"
+                  className="w-full sm:w-auto sm:min-w-[110px]"
                   value={activeGrade}
                   onChange={(e) => {
                     setGrade(e.target.value);
@@ -630,10 +654,10 @@ export default function NaesinPage() {
                   ))}
                 </select>
               </label>
-              <label className="col-span-2 min-w-0 sm:col-span-1">
+              <label className="col-span-2 min-w-0">
                 <span className="mb-1 block text-[12px] font-semibold text-[#b8c5d7]">시험</span>
                 <select
-                  className="w-full"
+                  className="w-full sm:w-auto sm:max-w-full"
                   value={exam?.prefix ?? ''}
                   onChange={(e) => {
                     setPrefix(e.target.value);
@@ -749,18 +773,21 @@ export default function NaesinPage() {
                   </span>
                   {selected.length > 0 && (
                     <span className="rounded-full border px-2.5 py-0.5 text-[13px] font-semibold">
-                      총 {selected.length}문항 ({Math.ceil(selected.length / 4)}페이지)
+                      총 {selected.length}문항 ({notePageEstimate(selected.length, includeCover)}페이지)
                     </span>
                   )}
                 </div>
                 {notePreview && (
-                  <PreviewTools
-                    viewMode={previewViewMode}
-                    onViewMode={() => setPreviewViewMode((v) => (v === 'Fit' ? 'FitH' : 'Fit'))}
-                    expanded={previewExpanded}
-                    onExpanded={() => setPreviewExpanded((v) => !v)}
-                    url={notePreview}
-                  />
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <PreviewPager page={notePage} total={notePages} onPage={setNotePage} />
+                    <PreviewTools
+                      viewMode={previewViewMode}
+                      onViewMode={() => setPreviewViewMode((v) => (v === 'Fit' ? 'FitH' : 'Fit'))}
+                      expanded={previewExpanded}
+                      onExpanded={() => setPreviewExpanded((v) => !v)}
+                      url={notePreview}
+                    />
+                  </div>
                 )}
               </div>
               <div className={`generator-preview-surface ${previewExpanded ? 'is-expanded' : ''}`}>
@@ -772,8 +799,8 @@ export default function NaesinPage() {
                 )}
                 {notePreview ? (
                   <iframe
-                    key={`${notePreview}-${previewViewMode}-${previewExpanded ? 'big' : 'base'}`}
-                    src={`${notePreview}#toolbar=${previewExpanded ? 1 : 0}&navpanes=0&view=${previewViewMode}`}
+                    key={`${notePreview}-${previewViewMode}-${notePage}-${previewExpanded ? 'big' : 'base'}`}
+                    src={`${notePreview}#toolbar=${previewExpanded ? 1 : 0}&navpanes=0&view=${previewViewMode}&page=${notePage}`}
                     title="내신 오답노트 미리보기"
                     className="h-full w-full rounded-lg border-0 bg-white shadow-md"
                     style={previewExpanded ? undefined : { height: 'calc(100vh - 120px)', minHeight: '800px' }}

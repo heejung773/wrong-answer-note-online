@@ -8,8 +8,6 @@ import {
   AlertTriangle,
   ArrowDownAZ,
   BookOpen,
-  ChevronLeft,
-  ChevronRight,
   CheckCircle2,
   ExternalLink,
   FileDown,
@@ -25,6 +23,7 @@ import {
   Upload,
   Zap,
 } from 'lucide-react';
+import { PreviewPager } from '@/components/preview-pager';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -2923,7 +2922,8 @@ export default function Home() {
               </div>
 
               {/* Step 2: 학생 정보 */}
-              <div className="generator-step" id="generator-student">
+              {/* is-compact: 머리줄·여백·입력칸 높이를 줄인 칸 (2026-11-04 선생님 요청, globals.css) */}
+              <div className="generator-step is-compact" id="generator-student">
                 <div className="generator-step-header px-4 py-3 flex items-center justify-between border-b border-[#334155] bg-slate-800/70">
                   <div className="flex items-center gap-2.5">
                     <span className="generator-step-number">
@@ -2962,11 +2962,11 @@ export default function Home() {
                 </div>
                 <div className="p-4">
                   {studentMode === 'single' ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
+                    <div className="generator-student-row">
+                      <div className="generator-student-field">
                         <label
                           htmlFor="hs-student-name"
-                          className="block text-[13px] font-semibold text-slate-300 mb-1.5"
+                          className="text-[13px] font-semibold text-slate-300"
                         >
                           학생 성명
                         </label>
@@ -2974,7 +2974,7 @@ export default function Home() {
                           id="hs-student-name"
                           type="text"
                           className="w-full px-3.5 py-2.5 bg-[#111c30] border border-[#334155] focus:border-teal-500 focus:ring-1 focus:ring-teal-500 rounded-lg text-slate-100 placeholder-slate-500 text-[13px] outline-none transition-all"
-                          placeholder="학생 이름 (예전 이름은 목록에서 선택)"
+                          placeholder="학생 이름"
                           autoComplete="off"
                           list="wrong-record-student-names"
                           value={student}
@@ -2986,15 +2986,11 @@ export default function Home() {
                             <option key={name} value={name} aria-label={name} />
                           ))}
                         </datalist>
-                        <small className="block mt-1 text-[12px] text-slate-400">
-                          ※ 다운로드·인쇄하면 이 학생의 오답 기록이 남습니다.
-                          예전에 쓴 이름은 목록에서 골라 같은 표기로 맞춰 주세요.
-                        </small>
                       </div>
-                      <div>
+                      <div className="generator-student-field">
                         <label
                           htmlFor="hs-student-grade"
-                          className="block text-[13px] font-semibold text-slate-300 mb-1.5"
+                          className="text-[13px] font-semibold text-slate-300"
                         >
                           학년 구분
                         </label>
@@ -4428,15 +4424,7 @@ export default function Home() {
 
                 {previewPdfUrl && (
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <div className="inline-flex items-center rounded-full bg-[#253349] border border-[#475569] overflow-hidden">
-                      <button type="button" onClick={() => setPreviewPage((page) => Math.max(1, page - 1))} disabled={previewPage <= 1} className="p-2.5 text-slate-300 hover:bg-[#334155] disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed" aria-label="이전 페이지">
-                        <ChevronLeft className="size-4" />
-                      </button>
-                      <span className="min-w-14 text-center text-[13px] font-semibold text-slate-200">{previewPage}/{Math.max(1, highSchoolPageCount)}</span>
-                      <button type="button" onClick={() => setPreviewPage((page) => Math.min(Math.max(1, highSchoolPageCount), page + 1))} disabled={previewPage >= Math.max(1, highSchoolPageCount)} className="p-2.5 text-slate-300 hover:bg-[#334155] disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed" aria-label="다음 페이지">
-                        <ChevronRight className="size-4" />
-                      </button>
-                    </div>
+                    <PreviewPager page={previewPage} total={highSchoolPageCount} onPage={setPreviewPage} />
                     {/* View Mode Toggle: Fit vs FitH */}
                     <button
                       type="button"

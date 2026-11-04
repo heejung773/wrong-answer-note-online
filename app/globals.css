@@ -711,6 +711,18 @@ html:has(.selection-canvas) {
 .generator-actions button:nth-child(2):hover { background: #78e1e4; transform: none; }
 @media (max-width: 1199px) { .generator-grid { grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 18px; } .generator-topbar-context { display: none; } }
 @media (max-width: 959px) { .generator-grid { grid-template-columns: 1fr; } .generator-preview { position: static; } .generator-preview-surface { min-height: 560px; } }
+/* 교재 화면 2단계 '학생 정보': 세로 공간을 줄인 칸 (2026-11-04). 머리줄·여백·입력칸 높이를 줄이고 이름·학년을 한 줄에 */
+.generator-canvas .generator-step.is-compact .generator-step-header { padding: 8px 16px; min-height: 0; }
+.generator-step.is-compact .generator-student-mode button { min-height: 28px; }
+.generator-step.is-compact > .p-4 { padding: 10px 16px; }
+.generator-canvas .generator-step.is-compact input:not([type='checkbox']):not([type='file']),
+.generator-canvas .generator-step.is-compact select { min-height: 36px; padding: 6px 11px; }
+.generator-student-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.generator-student-field { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.generator-student-field:first-child { flex: 1 1 180px; }
+.generator-step .generator-student-field label { margin-bottom: 0; white-space: nowrap; }
+.generator-student-field:first-child input { flex: 1 1 auto; min-width: 0; }
+.generator-student-field select { width: auto; }
 /* 내신 [오답노트 만들기]: 미리보기를 더 넓게 (입력 1 : 미리보기 2). 교재 화면에는 이 클래스가 없다 */
 .generator-grid.naesin-note-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
 @media (max-width: 959px) { .generator-grid.naesin-note-grid { grid-template-columns: 1fr; } }
