@@ -464,8 +464,13 @@ def load_quick_answers(supabase_url: str, secret_key: str, bucket: str, textbook
     pattern = re.compile(
         r"(?<!\d)(\d{4})[\s\x00-\x1f]*"
         r"(해설참조|[①②③④⑤]|(?:\(\d+\)\s*[-+]?\d+\w*\s*)+|[-+]?\d+(?:\s*\(원\)|m)?)"
+        r"(-(?!\S))?"
     )
-    answers = {int(number): answer for number, answer in pattern.findall(text)}
+    # 공통수학2 빠른정답 PDF 는 음수의 마이너스가 숫자 뒤에 붙어 나온다('1422 5- 1423'). 정수 답일 때만 음수로 바꾼다.
+    answers = {
+        int(number): f"-{answer}" if trailing_minus and re.fullmatch(r"[0-9]+", answer) else answer
+        for number, answer, trailing_minus in pattern.findall(text)
+    }
     if len(answers) < config["minimum_answers"]:
         raise ValueError("빠른정답 PDF에서 정답을 완전히 읽지 못했습니다.")
 
