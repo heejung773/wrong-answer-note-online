@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { requireAdmin, serviceHeaders, type AdminContext } from '@/lib/admin-auth';
+import { isMissingReissueColumn } from '@/lib/pdf-options';
 import { nameKey, WRONG_RECORD_TEXTBOOKS } from '@/lib/wrong-records';
 import {
   groupIssues,
@@ -7,6 +8,7 @@ import {
   issueId,
   kstDate,
   RECORD_COLUMNS,
+  RECORD_COLUMNS_BASE,
   type RecordRow,
 } from '@/lib/wrong-record-list';
 
@@ -19,7 +21,10 @@ import {
  * DELETE { id: 'YYYY-MM-DD|student_key|textbook' }
  *        → 그 발급 묶음(그날 그 학생 그 교재의 모든 줄)을 지운다. 실수 기록 정리용. { deleted }
  *
- * 표: supabase/wrong_answer_records.sql (구조 변경 없음). 서버 비밀 키로만 읽고 쓴다.
+ * 표: supabase/wrong_answer_records.sql. 서버 비밀 키로만 읽고 쓴다.
+ * [다시 받기]용 칸(problem_order, pdf_options, supabase/wrong_answer_records_reissue.sql)이 아직 없으면
+ * 그 칸 없이 다시 읽는다(옛 기록과 같이 '기본 설정'으로 다시 받기).
+ * [다시 받기] 자체는 이 API 를 쓰지 않는다: 화면이 받은 목록으로 /api/generate 만 부르고 기록은 남기지 않는다.
  */
 
 export const dynamic = 'force-dynamic';
@@ -31,6 +36,20 @@ const MAX_ROWS = 20000;
 const TIMEOUT_MS = 8000;
 
 const textbooks = new Set<string>(WRONG_RECORD_TEXTBOOKS);
+
+/** 표 읽기 실패. 새 칸이 없어서인지 알아볼 수 있게 상태·본문을 들고 간다. */
+class ReadError extends Error {
+  constructor(
+    readonly status: number,
+    readonly body: string,
+  ) {
+    super('read failed');
+  }
+}
+
+// 새 칸이 없다고 확인되면 잠깐(10분) 기억해 두고 처음 칸만 읽는다(SQL 실행 뒤 저절로 다시 시도).
+let reissueColumnsMissingAt = 0;
+const RECHECK_MS = 10 * 60 * 1000;
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -52,14 +71,34 @@ async function fetchAll<T>(
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
     if (!response.ok) {
+      const body = (await response.text().catch(() => '')).slice(0, 300);
       console.error('[admin/wrong-records] read failed', response.status);
-      throw new Error('read failed');
+      throw new ReadError(response.status, body);
     }
     const page = (await response.json()) as T[];
     rows.push(...page);
     if (page.length < PAGE) return { rows, truncated: false };
   }
   return { rows, truncated: true };
+}
+
+/** 목록 줄 읽기: 새 칸까지 읽고, 칸이 아직 없으면 처음 칸만 다시 읽는다. */
+async function fetchRecordRows(ctx: AdminContext, params: URLSearchParams) {
+  const withColumns = (columns: string) => {
+    const qs = new URLSearchParams(params);
+    qs.set('select', columns);
+    return qs;
+  };
+  if (Date.now() - reissueColumnsMissingAt > RECHECK_MS) {
+    try {
+      return await fetchAll<RecordRow>(ctx, withColumns(RECORD_COLUMNS));
+    } catch (error) {
+      if (!(error instanceof ReadError && isMissingReissueColumn(error.status, error.body))) throw error;
+      reissueColumnsMissingAt = Date.now();
+      console.info('[admin/wrong-records] reissue columns not found, reading base columns');
+    }
+  }
+  return fetchAll<RecordRow>(ctx, withColumns(RECORD_COLUMNS_BASE));
 }
 
 /** ilike 안에서 와일드카드로 읽히는 글자는 뺀다. */
@@ -79,7 +118,6 @@ export async function GET(request: NextRequest) {
   if ((from && !isIsoDate(from)) || (to && !isIsoDate(to))) return jsonError('기간 형식이 잘못되었습니다.', 400);
 
   const params = new URLSearchParams({
-    select: RECORD_COLUMNS,
     source: `eq.${SOURCE}`,
     order: 'created_at.desc,id.desc',
   });
@@ -99,7 +137,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const [list, month] = await Promise.all([
-      fetchAll<RecordRow>(auth, params),
+      fetchRecordRows(auth, params),
       fetchAll<Pick<RecordRow, 'recorded_on' | 'student_key' | 'textbook'>>(auth, monthParams),
     ]);
     const monthIssues = new Set(month.rows.map((r) => issueId(r.recorded_on, r.student_key, r.textbook)));

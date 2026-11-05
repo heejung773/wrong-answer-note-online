@@ -37,6 +37,10 @@ create table if not exists public.wrong_answer_records (
   unit             text                                    -- 단원(지금은 올림포스·중등 3단·시너지 공통수학1만, 나머지 null)
 );
 
+-- 2026-11-05 다운목록 [다시 받기]용 칸(이미 만든 표는 wrong_answer_records_reissue.sql 만 실행하면 같다)
+alter table public.wrong_answer_records add column if not exists problem_order smallint;  -- 그 PDF 안 문항 순서(0부터)
+alter table public.wrong_answer_records add column if not exists pdf_options jsonb;       -- 그 PDF 의 표지·서식 설정
+
 -- 같은 날 같은 학생·교재·문항은 한 줄만
 create unique index if not exists wrong_answer_records_dedup
   on public.wrong_answer_records (source, student_key, textbook, problem_key, recorded_on);

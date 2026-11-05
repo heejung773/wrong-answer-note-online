@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { isMissingReissueColumn, sanitizePdfOptions } from '@/lib/pdf-options';
 import {
   buildWrongRecordProblems,
   displayName,
@@ -17,12 +18,20 @@ import {
  * 서버 비밀 키가 없거나 WRONG_RECORDS_ENABLED=0 이면 { status: 'off' } 로 조용히 건너뛴다.
  * 어떤 경우에도 PDF 생성과는 별개 요청이라 기록 실패가 PDF 를 막지 않는다.
  * 표 구조: supabase/wrong_answer_records.sql
+ *
+ * 2026-11-05 [다시 받기]: 줄마다 그 PDF 안 문항 순서(problem_order)와 표지·서식 설정(pdf_options, 화면이 보낸 pdfOptions)을
+ * 같이 남긴다. 칸이 아직 없으면(supabase/wrong_answer_records_reissue.sql 실행 전) 그 두 칸만 빼고 다시 넣는다.
+ * 관리자 다운목록의 [다시 받기]는 이 API 를 부르지 않는다(기록이 새로 생기면 '두 번 틀림 ×2' 가 틀어짐).
  */
 
 export const dynamic = 'force-dynamic';
 
 const SOURCE = 'fix';
 const TIMEOUT_MS = 5000;
+
+// 새 칸이 없다고 확인되면 잠깐(10분) 기억해 두고 처음 칸만 넣는다(SQL 실행 뒤 저절로 다시 시도).
+let reissueColumnsMissingAt = 0;
+const RECHECK_MS = 10 * 60 * 1000;
 
 type Settings = { url: string; publishableKey: string; secretKey: string };
 type AuthUser = { id?: string; email?: string };
@@ -101,8 +110,9 @@ export async function POST(request: NextRequest) {
   const studentKey = nameKey(rawName);
   const userId = user.id;
   const teacher = user.email ? user.email.split('@')[0] : null;
+  const pdfOptions = sanitizePdfOptions(body.pdfOptions);
 
-  const rows = built.problems.map((p) => ({
+  const baseRows = built.problems.map((p) => ({
     recorded_on: recordedOn,
     user_id: userId,
     teacher,
@@ -119,20 +129,38 @@ export async function POST(request: NextRequest) {
     problem_label: p.problem_label,
     unit: p.unit,
   }));
+  const rows = baseRows;
+  const fullRows = baseRows.map((row, index) => ({ ...row, problem_order: index, pdf_options: pdfOptions }));
 
-  try {
-    const response = await fetch(
+  const insert = (payload: object[]) =>
+    fetch(
       `${cfg.url}/rest/v1/wrong_answer_records?on_conflict=source,student_key,textbook,problem_key,recorded_on&select=problem_key`,
       {
         method: 'POST',
         headers: serviceHeaders(cfg.secretKey, {
           Prefer: 'resolution=ignore-duplicates,return=representation',
         }),
-        body: JSON.stringify(rows),
+        body: JSON.stringify(payload),
         cache: 'no-store',
         signal: AbortSignal.timeout(TIMEOUT_MS),
       },
     );
+
+  try {
+    let response: Response | null = null;
+    if (Date.now() - reissueColumnsMissingAt > RECHECK_MS) {
+      response = await insert(fullRows);
+      if (!response.ok) {
+        const text = await response.clone().text().catch(() => '');
+        if (isMissingReissueColumn(response.status, text)) {
+          // 칸이 없으면 한 줄도 들어가지 않은 상태라 처음 칸만으로 다시 넣는다.
+          reissueColumnsMissingAt = Date.now();
+          console.info('[wrong-records] reissue columns not found, saving base columns');
+          response = null;
+        }
+      }
+    }
+    if (!response) response = await insert(baseRows);
     if (!response.ok) {
       console.error('[wrong-records] insert failed', response.status, (await response.text()).slice(0, 200));
       return Response.json({ status: 'failed', error: '오답 기록 저장에 실패했습니다.' }, { status: 502 });

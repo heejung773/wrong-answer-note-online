@@ -4,6 +4,8 @@
  * 화면(app/admin/downloads) 둘 다 쓰는 순수 함수만 둔다(비밀 값·네트워크 없음).
  */
 
+import { sanitizePdfOptions, type PdfOptions } from './pdf-options';
+
 export const TEXTBOOK_NAMES: Record<string, string> = {
   'synergy-common-math-1': '시너지 공통수학1',
   'ssen-common-math-1': '쎈 공통수학1',
@@ -23,9 +25,11 @@ export const TEXTBOOK_NAMES: Record<string, string> = {
 
 export const textbookName = (id: string) => TEXTBOOK_NAMES[id] ?? id;
 
-/** 표에서 읽는 칸 (select 순서와 같게). */
-export const RECORD_COLUMNS =
-  'id,created_at,recorded_on,teacher,batch_id,output_kind,student_name,student_key,grade,textbook,problem_key,problem_number,problem_label,unit';
+/** 표에서 읽는 칸 (select 순서와 같게). 처음부터 있던 칸만. */
+export const RECORD_COLUMNS_BASE =
+  'id,created_at,recorded_on,teacher,batch_id,output_kind,student_name,student_name_raw,student_key,grade,textbook,problem_key,problem_number,problem_label,unit';
+/** [다시 받기]용으로 더한 칸까지(supabase/wrong_answer_records_reissue.sql 실행 뒤). */
+export const RECORD_COLUMNS = `${RECORD_COLUMNS_BASE},problem_order,pdf_options`;
 
 export type RecordRow = {
   id: string;
@@ -35,6 +39,7 @@ export type RecordRow = {
   batch_id: string;
   output_kind: string | null;
   student_name: string;
+  student_name_raw?: string | null;
   student_key: string;
   grade: string | null;
   textbook: string;
@@ -42,6 +47,10 @@ export type RecordRow = {
   problem_number: number | null;
   problem_label: string | null;
   unit: string | null;
+  /** 그 PDF 안에서의 문항 순서(0부터). 칸 추가 전 기록은 없음 */
+  problem_order?: number | null;
+  /** 그 PDF 의 표지·서식 설정(lib/pdf-options.ts). 칸 추가 전 기록은 없음 */
+  pdf_options?: unknown;
 };
 
 export type IssueProblem = {
@@ -52,6 +61,8 @@ export type IssueProblem = {
   /** 묶음 안에서 보여 줄 짧은 번호 '12' */
   short: string;
   label: string;
+  /** 기록의 unit 칸(올림포스는 단원 이름 그대로) */
+  unit: string | null;
 };
 
 export type Issue = {
@@ -61,6 +72,8 @@ export type Issue = {
   first_at: string;
   last_at: string;
   student_name: string;
+  /** 처음 입력한 이름 그대로(PDF 에 찍힌 이름). 없으면 student_name */
+  student_name_raw: string;
   student_key: string;
   textbook: string;
   grade: string | null;
@@ -69,6 +82,12 @@ export type Issue = {
   batch_count: number;
   units: string[];
   problems: IssueProblem[];
+  /** [다시 받기] 문항 순서(problem_key). 받은 순서 → 그 PDF 안 순서. 순서 칸이 없으면 problems 순서 */
+  order: string[];
+  /** 모든 줄에 PDF 안 순서가 남아 있는지 */
+  ordered: boolean;
+  /** 처음 받을 때의 표지·서식 설정(가장 이른 기록). 옛 기록은 null → 기본 설정 */
+  options: PdfOptions | null;
 };
 
 export const issueId = (recordedOn: string, studentKey: string, textbook: string) =>
@@ -119,23 +138,30 @@ export function groupIssues(rows: RecordRow[]): Issue[] {
     const latest = sorted[sorted.length - 1];
     const seen = new Set<string>();
     const problems: IssueProblem[] = [];
+    const byKey = new Map<string, IssueProblem>();
     for (const row of sorted) {
       if (seen.has(row.problem_key)) continue;
       seen.add(row.problem_key);
-      problems.push({
+      const problem: IssueProblem = {
         key: row.problem_key,
         number: row.problem_number,
         label: row.problem_label ?? row.problem_key,
+        unit: row.unit,
         ...splitLabel(row),
-      });
+      };
+      problems.push(problem);
+      byKey.set(problem.key, problem);
     }
     problems.sort((a, b) => compareProblems(latest.textbook, a, b));
+    const { order, ordered } = reissueOrder(sorted, byKey, latest.textbook);
+    const optionsRow = sorted.find((r) => sanitizePdfOptions(r.pdf_options));
     issues.push({
       id,
       recorded_on: latest.recorded_on,
       first_at: sorted[0].created_at,
       last_at: latest.created_at,
       student_name: latest.student_name,
+      student_name_raw: (sorted[0].student_name_raw ?? '').trim() || latest.student_name,
       student_key: latest.student_key,
       textbook: latest.textbook,
       grade: latest.grade,
@@ -144,11 +170,51 @@ export function groupIssues(rows: RecordRow[]): Issue[] {
       batch_count: uniq(sorted.map((r) => r.batch_id)).length,
       units: uniq(problems.map((p) => sorted.find((r) => r.problem_key === p.key)?.unit)),
       problems,
+      order,
+      ordered,
+      options: optionsRow ? sanitizePdfOptions(optionsRow.pdf_options) : null,
     });
   }
   return issues.sort(
     (a, b) => b.recorded_on.localeCompare(a.recorded_on) || b.last_at.localeCompare(a.last_at),
   );
+}
+
+/**
+ * [다시 받기] 문항 순서: 버튼을 누른 순서(batch, 시각순)대로, 한 번 받은 PDF 안에서는 problem_order 순.
+ * problem_order 가 없는 옛 기록은 그 batch 안에서 화면 정렬(번호·경로 순)을 쓴다. 같은 문항은 처음 한 번만.
+ */
+function reissueOrder(
+  sorted: RecordRow[],
+  byKey: Map<string, IssueProblem>,
+  textbook: string,
+): { order: string[]; ordered: boolean } {
+  const batches = new Map<string, RecordRow[]>();
+  for (const row of sorted) {
+    const list = batches.get(row.batch_id);
+    if (list) list.push(row);
+    else batches.set(row.batch_id, [row]);
+  }
+  const hasOrder = (r: RecordRow) => typeof r.problem_order === 'number' && Number.isFinite(r.problem_order);
+  const ordered = sorted.every(hasOrder);
+  const order: string[] = [];
+  const seen = new Set<string>();
+  // Map 은 넣은 순서를 지키므로 batch 는 처음 줄의 시각순
+  for (const rows of batches.values()) {
+    const inBatch = rows.every(hasOrder)
+      ? [...rows].sort((a, b) => (a.problem_order as number) - (b.problem_order as number))
+      : [...rows].sort((a, b) => {
+          const pa = byKey.get(a.problem_key);
+          const pb = byKey.get(b.problem_key);
+          return pa && pb ? compareProblems(textbook, pa, pb) : collator.compare(a.problem_key, b.problem_key);
+        });
+    for (const row of inBatch) {
+      if (seen.has(row.problem_key)) continue;
+      seen.add(row.problem_key);
+      order.push(row.problem_key);
+    }
+  }
+  return { order, ordered };
 }
 
 /** 문항을 묶음별로: [['', ['3','12']], ['1단원 · 유형', ['5','7']]] */

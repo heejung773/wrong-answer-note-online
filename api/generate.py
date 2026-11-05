@@ -2247,6 +2247,9 @@ class handler(BaseHTTPRequestHandler):
 
             # Student(s) parsing (support single student or batch list)
             is_preview = bool(payload.get("preview", False))
+            # 관리자 다운목록 [다시 받기](lib/reissue.ts): PDF 는 같은 경로로 만들고 사용량 기록에만 표시한다.
+            # 오답 기록(wrong_answer_records)은 이 함수가 원래 쓰지 않는다(화면이 /api/wrong-records 로 따로 남김).
+            reissue_meta = {"reissue": True} if payload.get("reissue") is True else {}
             is_batch_req = bool(payload.get("isBatch", False))
             raw_students = payload.get("studentNames")
             student_list: list[str] = []
@@ -2524,7 +2527,7 @@ class handler(BaseHTTPRequestHandler):
                     log_usage_event(
                         supabase_url, secret_key, user_id,
                         "print_started" if payload.get("printBatch") else "pdf_generated",
-                        textbook, problem_count, 1, {"format": "pdf", "temporary": True},
+                        textbook, problem_count, 1, {"format": "pdf", "temporary": True, **reissue_meta},
                     )
                 return self.send_json_data(
                     200,
@@ -2543,7 +2546,7 @@ class handler(BaseHTTPRequestHandler):
                 log_usage_event(
                     supabase_url, secret_key, user_id,
                     "print_started" if payload.get("printBatch") else "pdf_generated",
-                    textbook, problem_count, 1, {"format": "pdf"},
+                    textbook, problem_count, 1, {"format": "pdf", **reissue_meta},
                 )
         except KeyError:
             self.send_json(503, "서버 연결 설정이 아직 완료되지 않았습니다.")

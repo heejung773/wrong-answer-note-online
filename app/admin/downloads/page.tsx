@@ -2,9 +2,10 @@
 
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { RefreshCw, Search, Trash2, X } from 'lucide-react';
+import { Download, RefreshCw, Search, Trash2, X } from 'lucide-react';
 import { AdminNav } from '../admin-nav';
 import { GoToMainLogin } from '../go-to-login';
+import { buildReissuePlan, downloadHref, fetchReissuePdf, ReissueError } from '@/lib/reissue';
 import {
   kstDate,
   problemGroups,
@@ -17,6 +18,9 @@ import {
  * 관리자 '다운목록': 개별 학생 오답노트를 다운로드·인쇄할 때 쌓인 오답 기록(wrong_answer_records)을
  * 발급(같은 날 · 같은 학생 · 같은 교재) 단위로 보여 준다. 데이터는 /api/admin/wrong-records 에서만
  * 받는다(메인 화면과 같은 로그인 토큰 확인). 로그인 전이면 메인 로그인 화면(/)으로 보낸다.
+ *
+ * [다시 받기](2026-11-05): 그 줄의 기록(학생·교재·문항·표지 설정)으로 처음과 같은 PDF 를 /api/generate 에서 다시 만든다
+ * (lib/reissue.ts). PDF 는 보관하지 않고, 오답 기록(/api/wrong-records)은 부르지 않아 새 줄이 생기지 않는다.
  */
 
 type Summary = { monthCount: number; monthStudents: number };
@@ -148,6 +152,7 @@ export default function AdminDownloadsPage() {
   const [error, setError] = useState('');
   const [shown, setShown] = useState(PAGE_SIZE);
   const [deleting, setDeleting] = useState('');
+  const [reissuing, setReissuing] = useState('');
   const [notice, setNotice] = useState('');
 
   const [openIssue, setOpenIssue] = useState('');
@@ -256,6 +261,80 @@ export default function AdminDownloadsPage() {
     }
   }
 
+  /**
+   * [다시 받기]: 기록으로 PDF 를 다시 만든다. 오답 기록은 남기지 않는다(새 줄 없음).
+   * 처음에 '다운로드'로 받았으면 파일로, '인쇄'만 했으면 인쇄 창으로.
+   */
+  async function handleReissue(issue: Issue) {
+    setNotice('');
+    let plan: ReturnType<typeof buildReissuePlan>;
+    try {
+      plan = buildReissuePlan(issue);
+    } catch (e) {
+      setNotice(e instanceof Error ? e.message : '다시 만들 수 없는 기록이에요.');
+      return;
+    }
+    // 인쇄는 PDF 를 만드는 동안 팝업 차단에 걸리지 않게 누른 순간 빈 창을 먼저 연다.
+    const printWin = plan.outputKind === 'print' ? window.open('', '_blank') : null;
+    setReissuing(issue.id);
+    try {
+      const accessToken = await token();
+      if (!accessToken) {
+        printWin?.close();
+        setLoginRequired(true);
+        return;
+      }
+      const result = await fetchReissuePdf(plan.payload, accessToken);
+      const blobUrl = 'blob' in result ? URL.createObjectURL(result.blob) : '';
+      const href = blobUrl || ('url' in result ? downloadHref(result.url, plan.filename) : '');
+      let how = '다운로드를 시작했어요';
+      if (printWin && !printWin.closed) {
+        printWin.location.href = href;
+        printWin.focus();
+        // PDF 가 열리면 인쇄 창을 띄운다(못 띄우면 열린 PDF 에서 직접 인쇄).
+        let tries = 0;
+        const timer = window.setInterval(() => {
+          tries += 1;
+          try {
+            if (printWin.closed || tries > 20) {
+              window.clearInterval(timer);
+              return;
+            }
+            if (printWin.location.href === href && printWin.document.readyState === 'complete') {
+              window.clearInterval(timer);
+              printWin.print();
+            }
+          } catch {
+            window.clearInterval(timer);
+          }
+        }, 300);
+        how = '인쇄 창을 열었어요';
+      } else {
+        const link = document.createElement('a');
+        link.href = href;
+        if (blobUrl) link.download = plan.filename;
+        link.click();
+        if (blobUrl) window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+        if (plan.outputKind === 'print') how = '인쇄 창이 막혀 파일로 받았어요';
+      }
+      setNotice(
+        [
+          `다시 받기: ${issue.student_name} · ${textbookName(issue.textbook)} ${how}. 다운목록에 새 기록은 남지 않아요.`,
+          ...plan.notes,
+        ].join(' '),
+      );
+    } catch (e) {
+      printWin?.close();
+      if (e instanceof ReissueError && e.status === 401) {
+        setLoginRequired(true);
+        return;
+      }
+      setNotice(e instanceof Error ? `다시 받기 실패: ${e.message}` : '다시 받기에 실패했어요.');
+    } finally {
+      setReissuing('');
+    }
+  }
+
   async function handleDelete(issue: Issue) {
     const message =
       `${dayLabel(issue.recorded_on)} · ${issue.student_name} · ${textbookName(issue.textbook)}\n` +
@@ -305,6 +384,9 @@ export default function AdminDownloadsPage() {
               <h1 className="text-xl font-semibold sm:text-2xl">다운목록</h1>
               <p className="mt-1 text-sm text-slate-400">
                 학생 한 명씩 오답노트를 다운로드·인쇄하면 여기에 남아요. 같은 날 · 같은 학생 · 같은 교재는 한 줄로 묶어요.
+              </p>
+              <p className="mt-0.5 text-xs text-slate-500">
+                [다시 받기]는 그 기록으로 같은 PDF 를 다시 만들어요(다운목록에 새로 남지 않아요). 옛 기록은 기본 설정으로 다시 만들어요.
               </p>
             </div>
             <p className="text-sm text-slate-300" aria-live="polite">
@@ -397,12 +479,13 @@ export default function AdminDownloadsPage() {
           )}
 
           <div className="mt-4 border-t border-slate-700" aria-busy={loading}>
-            <div className="hidden grid-cols-[150px_110px_150px_minmax(0,1fr)_110px_44px] gap-3 border-b border-slate-700 px-1 py-2 text-xs text-slate-400 md:grid">
+            <div className="hidden grid-cols-[150px_110px_150px_minmax(0,1fr)_110px_96px_52px] gap-3 border-b border-slate-700 px-1 py-2 text-xs text-slate-400 md:grid">
               <span>발급 날짜</span>
               <span>학생</span>
               <span>교재</span>
               <span>틀린 문항</span>
               <span>방식</span>
+              <span />
               <span />
             </div>
 
@@ -419,7 +502,7 @@ export default function AdminDownloadsPage() {
               const hist = history[issue.student_key];
               return (
                 <div key={issue.id} className="border-b border-slate-700/80">
-                  <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-1 py-3 md:grid-cols-[150px_110px_150px_minmax(0,1fr)_110px_44px] md:items-start">
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-1 py-3 md:grid-cols-[150px_110px_150px_minmax(0,1fr)_110px_96px_52px] md:items-start">
                     <div className="text-sm text-slate-300 md:pt-0.5">
                       {dayLabel(issue.recorded_on)}
                       <span className="ml-1.5 text-xs text-slate-500">{timeLabel(issue.last_at)}</span>
@@ -448,7 +531,32 @@ export default function AdminDownloadsPage() {
                     <div className="col-start-1 md:col-auto md:pt-0.5">
                       <Tags issue={issue} />
                     </div>
-                    <div className="col-start-2 row-start-1 md:col-auto md:row-auto">
+                    <div className="col-start-1 mt-1 flex flex-wrap items-center gap-x-2 md:col-auto md:mt-0 md:block">
+                      <button
+                        aria-label={`${issue.student_name} ${textbookName(issue.textbook)} 오답노트 다시 받기`}
+                        className="inline-flex h-8 items-center gap-1 whitespace-nowrap rounded-md border border-teal-500/50 px-2.5 text-xs font-semibold text-teal-200 hover:border-teal-300 hover:bg-teal-400/10 disabled:opacity-50"
+                        disabled={reissuing !== ''}
+                        onClick={() => void handleReissue(issue)}
+                        title="이 기록으로 같은 PDF 다시 받기 (새 기록은 남지 않아요)"
+                        type="button"
+                      >
+                        {reissuing === issue.id ? (
+                          <RefreshCw className="size-3.5 animate-spin" />
+                        ) : (
+                          <Download className="size-3.5" />
+                        )}
+                        {reissuing === issue.id ? '만드는 중' : '다시 받기'}
+                      </button>
+                      {!issue.options && (
+                        <span
+                          className="text-[11px] text-slate-500 md:mt-1 md:block"
+                          title="표지·서식 설정이 남기 전 기록이라 기본 설정으로 다시 만들어요"
+                        >
+                          기본 설정으로
+                        </span>
+                      )}
+                    </div>
+                    <div className="col-start-2 row-start-1 md:col-auto md:row-auto md:flex md:justify-end">
                       <button
                         aria-label={`${issue.student_name} ${textbookName(issue.textbook)} 기록 삭제`}
                         className="rounded-md border border-red-900/60 p-1.5 text-red-300 hover:border-red-400 hover:bg-red-500/10 disabled:opacity-40"
