@@ -429,19 +429,55 @@ def load_olympus_images(supabase_url: str, secret_key: str, bucket: str, unit: s
     return results
 
 
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+# 확인된 정답표를 쓰는 교재. 원본은 저장소(R2)의 {textbook}/answers.json(테스트지만들기와 같이 읽음),
+# 아래 data json 은 저장소에서 못 읽을 때 쓰는 비상용 사본이다.
+VERIFIED_ANSWER_FILES: dict[str, list[Path]] = {
+    "synergy-common-math-1": [
+        _PROJECT_ROOT / "data" / "synergy_common_math_1_answers_simple.json",
+        Path(r"D:\공퉁수학1_시너지\synergy_common_math_1_answers_simple.json"),
+    ],
+    "synergy-common-math-2": [
+        _PROJECT_ROOT / "data" / "synergy_common_math_2_answers_simple.json",
+    ],
+}
+
+
+def parse_answer_json(raw: bytes, textbook: str) -> dict[int, str]:
+    """평평한 {"1": "...", ...} 정답표를 읽는다. 모양이 다르거나 문항 수가 모자라면 ValueError."""
+    data = json.loads(raw.decode("utf-8-sig"))
+    if not isinstance(data, dict):
+        raise ValueError("answers.json is not an object")
+    answers = {int(key): str(value) for key, value in data.items()}
+    if len(answers) < TEXTBOOKS[textbook].get("minimum_answers", 1):
+        raise ValueError(f"answers.json has only {len(answers)} answers")
+    return answers
+
+
+def fetch_storage_answer_json(supabase_url: str, secret_key: str, bucket: str, textbook: str) -> bytes:
+    """저장소(R2, quick-answer.pdf 와 같은 교재 폴더)의 answers.json 바이트."""
+    object_path = urllib.parse.quote(f"{bucket}/{textbook}/answers.json", safe="/")
+    return request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", {"apikey": secret_key})
+
+
 def load_quick_answers(supabase_url: str, secret_key: str, bucket: str, textbook: str) -> dict[int, str]:
     cache_key = f"quick-answers:{textbook}"
     with ANSWER_CACHE_LOCK:
         if cache_key in ANSWER_CACHE:
             return dict(ANSWER_CACHE[cache_key])
 
-    # synergy-common-math-1 사전 추출 정답 우선 로드 (100% 무결점 보장)
-    if textbook == "synergy-common-math-1":
-        project_root = Path(__file__).resolve().parent.parent
-        for cand in [
-            project_root / "data" / "synergy_common_math_1_answers_simple.json",
-            Path(r"D:\공퉁수학1_시너지\synergy_common_math_1_answers_simple.json"),
-        ]:
+    if textbook in VERIFIED_ANSWER_FILES:
+        # ① 저장소의 확인된 정답표(answers.json). 실패하면 로그만 남기고 ② 로 넘어간다.
+        try:
+            answers = parse_answer_json(fetch_storage_answer_json(supabase_url, secret_key, bucket, textbook), textbook)
+            with ANSWER_CACHE_LOCK:
+                ANSWER_CACHE[cache_key] = answers
+            return dict(answers)
+        except Exception as error:
+            print(f"[-] answers.json load failed ({textbook}), using local copy:", type(error).__name__)
+
+        # ② 비상용 사본(data json) → 그것도 없으면 아래 빠른정답 PDF 파싱
+        for cand in VERIFIED_ANSWER_FILES[textbook]:
             if cand.is_file():
                 try:
                     raw_dict = json.loads(cand.read_text(encoding="utf-8"))

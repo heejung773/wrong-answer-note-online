@@ -1112,3 +1112,14 @@
 - 캐시: `ANSWER_CACHE` 는 서버리스 실행 안 메모리뿐(파일·DB 캐시 없음) → 새 배포 뒤 새 인스턴스에서 새로 읽음. 따로 비울 것 없음. 이미 내려받은/인쇄한 PDF 는 옛 값 그대로(다운목록 [다시 받기]는 배포 뒤면 새 값으로 만들어짐).
 - 남은 문제(이번에 안 고침, 선생님 결정): 공수2 PDF 의 근호·분수·π 답 12개는 지금도 틀린 숫자로 나옴 — 0113 3√5→'35', 0299 5√3→'53', 0302 −4+√10→'41', 0304 √3→'3', 0497 2√15→'21', 0502 12√3→'12', 0504 −12/25→'25', 0506 (1)4π (2)8π→'(1) 4r (2) 8r', 0593 −8/3→'3', 1726 2√6→'26', 1835 √2→'2', 1888 1/8→'8'. 공수1 처럼 확인된 정답 표(JSON)나 번호별 고침 표를 두는 방법 필요.
 - 하지 않음: push·배포, Supabase·R2 쓰기, 삭제. `D:\공퉁수학1_시너지\synergy_common_math_1_answers_simple.json`(같은 깨진 값, generate.py 의 두 번째 후보 경로)은 이 폴더 밖이라 안 고침.
+
+## 2026-11-05 공수1·2 정답 원본을 R2 answers.json 한 곳으로 (테스트와 같이 읽기)
+
+- 요청(강비 전달, 선생님 결정): 시너지 공통수학1·2 정답표를 오답노트·테스트가 각자 갖지 말고 클라우드 한 곳에 두고 같이 읽기. 규칙(테스트 담당도 같게 구현): R2 키 `synergy-common-math-1/answers.json`, `synergy-common-math-2/answers.json`(quick-answer.pdf 와 같은 교재 폴더), 내용은 평평한 {"1": "...", ...} UTF-8. 읽는 순서 ① 저장소 answers.json → ② 지금 방식(data json → PDF 파싱), 실패는 로그만. 커밋까지, push·R2 쓰기 금지.
+- **공수1·2 정답 원본은 R2 answers.json, data json 은 비상용 사본.** (R2 에는 아직 안 올림 — 올리기 전까지는 ② 비상용 사본으로 동작.)
+- 한 일: `api/generate.py` 에 `VERIFIED_ANSWER_FILES`(두 교재 → data json 후보), `parse_answer_json`(딕셔너리·문항 수 ≥ minimum_answers 검사), `fetch_storage_answer_json`(quick-answer.pdf 와 같은 `request_bytes` 경로 → 운영은 R2). `load_quick_answers` 가 두 교재는 ① answers.json → 실패 시 `[-] answers.json load failed (교재), using local copy: 오류이름` 로그 → ② data json → PDF. 메모리 캐시(ANSWER_CACHE) 그대로. 공수2 비상용 사본 `data/synergy_common_math_2_answers_simple.json` = 테스트지만들기 커밋 9d44462 의 같은 이름 파일을 그대로 복사(1,895문항, 근호·분수·π 12개·음수 22개 포함). 올리기 스크립트 `scripts/upload_answers_to_r2.py`(기본 미리보기 = R2 접속 없음, `--apply` 일 때만 put_object 후 다시 받아 바이트 비교, 키 두 개 외 막음, 모양·BOM·최소 문항 수 검사, 비밀 값 출력 없음). PROJECTS.md 교재표 정답 소스 칸 고침.
+- 미리보기 출력: 공수1 1883개 33,188 바이트(0286=-2/3), 공수2 1895개 33,421 바이트(1422=-5, 0113=3√5, 0286=②).
+- 확인: (a) R2 파일 없음(404)을 흉내 → ② 사본으로 오답노트 PDF 생성, 정답 쪽 그림(PyMuPDF 130dpi)에 1422 -5, 0113 3√5, 0506 (1) 4π (2) 8π, 0302 -4+√10, 0504 -12/25, 1888 1/8, 0299 5√3, 공수1 0286 -2/3·0518 20/3·0715 34/9 가 빈칸 없이 찍힘. 정답 글꼴 HYSMyeongJo-Medium(UniKS-UCS2-H, 내장 안 함)이 √·π 를 갖고 있어(KS X 1001 기호) 글꼴은 고치지 않음. (b) answers.json 받는 함수를 가짜 바이트로 바꾸면 두 교재 모두 ① 값(R2-…)이 쓰임. `scripts/verify_online_textbooks.py` 13종 통과(그 스크립트는 모든 주소에 PDF 를 주므로 공수2 는 ① 실패 → ② 로 감, 로그 1줄). git diff --check.
+- 확인 못 함: Chrome·Acrobat 화면에서 √·π 모양(PyMuPDF 그림만 봄; 글꼴을 PDF 에 넣지 않는 방식이라 보는 프로그램의 한글 글꼴로 그려짐), 운영 R2 에서 실제 읽기(아직 안 올림).
+- 남은 일: 강비가 선생님 허락 뒤 `python scripts/upload_answers_to_r2.py --apply` 실행 → 배포. 정답을 고칠 때는 R2 answers.json 을 고치고 data 사본도 같이 맞춘다.
+- 하지 않음: push·배포, R2·Supabase 쓰기, 삭제. 테스트지만들기 폴더는 읽기만.
