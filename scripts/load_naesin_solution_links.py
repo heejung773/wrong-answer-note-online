@@ -127,7 +127,7 @@ def build_rows(csv_path: str, names: dict[str, tuple[str, int, str]]) -> tuple[l
             "name": name,
             "key": key,
             "url": link,
-            "source": "손풀이링크_짝.csv" + (" · " + " · ".join(p.strip() for p in source_parts) if source_parts else ""),
+            "source": Path(csv_path).name + (" · " + " · ".join(p.strip() for p in source_parts) if source_parts else ""),
             "_heading": heading,
             "_no": no,
         })
