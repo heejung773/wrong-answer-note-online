@@ -5,6 +5,9 @@
 
 - CSV(UTF-8 BOM)에서 '상태' 가 정확히 '있음' 인 행만 쓴다. '후보(검증 필요)' 는 화면 확인 전이라 넣지 않는다.
 - 트윈 '문제 번호'(name) → 오답노트 문항 키(key)는 내신 자료 폴더의 exam.json 으로 찾는다(원본 문항만).
+  exam.json 이 없는 트윈 시험(원본만 시험 등)은 --twin-list D:\\변형문제\\data\\내신\\시험목록.json 으로
+  트윈 문항목록·메타데이터에서 직접 계산한다(키 = 트윈 prefix_of(slug)/NNNN, 트윈 화면 qkey 와 같음).
+- 이미 있는 행의 키·링크가 바뀌거나 같은 키가 다른 이름으로 있으면 --go 는 멈춘다(--allow-change 로만 덮어씀).
 - 링크는 유튜브 https 주소만, QR 과 같은 짧은 모양(https://youtu.be/<ID>?t=<초>)으로 정리해서 넣는다.
 - upsert(name 기준)만 한다. 표의 다른 행을 지우지 않는다.
 - Supabase 주소·비밀 키는 .env.local(로컬) 에서만 읽고 출력하지 않는다.
@@ -18,6 +21,7 @@ import csv
 import json
 import os
 from pathlib import Path
+import re
 import sys
 import time
 import urllib.error
@@ -75,6 +79,33 @@ def original_names(export_dir: str) -> dict[str, tuple[str, int, str]]:
             key = str(problem.get("key") or "").strip("/")
             if name and naesin_source.is_original_key(key):
                 names[name] = (key, int(problem["no"]), heading)
+    return names
+
+
+def twin_prefix(slug: str) -> str:
+    """트윈 note_view.prefix_of / export_naesin.prefix_of 와 같은 규칙: donghwa1-2025-2final → naesin-donghwa/g1/2025-2final"""
+    m = re.fullmatch(r"([a-z]+)(\d)-(\d{4}-\d(?:mid|final))", slug)
+    return f"naesin-{m[1]}/g{m[2]}/{m[3]}" if m else ""
+
+
+def twin_original_names(list_path: str) -> dict[str, tuple[str, int, str]]:
+    """exam.json 이 아직 없는 트윈 시험(원본만 등)용: 트윈 시험목록.json + 문항목록.json + 메타데이터로 직접 계산.
+    이름 = 메타 '문제 번호'(없으면 <tag>-NN), 키 = prefix_of(slug)/NNNN (트윈 화면 qkey 와 같음). 트윈 파일은 읽기만."""
+    twin_root = Path(list_path).resolve().parents[2]  # D:\변형문제\data\내신\시험목록.json → D:\변형문제
+    names: dict[str, tuple[str, int, str]] = {}
+    for ex in json.loads(Path(list_path).read_text(encoding="utf-8")):
+        prefix = twin_prefix(ex["slug"])
+        base = twin_root / ex["base"]
+        if not prefix or not (base / "문항목록.json").is_file():
+            continue
+        for q in json.loads((base / "문항목록.json").read_text(encoding="utf-8"))["문항"]:
+            no = int(q["번호"])
+            meta_path = base / "메타데이터" / f"{no:02d}.json"
+            meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.is_file() else {}
+            name = str(meta.get("문제 번호") or f"{ex['tag']}-{no:02d}").strip()
+            key = f"{prefix}/{no:04d}"
+            if naesin_source.is_original_key(key):
+                names[name] = (key, no, ex.get("title") or ex["tag"])
     return names
 
 
@@ -137,20 +168,38 @@ def build_rows(csv_path: str, names: dict[str, tuple[str, int, str]]) -> tuple[l
     return rows, errors, warnings, statuses
 
 
+def compare_existing(payload: list[dict], existing: list[dict]) -> tuple[list[str], list[str], list[str]]:
+    """넣을 행 vs 표: 새 이름, 바뀌는 기존 행(이름 같고 키·링크 다름), 키 겹침(같은 키가 다른 이름으로 이미 있음)"""
+    by_name = {r["name"]: r for r in existing}
+    by_key = {r["key"]: r["name"] for r in existing}
+    new, changed, clashes = [], [], []
+    for r in payload:
+        cur = by_name.get(r["name"])
+        if cur is None:
+            new.append(r["name"])
+            if r["key"] in by_key:
+                clashes.append(f"키 겹침: {r['key']} 는 표에 '{by_key[r['key']]}' 이름으로 있음 (넣을 이름 {r['name']})")
+        elif (cur["key"], cur["url"]) != (r["key"], r["url"]):
+            changed.append(f"바뀜: {r['name']} 표 ({cur['key']}, {cur['url']}) → ({r['key']}, {r['url']})")
+    return new, changed, clashes
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="내신 손풀이 링크 → Supabase (기본 미리보기)")
     parser.add_argument("--csv", default=DEFAULT_CSV)
     parser.add_argument("--export-dir", default=DEFAULT_EXPORT_DIR, help="exam.json 들이 있는 내신 자료 폴더")
     parser.add_argument("--go", action="store_true", help="실제로 Supabase 표에 넣기(upsert)")
     parser.add_argument("--offline", action="store_true", help="미리보기에서 Supabase 표 읽기도 하지 않음")
+    parser.add_argument("--twin-list", help="exam.json 대신 트윈 시험목록.json(예 D:\\변형문제\\data\\내신\\시험목록.json)으로 이름→키 계산")
+    parser.add_argument("--allow-change", action="store_true", help="--go 때 이미 있는 행의 키·링크가 바뀌어도 넣기(기본은 멈춤)")
     args = parser.parse_args()
 
-    names = original_names(args.export_dir)
+    names = twin_original_names(args.twin_list) if args.twin_list else original_names(args.export_dir)
     rows, errors, warnings, statuses = build_rows(args.csv, names)
 
     print(f"CSV: {args.csv}")
     print("상태별 행 수: " + ", ".join(f"{k or '(빈칸)'} {v}" for k, v in statuses.most_common()))
-    print(f"내신 자료 원본 문항 이름 {len(names)}개 ({args.export_dir})")
+    print(f"원본 문항 이름 {len(names)}개 ({args.twin_list or args.export_dir})")
     print(f"\n넣을 행: {len(rows)}개 (상태 '{STATUS_OK}' {statuses.get(STATUS_OK, 0)}행 중)")
     by_exam = Counter(r["_heading"] for r in rows)
     for heading, count in sorted(by_exam.items()):
@@ -171,11 +220,11 @@ def main() -> None:
             if os.environ.get("NEXT_PUBLIC_SUPABASE_URL") and os.environ.get("SUPABASE_SECRET_KEY"):
                 try:
                     existing = supabase("GET", f"{TABLE}?select=name,key,url") or []
-                    current = {r["name"]: r for r in existing}
-                    new = sum(1 for r in payload if r["name"] not in current)
-                    changed = sum(1 for r in payload if r["name"] in current
-                                  and (current[r["name"]]["key"], current[r["name"]]["url"]) != (r["key"], r["url"]))
-                    print(f"\nSupabase 표 '{TABLE}': 지금 {len(existing)}행 → 새로 {new}, 바뀜 {changed}, 그대로 {len(payload) - new - changed}")
+                    new, changed, clashes = compare_existing(payload, existing)
+                    print(f"\nSupabase 표 '{TABLE}': 지금 {len(existing)}행 → 새로 {len(new)}, 바뀜 {len(changed)}, "
+                          f"그대로 {len(payload) - len(new) - len(changed)}, 키 겹침(다른 이름) {len(clashes)}")
+                    for line in changed + clashes:
+                        print("  ! " + line)
                 except urllib.error.HTTPError as error:
                     print(f"\nSupabase 표 '{TABLE}' 읽기 실패 (HTTP {error.code}) — 표가 아직 없으면 SQL 먼저 실행")
                 except Exception as error:
@@ -191,6 +240,13 @@ def main() -> None:
     load_env()
     if not (os.environ.get("NEXT_PUBLIC_SUPABASE_URL") and os.environ.get("SUPABASE_SECRET_KEY")):
         sys.exit(".env.local 에 NEXT_PUBLIC_SUPABASE_URL·SUPABASE_SECRET_KEY 가 필요합니다.")
+    existing = supabase("GET", f"{TABLE}?select=name,key,url") or []
+    new, changed, clashes = compare_existing(payload, existing)
+    if clashes or (changed and not args.allow_change):
+        for line in changed + clashes:
+            print("  ! " + line)
+        sys.exit(f"멈춤: 이미 있는 행이 바뀜 {len(changed)}개 · 키 겹침 {len(clashes)}개 — 넣지 않았습니다.")
+    print(f"\n지금 표 {len(existing)}행 → 새로 {len(new)}, 바뀜 {len(changed)}")
     now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     for row in payload:
         row["updated_at"] = now
@@ -200,9 +256,10 @@ def main() -> None:
         detail = error.read().decode("utf-8", "replace")[:300]
         sys.exit(f"넣기 실패 (HTTP {error.code}): {detail}")
     # 다시 읽어 대조
-    wanted = ",".join('"' + r["name"] + '"' for r in payload)
-    back = supabase("GET", f"{TABLE}?" + urllib.parse.urlencode({"select": "name,key,url", "name": f"in.({wanted})"})) or []
+    # 표 전체를 다시 읽는다(이름 수백 개를 주소에 넣으면 주소가 너무 길어짐). 표는 수백 행이라 한 번에 읽힘.
+    back = supabase("GET", f"{TABLE}?select=name,key,url&limit=10000") or []
     stored = {r["name"]: (r["key"], r["url"]) for r in back}
+    print(f"표 전체 다시 읽음: {len(back)}행 (넣기 전 {len(existing)}행)")
     mismatch = [r["name"] for r in payload if stored.get(r["name"]) != (r["key"], r["url"])]
     print(f"\n넣음: {len(payload)}행 (upsert). 다시 읽어 대조: 일치 {len(payload) - len(mismatch)}, 다름 {len(mismatch)}")
     for name in mismatch:
