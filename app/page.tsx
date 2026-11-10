@@ -545,7 +545,7 @@ interface TextbookInfoDetail {
   max_num: number;
   range_text?: string;
   note?: string;
-  desc: string;
+  problem_count?: number;
   valid_ranges?: [number, number][];
 }
 
@@ -555,34 +555,30 @@ const allTextbookInfo: Record<string, TextbookInfoDetail> = {
     min_num: 1,
     max_num: 1568,
     range_text: '1 ~ 1568번',
-    desc: '총 1568문항 데이터베이스 연동',
   },
   'synergy-algebra': {
     name: '마플시너지 대수',
     min_num: 1,
     max_num: 1968,
     range_text: '1 ~ 1968번',
-    desc: '총 1968문항 데이터베이스 연동',
   },
   'synergy-common-math-1': {
     name: '마플시너지 공통수학1',
     min_num: 1,
     max_num: 1883,
     range_text: '1 ~ 1883번',
-    desc: '총 13개 단원 1883문항 데이터베이스 연동',
   },
   'synergy-common-math-2': {
     name: '마플시너지 공통수학2',
     min_num: 1,
     max_num: 1895,
     range_text: '1 ~ 1895번',
-    desc: '총 1895문항 데이터베이스 연동',
   },
   'olympus-calculus': {
     name: 'EBS 올림포스 미적분',
     max_num: 513,
     range_text: '6개 대단원 · 소단원별 문항 선택',
-    desc: '총 6개 대단원 513문항 데이터베이스 연동',
+    problem_count: 513,
   },
   'gojaengi-common-math-2': {
     name: '고쟁이 공통수학2',
@@ -590,7 +586,6 @@ const allTextbookInfo: Record<string, TextbookInfoDetail> = {
     max_num: 724,
     range_text: '1 ~ 360번 · 705 ~ 724번',
     note: '1~360번 및 705~724번 수록 (총 380문항)',
-    desc: '총 380문항 데이터베이스 연동',
     valid_ranges: [
       [1, 360],
       [705, 724],
@@ -602,7 +597,6 @@ const allTextbookInfo: Record<string, TextbookInfoDetail> = {
     max_num: 1316,
     range_text: '40 ~ 1316번',
     note: 'A단계(1~39번 기본 연산) 제외, B·C단계 전 문항 제공',
-    desc: '10개 단원 총 927문항 데이터베이스 연동',
   },
   'ssen-middle-2-2': {
     name: '신사고 쎈 중2-2',
@@ -610,25 +604,24 @@ const allTextbookInfo: Record<string, TextbookInfoDetail> = {
     max_num: 1142,
     range_text: '21 ~ 1142번',
     note: 'A단계(1~20번 기본 연산) 제외, B·C단계 전 문항 제공',
-    desc: '총 882문항 데이터베이스 연동',
   },
   'blacklabel-middle-2-2': {
     name: '블랙라벨 중2-2',
     max_num: 100,
     range_text: '대단원 · 소단원 · 단계별 문항 선택',
-    desc: '총 511문항 (대단원·소단원·단계별) 데이터베이스 연동',
+    problem_count: 511,
   },
   'concept-middle-2-2': {
     name: '개념유형파워 중2-2',
     max_num: 100,
     range_text: '대단원 · 소단원 · 유형별 문항 선택',
-    desc: '총 751문항 (대단원·소단원·유형별) 데이터베이스 연동',
+    problem_count: 751,
   },
   'basic-ssen-middle-2-2': {
     name: '신사고 베이직쎈 중2-2',
     max_num: 35,
     range_text: '10개 소단원 · 33개 단계 문항 선택',
-    desc: '10개 소단원 · 33개 단계 (총 609문항) 데이터베이스 연동',
+    problem_count: 609,
   },
   'ssen-middle-3-1': {
     name: '신사고 쎈 중3-1',
@@ -636,21 +629,37 @@ const allTextbookInfo: Record<string, TextbookInfoDetail> = {
     max_num: 1398,
     range_text: '50 ~ 1398번',
     note: 'A단계(1~49번 기본 연산) 제외, B·C단계 전 문항 제공',
-    desc: '총 989문항 데이터베이스 연동',
   },
   'blacklabel-middle-3-1': {
     name: '블랙라벨 중3-1',
     max_num: 100,
     range_text: '8개 대단원 · 4개 Step 문항 선택',
-    desc: '총 352문항 (8개 대단원 · 4개 Step) 데이터베이스 연동',
+    problem_count: 352,
   },
   'concept-middle-3-1': {
     name: '개념유형파워 중3-1',
     max_num: 100,
     range_text: '6개 대단원 · 유형별 문항 선택',
-    desc: '총 760문항 (6개 대단원 · 유형별/단원마무리) 데이터베이스 연동',
+    problem_count: 760,
   },
 };
+
+function textbookOptionLabel(tb: TextbookItem): string {
+  const title = tb.title.includes(tb.subject)
+    ? tb.title
+    : tb.id === 'synergy-calculus'
+      ? '시너지 미적분Ⅰ'
+      : `${tb.title} ${tb.subject}`;
+  const info = allTextbookInfo[tb.id];
+  if (!info) return title;
+
+  if (info.problem_count !== undefined) {
+    return `${title} (총 ${info.problem_count}문항)`;
+  }
+
+  const ranges = info.valid_ranges ?? [[info.min_num ?? 1, info.max_num]];
+  return `${title} (${ranges.map(([start, end]) => `${start}-${end}번`).join(', ')})`;
+}
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? '';
@@ -855,7 +864,6 @@ export default function Home() {
   const currentTbInfo = (textbook ? allTextbookInfo[textbook] : null) || {
     name: currentTb?.title || '수학 교재',
     max_num: 1000,
-    desc: '데이터베이스 연동',
   };
 
   const invalidProblemNumbers = useMemo(() => {
@@ -2366,7 +2374,6 @@ export default function Home() {
     const currentTbInfo = allTextbookInfo[textbook] || {
       name: currentTb?.title || '수학 교재',
       max_num: 1000,
-      desc: '데이터베이스 연동',
     };
 
     return (
@@ -2399,7 +2406,7 @@ export default function Home() {
             {/* Left Config Panel */}
             <section className="generator-settings" aria-label="오답노트 설정">
               {/* Step 1: 교재 선택/정보 */}
-              <div className="generator-step" id="generator-textbook">
+              <div className="generator-step is-compact" id="generator-textbook">
                 <div className="generator-step-header px-4 py-3 flex items-center justify-between border-b border-[#334155] bg-slate-800/70">
                   <div className="flex items-center gap-2.5">
                     <span className="generator-step-number">
@@ -2410,7 +2417,7 @@ export default function Home() {
                     </h3>
                   </div>
                 </div>
-                <div className="p-4 space-y-3">
+                <div className="p-4 space-y-2">
                   {/* Selected Department Indicator */}
                   <div className="generator-department">
                     <div className="flex items-center gap-2">
@@ -2465,7 +2472,7 @@ export default function Home() {
                               )
                               .map((tb) => (
                                 <option key={tb.id} value={tb.id}>
-                                  {tb.title} · {tb.subject}
+                                  {textbookOptionLabel(tb)}
                                 </option>
                               ))}
                           </optgroup>
@@ -2479,7 +2486,7 @@ export default function Home() {
                               )
                               .map((tb) => (
                                 <option key={tb.id} value={tb.id}>
-                                  {tb.title} · {tb.subject}
+                                  {textbookOptionLabel(tb)}
                                 </option>
                               ))}
                           </optgroup>
@@ -2495,7 +2502,7 @@ export default function Home() {
                               )
                               .map((tb) => (
                                 <option key={tb.id} value={tb.id}>
-                                  {tb.title} · {tb.subject}
+                                  {textbookOptionLabel(tb)}
                                 </option>
                               ))}
                           </optgroup>
@@ -2508,7 +2515,7 @@ export default function Home() {
                               )
                               .map((tb) => (
                                 <option key={tb.id} value={tb.id}>
-                                  {tb.title} · {tb.subject}
+                                  {textbookOptionLabel(tb)}
                                 </option>
                               ))}
                           </optgroup>
@@ -2516,30 +2523,11 @@ export default function Home() {
                       ) : (
                         textbooks.map((tb) => (
                           <option key={tb.id} value={tb.id}>
-                            {tb.title} · {tb.subject}
+                            {textbookOptionLabel(tb)}
                           </option>
                         ))
                       )}
                     </select>
-                    <div className="generator-range">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="inline-flex items-center gap-1 font-semibold text-teal-300">
-                          지원 문항
-                        </span>
-                        <strong className="text-slate-100 [font-family:inherit] bg-teal-500/20 px-2 py-0.5 rounded border border-teal-400/40 text-[13px]">
-                          {currentTbInfo.range_text || `1 ~ ${currentTbInfo.max_num}번`}
-                        </strong>
-                        <span className="text-slate-300 text-[12px]">
-                          ({currentTbInfo.desc})
-                        </span>
-                      </div>
-                      {currentTbInfo.note && (
-                        <div className="text-[12px] text-amber-300 flex items-center gap-1.5 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/20">
-                          <span className="font-semibold shrink-0">ℹ️ 참고:</span>
-                          <span>{currentTbInfo.note}</span>
-                        </div>
-                      )}
-                    </div>
                   </div>
                 </div>
               </div>
@@ -2684,7 +2672,7 @@ export default function Home() {
               </div>
 
               {/* Step 3: 문항 번호 선택 */}
-              <div className="generator-step" id="generator-problems">
+              <div className="generator-step is-compact" id="generator-problems">
                 <div className="generator-step-header px-4 py-3 flex items-center justify-between border-b border-[#334155] bg-slate-800/70">
                   <div className="flex items-center gap-2.5">
                     <span className="generator-step-number">

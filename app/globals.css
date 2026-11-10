@@ -675,13 +675,9 @@ html:has(.selection-canvas) {
 .generator-canvas button:focus-visible, .generator-canvas input:focus-visible,
 .generator-canvas select:focus-visible, .generator-canvas textarea:focus-visible { outline-color: #5eead4; }
 .generator-canvas small { font-size: var(--workspace-caption-size); font-weight: 400; line-height: 1.7; color: #8fa1b9; }
-.generator-department { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 16px; }
+.generator-department { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .generator-department span { padding: 0; background: none; border: 0; color: #9aacc3; font-weight: 500; box-shadow: none; }
 .generator-department button { background: none; border: 0; padding: 6px 0; color: #7dd3c5; font-size: 12px; }
-.generator-range { margin-top: 12px; color: #8fa1b9; font-size: 12px; line-height: 1.7; }
-.generator-range > div > span:first-child { color: #8fa1b9; font-weight: 500; }
-.generator-range strong { background: none; border: 0; padding: 0; color: #c2d1e3; font-family: inherit; font-weight: 600; }
-.generator-range > div > span:last-child { display: block; width: 100%; font-size: var(--workspace-caption-size); color: #8fa1b9; }
 .generator-preview { background: #172538; border: 1px solid #3a536b; border-radius: 12px; padding: 0; overflow: hidden; min-width: 0; position: sticky; top: 24px; }
 .generator-preview-header { background: #203b4d; border: 0; border-bottom: 1px solid #3c6577; box-shadow: inset 3px 0 0 #52d5d4; border-radius: 0; margin: 0; padding: 21px 24px; gap: 16px; }
 .generator-preview-header h3 { color: #f1f8ff; font-size: var(--workspace-heading-size); font-weight: 750; line-height: 1.4; }
@@ -711,7 +707,7 @@ html:has(.selection-canvas) {
 .generator-actions button:nth-child(2):hover { background: #78e1e4; transform: none; }
 @media (max-width: 1199px) { .generator-grid { grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 18px; } .generator-topbar-context { display: none; } }
 @media (max-width: 959px) { .generator-grid { grid-template-columns: 1fr; } .generator-preview { position: static; } .generator-preview-surface { min-height: 560px; } }
-/* 교재 화면 2단계 '학생 정보': 세로 공간을 줄인 칸 (2026-11-04). 머리줄·여백·입력칸 높이를 줄이고 이름·학년을 한 줄에 */
+/* 교재 화면 1~3단계의 머리줄, 본문과 입력칸 높이를 줄인다. */
 .generator-canvas .generator-step.is-compact .generator-step-header { padding: 8px 16px; min-height: 0; }
 .generator-step.is-compact .generator-student-mode button { min-height: 28px; }
 .generator-step.is-compact > .p-4 { padding: 10px 16px; }
