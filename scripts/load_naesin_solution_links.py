@@ -66,6 +66,20 @@ def supabase(method: str, path: str, body=None, prefer: str | None = None):
     return json.loads(raw) if raw else None
 
 
+READ_PAGE = 1000  # Supabase(PostgREST) 한 번 읽기 상한이 1000행 — 표가 그보다 크면 나눠 읽어야 한다(11-09 1068행에서 잘림)
+
+
+def read_all_rows(select: str = "name,key,url") -> list[dict]:
+    """표 전체를 name(기본키) 순서로 1000행씩 끝까지 읽는다. 빈 쪽이 나올 때까지 읽어서
+    서버 상한이 1000보다 작게 바뀌어도 잘리지 않는다(다음 offset = 지금까지 읽은 행 수)."""
+    rows: list[dict] = []
+    while True:
+        page = supabase("GET", f"{TABLE}?select={select}&order=name.asc&limit={READ_PAGE}&offset={len(rows)}") or []
+        if not page:
+            return rows
+        rows.extend(page)
+
+
 def original_names(export_dir: str) -> dict[str, tuple[str, int, str]]:
     """트윈 이름 → (원본 키, 시험 안 번호, 시험 머리말). 변형 이름은 넣지 않는다."""
     os.environ["NAESIN_SOURCE"] = "local"
@@ -219,7 +233,7 @@ def main() -> None:
             load_env()
             if os.environ.get("NEXT_PUBLIC_SUPABASE_URL") and os.environ.get("SUPABASE_SECRET_KEY"):
                 try:
-                    existing = supabase("GET", f"{TABLE}?select=name,key,url") or []
+                    existing = read_all_rows()
                     new, changed, clashes = compare_existing(payload, existing)
                     print(f"\nSupabase 표 '{TABLE}': 지금 {len(existing)}행 → 새로 {len(new)}, 바뀜 {len(changed)}, "
                           f"그대로 {len(payload) - len(new) - len(changed)}, 키 겹침(다른 이름) {len(clashes)}")
@@ -240,7 +254,7 @@ def main() -> None:
     load_env()
     if not (os.environ.get("NEXT_PUBLIC_SUPABASE_URL") and os.environ.get("SUPABASE_SECRET_KEY")):
         sys.exit(".env.local 에 NEXT_PUBLIC_SUPABASE_URL·SUPABASE_SECRET_KEY 가 필요합니다.")
-    existing = supabase("GET", f"{TABLE}?select=name,key,url") or []
+    existing = read_all_rows()
     new, changed, clashes = compare_existing(payload, existing)
     if clashes or (changed and not args.allow_change):
         for line in changed + clashes:
@@ -256,8 +270,8 @@ def main() -> None:
         detail = error.read().decode("utf-8", "replace")[:300]
         sys.exit(f"넣기 실패 (HTTP {error.code}): {detail}")
     # 다시 읽어 대조
-    # 표 전체를 다시 읽는다(이름 수백 개를 주소에 넣으면 주소가 너무 길어짐). 표는 수백 행이라 한 번에 읽힘.
-    back = supabase("GET", f"{TABLE}?select=name,key,url&limit=10000") or []
+    # 표 전체를 다시 읽는다(이름 수백 개를 주소에 넣으면 주소가 너무 길어짐). 1000행 상한 때문에 나눠 읽는다.
+    back = read_all_rows()
     stored = {r["name"]: (r["key"], r["url"]) for r in back}
     print(f"표 전체 다시 읽음: {len(back)}행 (넣기 전 {len(existing)}행)")
     mismatch = [r["name"] for r in payload if stored.get(r["name"]) != (r["key"], r["url"])]
