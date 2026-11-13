@@ -21,7 +21,6 @@ import csv
 import json
 import os
 from pathlib import Path
-import re
 import sys
 import time
 import urllib.error
@@ -96,31 +95,8 @@ def original_names(export_dir: str) -> dict[str, tuple[str, int, str]]:
     return names
 
 
-def twin_prefix(slug: str) -> str:
-    """트윈 note_view.prefix_of / export_naesin.prefix_of 와 같은 규칙: donghwa1-2025-2final → naesin-donghwa/g1/2025-2final"""
-    m = re.fullmatch(r"([a-z]+)(\d)-(\d{4}-\d(?:mid|final))", slug)
-    return f"naesin-{m[1]}/g{m[2]}/{m[3]}" if m else ""
-
-
-def twin_original_names(list_path: str) -> dict[str, tuple[str, int, str]]:
-    """exam.json 이 아직 없는 트윈 시험(원본만 등)용: 트윈 시험목록.json + 문항목록.json + 메타데이터로 직접 계산.
-    이름 = 메타 '문제 번호'(없으면 <tag>-NN), 키 = prefix_of(slug)/NNNN (트윈 화면 qkey 와 같음). 트윈 파일은 읽기만."""
-    twin_root = Path(list_path).resolve().parents[2]  # D:\변형문제\data\내신\시험목록.json → D:\변형문제
-    names: dict[str, tuple[str, int, str]] = {}
-    for ex in json.loads(Path(list_path).read_text(encoding="utf-8")):
-        prefix = twin_prefix(ex["slug"])
-        base = twin_root / ex["base"]
-        if not prefix or not (base / "문항목록.json").is_file():
-            continue
-        for q in json.loads((base / "문항목록.json").read_text(encoding="utf-8"))["문항"]:
-            no = int(q["번호"])
-            meta_path = base / "메타데이터" / f"{no:02d}.json"
-            meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.is_file() else {}
-            name = str(meta.get("문제 번호") or f"{ex['tag']}-{no:02d}").strip()
-            key = f"{prefix}/{no:04d}"
-            if naesin_source.is_original_key(key):
-                names[name] = (key, no, ex.get("title") or ex["tag"])
-    return names
+# exam.json 이 아직 없는 트윈 시험(원본만 등)용 이름→키 계산은 노션 동기화(naesin_solution_links.py)와 같은 함수를 쓴다.
+from naesin_solution_links import twin_original_names, twin_prefix  # noqa: E402,F401
 
 
 def build_rows(csv_path: str, names: dict[str, tuple[str, int, str]]) -> tuple[list[dict], list[str], list[str], Counter]:
