@@ -1,4 +1,4 @@
-"""노션 손풀이 링크 → Supabase solution_links 동기화 (Vercel Python 함수).
+"""노션 손풀이 링크 → Supabase solution_links(시너지) + naesin_solution_links(내신, 새 행만) 동기화 (Vercel Python 함수).
 
 - GET: Vercel Cron(하루 1회). Authorization: Bearer <CRON_SECRET> 일 때만 실행
 - POST: 관리자 화면의 '손풀이 링크 동기화' 버튼. Supabase 로그인 토큰 + ADMIN_EMAILS 확인
@@ -35,6 +35,21 @@ def summary(report: dict) -> dict:
     }
 
 
+def run_all(dry_run: bool = False) -> dict:
+    """시너지(solution_links) 다음에 내신(naesin_solution_links)을 따로 돌린다.
+    내신은 새 행만 넣고(바뀌는 기존 행·키 겹침·중복은 목록만), 지우지 않는다.
+    내신 쪽이 실패해도 시너지 결과는 그대로 돌려준다(내신 칸에 오류만 표시)."""
+    payload: dict = {"ok": True, "result": summary(sync_all(dry_run=dry_run))}
+    try:
+        from naesin_solution_links import auto_sync  # 지연 import: 내신 쪽 문제로 시너지 동기화까지 막히지 않게
+
+        payload["naesin"] = auto_sync(dry_run=dry_run)
+    except Exception as error:
+        print("[-] naesin solution link sync failed:", type(error).__name__, error)
+        payload["naesin"] = {"error": "내신 손풀이 링크 동기화에 실패했습니다."}
+    return payload
+
+
 class handler(BaseHTTPRequestHandler):
     def send_json(self, status: int, payload: dict) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -47,7 +62,7 @@ class handler(BaseHTTPRequestHandler):
 
     def run_sync(self) -> None:
         try:
-            self.send_json(200, {"ok": True, "result": summary(sync_all())})
+            self.send_json(200, run_all())
         except Exception as error:
             print("[-] solution link sync failed:", type(error).__name__, error)
             self.send_json(502, {"error": "손풀이 링크 동기화에 실패했습니다."})

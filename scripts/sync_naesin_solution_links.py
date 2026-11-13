@@ -6,6 +6,7 @@
 
 - 노션은 읽기만, 표는 upsert(name 기준)만. 표에만 있는 행은 지우지 않는다(보고서에만).
 - 이름→키는 트윈 시험목록.json(--twin-list, 기본 D:\\변형문제\\data\\내신\\시험목록.json)으로 계산.
+  --index 를 주면 운영과 같이 저장소 사본 data/naesin_twin_index.json 으로 매칭한다. 두 파일이 다 있으면 서로 같은지 먼저 비교해 출력.
 - 노션 토큰·Supabase 키는 .env.local 에서만 읽고 출력하지 않는다.
 """
 from __future__ import annotations
@@ -208,10 +209,25 @@ def main() -> None:
     parser.add_argument("--go", action="store_true", help="실제로 Supabase 표에 upsert")
     parser.add_argument("--allow-change", action="store_true", help="--go 때 이미 있는 행의 링크·키가 바뀌어도 덮어씀")
     parser.add_argument("--report", help="차이 보고서 경로 (기본 reports/naesin_solution_links_diff_<날짜>.md)")
+    parser.add_argument("--index", nargs="?", const=str(nsl.DEFAULT_INDEX),
+                        help="트윈 파일 대신 저장소 사본 data/naesin_twin_index.json 으로 매칭(운영과 같은 방식)")
     args = parser.parse_args()
 
+    twin = nsl.twin_exam_index(args.twin_list) if Path(args.twin_list).is_file() else None
+    stored = nsl.load_twin_index(args.index or nsl.DEFAULT_INDEX) if Path(args.index or nsl.DEFAULT_INDEX).is_file() else None
+    if twin is not None and stored is not None:
+        differ = sorted(k for k in set(twin) | set(stored) if twin.get(k, ())[:2] != stored.get(k, ())[:2])
+        print(f"트윈 직접 {len(twin)}문항 vs 사본 {len(stored)}문항: 다름 {len(differ)}"
+              + ("" if not differ else " — scripts/build_naesin_twin_index.py 로 사본을 다시 만들 것"))
+        for tag, no in differ[:20]:
+            print(f"  다름: {tag} {no}번 트윈 {twin.get((tag, no), ('없음',))[0]} / 사본 {stored.get((tag, no), ('없음',))[0]}")
+    index = stored if args.index else twin
+    if index is None:
+        sys.exit("매칭 목록이 없습니다: " + (args.index or args.twin_list))
+    args.twin_list = args.index or args.twin_list  # 보고서 머리말에 쓴 목록 표시
+
     nsl.load_local_env()
-    result = nsl.sync(args.twin_list, go=args.go, allow_change=args.allow_change)
+    result = nsl.sync(go=args.go, allow_change=args.allow_change, index=index)
     report_path = Path(args.report) if args.report else (
         ROOT / "reports" / f"naesin_solution_links_diff_{dt.date.today():%Y%m%d}.md")
     report_path.parent.mkdir(parents=True, exist_ok=True)

@@ -9,7 +9,9 @@
     url  = naesin_source.youtube_qr_link(손풀이링크)  (https://youtu.be/<ID>?t=<초>)
   트윈 시험목록에 없는 시험ID·문항번호는 넣지 않고 '바꾸기 실패' 로 보고한다.
 - 쓰기는 upsert(name 기준)만. 표에만 있는 행은 지우지 않는다(보고만).
-- 이미 있는 행의 key·url 이 바뀌면 allow_change=True 일 때만 쓴다(기본은 멈춤).
+- 이미 있는 행의 key·url 이 바뀌면 allow_change=True 일 때만 쓴다(로컬 --go 는 멈춤).
+- 자동 실행(cron)·관리자 버튼은 auto_sync(): data/naesin_twin_index.json 으로 매칭하고 새 행만 넣는다
+  (바뀌는 기존 행·키 겹침·중복은 쓰지 않고 목록만, 멈추지 않음). 사본은 scripts/build_naesin_twin_index.py 로 만든다.
 - 같은 name 이 노션에 여러 행이고 링크가 서로 다르면 그 name 은 쓰지 않는다(보고만).
 서버 비밀 키·노션 토큰은 환경변수(로컬은 .env.local)에서만 읽고 출력하지 않는다.
 """
@@ -28,6 +30,7 @@ from solution_links import _notion_query_all, _plain, _supabase, load_local_env 
 NOTION_DATABASE_ID = "dc4f738b-ba3f-4d55-a340-a38449da116a"  # 내신기출 문항별 손풀이 (고1&고2 내신기출영상모음 안)
 TABLE = naesin_source.SOLUTION_TABLE
 DEFAULT_TWIN_LIST = r"D:\변형문제\data\내신\시험목록.json"
+DEFAULT_INDEX = Path(__file__).resolve().parent / "data" / "naesin_twin_index.json"  # 운영(cron)은 이 사본만 읽는다
 SOURCE_LABEL = "노션 내신기출 문항별 손풀이"
 READ_PAGE = 1000  # PostgREST 한 번 읽기 상한(1000행) — 표 전체는 나눠 읽는다
 WRITE_CHUNK = 500
@@ -70,6 +73,34 @@ def twin_exam_index(list_path: str = DEFAULT_TWIN_LIST) -> dict[tuple[str, int],
     대부분 이름 = <tag>-NN 이지만 6개 시험은 트윈 메타 '문제 번호' 에 꼬리가 붙어 있다
     (예 다산고1_2026_1학기기말 → 다산고1_2026_1학기기말_공통수학1-09). 표 name 은 트윈 이름을 그대로 쓴다."""
     return {(tag, no): (name, key, title) for tag, no, name, key, title in _twin_originals(list_path)}
+
+
+# ---------- 저장소 안 사본 data/naesin_twin_index.json (운영 Vercel 에는 D:\변형문제 가 없다) ----------
+
+def build_twin_index_data(list_path: str = DEFAULT_TWIN_LIST) -> dict:
+    """twin_exam_index 를 파일로 남길 모양: {"version", "source", "exams": {tag: {"title", "items": {"번호": [이름, 키]}}}}"""
+    exams: dict[str, dict] = {}
+    for tag, no, name, key, title in _twin_originals(list_path):
+        exam = exams.setdefault(tag, {"title": title, "items": {}})
+        exam["items"][str(no)] = [name, key]
+    for exam in exams.values():
+        exam["items"] = dict(sorted(exam["items"].items(), key=lambda kv: int(kv[0])))
+    return {"version": 1, "source": "D:\\변형문제\\data\\내신\\시험목록.json (+ 문항목록·메타데이터)",
+            "exams": dict(sorted(exams.items()))}
+
+
+def index_from_data(data: dict) -> dict[tuple[str, int], tuple[str, str, str]]:
+    index: dict[tuple[str, int], tuple[str, str, str]] = {}
+    for tag, exam in (data.get("exams") or {}).items():
+        for no, (name, key) in (exam.get("items") or {}).items():
+            if naesin_source.is_original_key(key):
+                index[(tag, int(no))] = (name, key, exam.get("title") or tag)
+    return index
+
+
+def load_twin_index(path: str | Path = DEFAULT_INDEX) -> dict[tuple[str, int], tuple[str, str, str]]:
+    """data/naesin_twin_index.json → twin_exam_index 와 같은 dict."""
+    return index_from_data(json.loads(Path(path).read_text(encoding="utf-8")))
 
 
 # ---------- 노션 → 넣을 행 ----------
@@ -192,26 +223,40 @@ def _payload(row: dict, now: str) -> dict:
             "source": f"{SOURCE_LABEL} · {row['judgement']}", "updated_at": now}
 
 
-def sync(list_path: str = DEFAULT_TWIN_LIST, go: bool = False, allow_change: bool = False) -> dict:
-    """기본은 미리보기(쓰기 없음). go=True 일 때만 새 행 + (allow_change 면) 바뀐 행을 upsert 한다.
-    같은 행(링크·키 같음)은 source 칸 차이만 있어도 다시 쓰지 않는다. 표에만 있는 행은 지우지 않는다."""
-    index = twin_exam_index(list_path)
+def sync(list_path: str = DEFAULT_TWIN_LIST, go: bool = False, allow_change: bool = False, *,
+         index: dict | None = None, new_only: bool = False) -> dict:
+    """기본은 미리보기(쓰기 없음). 표에만 있는 행은 어느 모드에서도 지우지 않는다.
+    - go=True (로컬 --go): 새 행 + (allow_change 면) 바뀐 행을 upsert. 바뀐 행이나 키 겹침이 있으면 전체 멈춤.
+    - go=True, new_only=True (자동 실행·관리자 버튼): 새 행만 upsert. 바뀐 행·키 겹침 행·링크 다른 중복은
+      쓰지 않고 목록만 돌려준다(멈추지 않음).
+    같은 행(링크·키 같음)은 source 칸 차이만 있어도 다시 쓰지 않는다.
+    index 를 주면 그것으로(운영은 load_twin_index()), 없으면 list_path 의 트윈 파일을 직접 읽는다."""
+    if index is None:
+        index = twin_exam_index(list_path)
     notion = notion_rows(index)
     existing = read_table()
     diff = compare(notion["rows"], existing)
-    result = {"twin_names": len(index),"notion": notion, "table_rows": len(existing), "diff": diff,
-              "written": 0, "stopped": None}
+    result = {"twin_names": len(index), "notion": notion, "table_rows": len(existing), "diff": diff,
+              "written": 0, "written_names": [], "stopped": None}
     if not go:
         return result
     changed = diff["url_changed"] + diff["key_changed"]
-    if diff["clashes"]:
-        result["stopped"] = f"키 겹침 {len(diff['clashes'])}개(같은 키가 표에 다른 이름으로 있음)"
-        return result
-    if changed and not allow_change:
-        result["stopped"] = f"이미 있는 행의 링크·키가 바뀜 {len(changed)}개 — allow_change 없이는 쓰지 않음"
+    if new_only:
+        clash_names = {r["name"] for r in diff["clashes"]}
+        to_write = [r for r in diff["new"] if r["name"] not in clash_names]
+    else:
+        if diff["clashes"]:
+            result["stopped"] = f"키 겹침 {len(diff['clashes'])}개(같은 키가 표에 다른 이름으로 있음)"
+            return result
+        if changed and not allow_change:
+            result["stopped"] = f"이미 있는 행의 링크·키가 바뀜 {len(changed)}개 — allow_change 없이는 쓰지 않음"
+            return result
+        to_write = diff["new"] + changed
+    if not to_write:
         return result
     now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-    payload = [_payload(r, now) for r in diff["new"] + changed]
+    payload = [_payload(r, now) for r in to_write]
+    result["written_names"] = [p["name"] for p in payload]
     for start in range(0, len(payload), WRITE_CHUNK):
         _supabase("POST", f"{TABLE}?on_conflict=name", payload[start:start + WRITE_CHUNK],
                   prefer="resolution=merge-duplicates,return=minimal")
@@ -221,5 +266,38 @@ def sync(list_path: str = DEFAULT_TWIN_LIST, go: bool = False, allow_change: boo
                                  if (back.get(p["name"]) or {}).get("url") != p["url"]
                                  or (back.get(p["name"]) or {}).get("key") != p["key"]]
     return result
+
+
+LIST_LIMIT = 30  # 관리자 화면·cron 응답에 싣는 목록 최대 길이
+
+
+def auto_sync(dry_run: bool = False, index_path: str | Path = DEFAULT_INDEX) -> dict:
+    """자동 실행(cron)·관리자 버튼용: data/naesin_twin_index.json 으로 매칭, 새 행만 넣기, 지우기 없음.
+    dry_run=True 면 쓰지 않고 넣을 것만 센다. 돌려주는 값은 화면에 바로 보일 짧은 요약."""
+    result = sync(go=not dry_run, new_only=True, index=load_twin_index(index_path))
+    notion, diff = result["notion"], result["diff"]
+    clash_names = {r["name"] for r in diff["clashes"]}
+    insertable = [r["name"] for r in diff["new"] if r["name"] not in clash_names]
+    changed = [f"{r['name']}: {r['table_url']} → {r['url']}" for r in diff["url_changed"]]
+    changed += [f"{r['name']}: 키 {r['table_key']} → {r['key']}" for r in diff["key_changed"]]
+    duplicates = [d["name"] for d in notion["duplicates"] if d["conflict"]]
+    failures = Counter(f"{f['reason']}: {f['exam_id'] or '(시험ID 빈칸)'}" for f in notion["failures"])
+    return {
+        "dry_run": dry_run,
+        "notion_rows": notion["pages"],
+        "table_rows": result["table_rows"],
+        "same": len(diff["same"]),
+        "inserted": result["written"],
+        "insert_names": (result["written_names"] or insertable)[:LIST_LIMIT],
+        "would_insert": len(insertable),
+        "changed": len(changed),
+        "changed_list": changed[:LIST_LIMIT],
+        "clashes": [f"{r['name']}: 키 {r['key']} 가 표에 '{r['table_name']}' 로 있음" for r in diff["clashes"]][:LIST_LIMIT],
+        "duplicates": duplicates[:LIST_LIMIT],
+        "failures": len(notion["failures"]),
+        "failure_groups": [f"{k} {v}행" for k, v in failures.most_common(LIST_LIMIT)],
+        "table_only": len(diff["only_table"]),
+        "verify_mismatch": result.get("verify_mismatch") or [],
+    }
 
 

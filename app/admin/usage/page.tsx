@@ -26,6 +26,66 @@ const labels: Record<string, string> = {
   generation_failed: '생성 실패',
 };
 
+// api/sync_solution_links.py → naesin_solution_links.auto_sync() 요약 (내신은 새 문항만 넣고 지우지 않음)
+type NaesinSyncSummary = {
+  error?: string;
+  dry_run?: boolean;
+  notion_rows?: number;
+  table_rows?: number;
+  same?: number;
+  inserted?: number;
+  insert_names?: string[];
+  changed?: number;
+  changed_list?: string[];
+  clashes?: string[];
+  duplicates?: string[];
+  failures?: number;
+  failure_groups?: string[];
+  table_only?: number;
+};
+
+function NaesinSyncList({ title, items }: { title: string; items?: string[] }) {
+  if (!items?.length) return null;
+  return (
+    <details className="mt-1">
+      <summary className="cursor-pointer text-slate-300">{title}</summary>
+      <ul className="mt-1 list-disc space-y-0.5 pl-5 text-slate-400">
+        {items.map((item) => (
+          <li key={item} className="break-all">
+            {item}
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
+function NaesinSyncResult({ summary }: { summary: NaesinSyncSummary }) {
+  if (summary.error) {
+    return <p className="mt-2 text-xs text-red-300">내신: {summary.error}</p>;
+  }
+  const changed = summary.changed ?? 0;
+  return (
+    <div className="mt-2 text-xs">
+      <p className="text-primary">
+        내신 새로 넣음 {summary.inserted ?? 0}개 · 바뀐 행 {changed}개(넣지 않음) ·
+        실패 {summary.failures ?? 0}개 · 그대로 {summary.same ?? 0}개
+      </p>
+      {changed > 0 && (
+        <p className="mt-1 text-amber-300">
+          노션에서 링크가 바뀐 기존 문항은 자동으로 덮어쓰지 않습니다. 확인 뒤
+          로컬에서 반영해 주세요.
+        </p>
+      )}
+      <NaesinSyncList title={`새로 넣은 문항 ${summary.inserted ?? 0}개`} items={summary.insert_names} />
+      <NaesinSyncList title={`바뀐 행 ${changed}개`} items={summary.changed_list} />
+      <NaesinSyncList title="키 겹침(넣지 않음)" items={summary.clashes} />
+      <NaesinSyncList title="노션 중복(넣지 않음)" items={summary.duplicates} />
+      <NaesinSyncList title={`실패 ${summary.failures ?? 0}개`} items={summary.failure_groups} />
+    </div>
+  );
+}
+
 export default function AdminUsagePage() {
   const [events, setEvents] = useState<EventRow[]>([]);
   const [error, setError] = useState('');
@@ -39,6 +99,7 @@ export default function AdminUsagePage() {
   const [loginRequired, setLoginRequired] = useState(false);
   const [syncBusy, setSyncBusy] = useState(false);
   const [syncMessage, setSyncMessage] = useState('');
+  const [naesinSync, setNaesinSync] = useState<NaesinSyncSummary | null>(null);
   const supabase = useMemo(() => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -139,12 +200,15 @@ export default function AdminUsagePage() {
     });
     const result = (await response.json().catch(() => ({}))) as {
       result?: Record<string, { rows: number; removed: number; problems: string[] }>;
+      naesin?: NaesinSyncSummary;
       error?: string;
     };
     if (response.ok && result.result) {
       const names: Record<string, string> = {
         'synergy-calculus': '시너지 미적분',
         'synergy-common-math-2': '시너지 공통수학2',
+        'synergy-algebra': '시너지 대수',
+        'synergy-common-math-1': '시너지 공통수학1',
       };
       setSyncMessage(
         Object.entries(result.result)
@@ -156,8 +220,10 @@ export default function AdminUsagePage() {
           )
           .join(' / ') + ' 동기화 완료',
       );
+      setNaesinSync(result.naesin ?? null);
     } else {
       setSyncMessage(result.error ?? '동기화에 실패했습니다.');
+      setNaesinSync(null);
     }
     setSyncBusy(false);
   }
@@ -177,12 +243,14 @@ export default function AdminUsagePage() {
             <div className="mr-auto">
               <p className="text-sm font-semibold">손풀이 QR 링크</p>
               <p className="mt-1 text-xs text-slate-300">
-                노션 손풀이 영상 DB(시너지 미적분·공통수학2)를 오답노트에
-                반영합니다. 매일 새벽에도 자동으로 동기화됩니다.
+                노션 손풀이 영상 DB(시너지 미적분·대수·공통수학1·2)와 내신기출
+                문항별 손풀이 DB(새 문항만)를 오답노트에 반영합니다. 매일 새벽에도
+                자동으로 동기화됩니다.
               </p>
               {syncMessage && (
                 <p className="mt-2 text-xs text-primary">{syncMessage}</p>
               )}
+              {naesinSync && <NaesinSyncResult summary={naesinSync} />}
             </div>
             <button
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-[#115e59] disabled:opacity-50"
