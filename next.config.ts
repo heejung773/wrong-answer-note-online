@@ -10,8 +10,6 @@ const nextConfig: NextConfig = pythonDevApi
       async rewrites() {
         return [
           { source: '/api/generate', destination: `${pythonDevApi}/api/generate` },
-          // 운영의 가벼운 목록 함수(api/naesin_list.py)는 개발 서버에서 같은 결과를 주는 generate ?list=naesin 으로
-          { source: '/api/naesin_list', destination: `${pythonDevApi}/api/generate?list=naesin` },
         ];
       },
     }

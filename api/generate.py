@@ -19,7 +19,6 @@ from typing import Any
 
 from storage_backend import fetch_r2_object, upload_r2_temporary, uses_r2
 from solution_links import SOLUTION_SOURCES, fetch_solution_links
-import naesin_source
 
 from PIL import Image
 from pypdf import PdfReader, PdfWriter
@@ -1175,68 +1174,6 @@ def create_pdf(student: str, grade: str, images: list[tuple[int, bytes]], answer
     return output.getvalue()
 
 
-NAESIN_GRADES = {"고1": "1학년", "고2": "2학년", "고3": "3학년", "중1": "1학년", "중2": "2학년", "중3": "3학년"}
-
-
-def prepare_naesin(prefix: str, raw_numbers: Any, include_variants: bool, cover_options: dict | None = None,
-                   raw_variant_keys: Any = None, include_originals: bool = True) -> tuple[dict, list, dict]:
-    """내신 시험 + 고른 번호 → (exam, items, PDF 옵션). 문항 키 처리는 naesin_source 에, 그리기는 create_pdf 에 맡긴다.
-    raw_variant_keys([변형문제] 탭에서 고른 변형 key 목록)가 있으면 그 변형만 + 표지 제목에 '변형' 표시,
-    없으면 include_variants 로 전부/없음([오답노트] 탭은 원본만)."""
-    exam = naesin_source.load_exam(prefix)
-    numbers = naesin_source.parse_selection(raw_numbers)
-    variant_mode = raw_variant_keys is not None
-    variant_keys = naesin_source.check_variant_keys(exam, numbers, raw_variant_keys) if variant_mode else None
-    items = naesin_source.build_items(exam, numbers, include_variants, variant_keys,
-                                      include_originals=include_originals or not variant_mode)
-    heading = naesin_source.exam_heading(exam)
-    opts = dict(cover_options or {})
-    variant_count = sum(1 for item in items if item.variant)
-    subject = str(exam.get("subject") or "").strip()
-    original_count = len(items) - variant_count
-    if not variant_count:
-        count_text = f"{len(items)}문항"
-    elif original_count:
-        count_text = f"원본 {original_count}문항 + 변형 {variant_count}문항"
-    else:
-        count_text = f"변형 {variant_count}문항"
-    # [변형문제] 탭: 머리말의 학교 이름은 그대로, 표지 제목에만 '변형' 표시
-    opts["title"] = opts.get("title") or (f"{heading} 변형" if variant_mode else heading)
-    kind = "내신 변형문제" if variant_mode else "내신 기출 오답노트"
-    opts["subtitle"] = opts.get("subtitle") or " · ".join(p for p in (subject, kind, count_text) if p)
-    opts["page_header"] = heading
-    opts["answer_source"] = f"출처: {heading} (변형 문항 포함)" if variant_count else f"출처: {heading}"
-    school_level = "중등" if str(exam.get("grade", "")).startswith("중") else "고등"
-    opts["badge_override"] = (f"{school_level} 내신 기출  |  {subject or '수학'}", "SCHOOL EXAM CLINIC TEST")
-    opts.setdefault("department", "middle" if school_level == "중등" else "high")
-    return exam, items, opts
-
-
-def naesin_solution_links(items: list, include: bool = True) -> dict[str, str]:
-    """원본 문항 키 → 손풀이 QR 주소. 변형은 원본 링크를 쓰지 않으므로 원본 키만 묻는다.
-    표가 없거나 조회에 실패해도 오답노트는 QR 없이 만든다."""
-    if not include:
-        return {}
-    try:
-        return naesin_source.solution_links_for([item.key for item in items if not item.variant])
-    except Exception as error:
-        print("[-] naesin solution links lookup failed:", type(error).__name__)
-        return {}
-
-
-def create_naesin_pdf(student: str, grade: str, items: list, cover_options: dict, links_by_key: dict[str, str] | None = None) -> bytes:
-    """내신: images 정수는 1부터 순번, 칸 번호는 '3번'·'3번 변형1'.
-    links_by_key(원본 키 → QR 주소)에 있는 원본 문항만 QR. 변형 칸은 언제나 QR 없음."""
-    images = [(index, item.image) for index, item in enumerate(items, start=1)]
-    labels = {index: item.label for index, item in enumerate(items, start=1)}
-    by_key = links_by_key or {}
-    links = {index: by_key[item.key] for index, item in enumerate(items, start=1)
-             if not item.variant and by_key.get(item.key)}
-    answers = {index: naesin_source.plain_answer(item.answer, item.format) for index, item in enumerate(items, start=1)}
-    has_answers = any(answers.values())
-    return create_pdf(student, grade, images, answers if has_answers else None, "naesin", cover_options, links, labels)
-
-
 def parse_olympus_answer_block(block: str) -> dict[int, str]:
     answers: dict[int, str] = {}
     def find_marker(number: int, start: int) -> tuple[int, int] | None:
@@ -2156,13 +2093,6 @@ class handler(BaseHTTPRequestHandler):
         self.send_json_data(status, {"error": message})
 
     def do_GET(self):
-        query = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)
-        if query.get("list") == ["naesin"]:
-            return self.send_naesin_exams()
-        if query.get("naesinProblem"):
-            return self.send_naesin_gallery(query["naesinProblem"][0], (query.get("no") or [""])[0])
-        if query.get("naesinOriginals"):
-            return self.send_naesin_gallery(query["naesinOriginals"][0], None)
         body = json.dumps(
             {"status": "ok", "textbooks": sorted(TEXTBOOKS)},
             ensure_ascii=False,
@@ -2172,58 +2102,6 @@ class handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
-
-    def send_naesin_exams(self) -> None:
-        """GET /api/generate?list=naesin : 내신 기출 메뉴(학교 → 학년 → 시험). 로그인한 사용자만."""
-        try:
-            supabase_url = os.environ["NEXT_PUBLIC_SUPABASE_URL"].rstrip("/")
-            publishable_key = os.environ["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]
-            auth = self.headers.get("Authorization", "")
-            if not auth.startswith("Bearer "):
-                return self.send_json(401, "로그인이 필요합니다.")
-            if not str(verify_user(supabase_url, publishable_key, auth[7:]).get("id", "")):
-                return self.send_json(401, "로그인이 필요합니다.")
-            self.send_json_data(200, {"exams": naesin_source.list_exams()})
-        except KeyError:
-            self.send_json(503, "서버 연결 설정이 아직 완료되지 않았습니다.")
-        except urllib.error.HTTPError as error:
-            self.send_json(401 if error.code in (401, 403) else 502, "로그인 또는 저장소 접근을 확인해 주세요.")
-        except Exception as error:
-            self.send_json(500, f"내신 시험 목록을 읽지 못했습니다: {type(error).__name__}")
-
-    def send_naesin_gallery(self, prefix: str, raw_no: str | None) -> None:
-        """[변형문제 만들기] 화면 그림(로그인한 사용자만, data URL).
-        GET ?naesinProblem=<prefix>&no=9 : 그 번호의 원본 + 변형(variants 배열 순서)
-        GET ?naesinOriginals=<prefix>   : 이 시험 원본 문항 전부(왼쪽 목록)"""
-        try:
-            supabase_url = os.environ["NEXT_PUBLIC_SUPABASE_URL"].rstrip("/")
-            publishable_key = os.environ["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]
-            auth = self.headers.get("Authorization", "")
-            if not auth.startswith("Bearer "):
-                return self.send_json(401, "로그인이 필요합니다.")
-            if not str(verify_user(supabase_url, publishable_key, auth[7:]).get("id", "")):
-                return self.send_json(401, "로그인이 필요합니다.")
-            if raw_no is not None and not raw_no.isdigit():
-                return self.send_json(400, "문항 번호를 확인해 주세요.")
-            exam = naesin_source.load_exam(prefix)
-            if raw_no is None:
-                gallery = naesin_source.exam_originals(exam)
-            else:
-                gallery = naesin_source.problem_gallery(exam, int(raw_no))
-            # width: 그림 원래 폭(px). 화면이 원본·변형을 같은 배율로 보이게 할 때 쓴다(원본 약 900, 변형 880)
-            items = [{**{k: v for k, v in entry.items() if k != "image"},
-                      "width": Image.open(BytesIO(entry["image"])).size[0],
-                      "image": "data:image/png;base64," + base64.b64encode(entry["image"]).decode("ascii")}
-                     for entry in gallery]
-            self.send_json_data(200, {"no": int(raw_no) if raw_no is not None else None, "items": items})
-        except KeyError:
-            self.send_json(503, "서버 연결 설정이 아직 완료되지 않았습니다.")
-        except ValueError as error:
-            self.send_json(400, str(error))
-        except urllib.error.HTTPError as error:
-            self.send_json(401 if error.code in (401, 403) else 502, "로그인 또는 저장소 접근을 확인해 주세요.")
-        except Exception as error:
-            self.send_json(500, f"문항 그림을 읽지 못했습니다: {type(error).__name__}")
 
     def do_POST(self):
         try:
@@ -2245,7 +2123,7 @@ class handler(BaseHTTPRequestHandler):
             textbook = str(payload.get("textbook", ""))
             if not student or grade not in {"1학년", "2학년", "3학년"}:
                 raise ValueError("학생 이름과 학년을 확인해 주세요.")
-            if textbook != "naesin" and textbook not in TEXTBOOKS:
+            if textbook not in TEXTBOOKS:
                 raise ValueError("지원하지 않는 교재입니다.")
 
             # Cover & Styling options
@@ -2318,29 +2196,7 @@ class handler(BaseHTTPRequestHandler):
 
             is_batch = (len(unique_students) > 1 and not is_preview and is_batch_req)
 
-            naesin_heading = None
-            if textbook == "naesin":
-                # 내신 기출: 시험(prefix) + 시험 안 번호. 변형 같이 넣기를 켜면 각 번호 뒤에 변형이 붙는다.
-                naesin_exam, naesin_items, naesin_options = prepare_naesin(
-                    str(payload.get("naesinExam", "")),
-                    payload.get("naesinNumbers"),
-                    payload.get("includeVariants") in (True, "true", "1", 1),
-                    cover_options,
-                    payload.get("naesinVariantKeys"),
-                    payload.get("includeOriginals", True) not in (False, "false", "0", 0),
-                )
-                naesin_heading = naesin_source.exam_heading(naesin_exam)
-                problem_count = len(naesin_items)
-                # 손풀이 QR: 원본 문항 중 표(naesin_solution_links)에 링크가 있는 것만. 한 번만 읽는다.
-                naesin_include_qr = payload.get("includeSolutionQr", True)
-                if isinstance(naesin_include_qr, str):
-                    naesin_include_qr = naesin_include_qr.lower() not in ("false", "0", "no")
-                naesin_links = naesin_solution_links(naesin_items, bool(naesin_include_qr))
-
-                def make_pdf(st: str) -> bytes:
-                    return create_naesin_pdf(st, grade, naesin_items, naesin_options, naesin_links)
-
-            elif textbook == "olympus-calculus":
+            if textbook == "olympus-calculus":
                 raw_items = payload.get("olympusItems")
                 if not isinstance(raw_items, list) or not raw_items:
                     raise ValueError("올림포스 문제를 목록에 추가해 주세요.")
@@ -2490,7 +2346,7 @@ class handler(BaseHTTPRequestHandler):
                         result = append_ssen_selected_answers(result, numbers)
                     return result
 
-            title_label = cover_title or naesin_heading or TEXTBOOKS.get(textbook, {}).get("title", "오답노트")
+            title_label = cover_title or TEXTBOOKS.get(textbook, {}).get("title", "오답노트")
 
             if is_batch:
                 # 인쇄는 ZIP 대신 학생별 PDF를 하나의 인쇄용 PDF로 합친다.

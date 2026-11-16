@@ -1198,3 +1198,12 @@
 - 변경: 드롭다운의 14개 교재 항목에 번호 범위 또는 단원·유형별 교재의 총 문항 수를 붙였다. 고쟁이는 두 범위를 각각 표시한다. 목록 아래 안내 영역을 제거하고 1·3단계 제목과 본문에 기존 콤팩트 여백을 적용했다. 현재 사양은 PROJECTS.md 5절에 반영했다.
 - 검증: 14개 교재 표시값 확인, oxlint·TypeScript·프로덕션 빌드 통과. 기존 PDF 스크립트의 13종 샘플 생성 통과(시너지 공통수학2는 스크립트의 모의 응답에서 로컬 정답 사본을 사용).
 - 남은 확인: 로그인 후 실제 브라우저에서 교재 전환 및 좁은 모바일 화면의 긴 항목 표시를 확인할 수 있다. 운영 배포 전 로컬 변경이다.
+
+## 2026-11-16 내신 기출 화면 삭제 (트윈 담당), 손풀이 QR 동기화는 유지 (로컬 커밋, push·배포 없음)
+- 요청(강비 전달, 선생님 11-05 결정): 내신기출 오답노트·변형은 트윈(twin.kangmath.com)이 맡으므로 fix 사이트의 '내신 기출' 화면·생성 기능을 없앤다. 내신 손풀이 QR 동기화(노션 → Supabase `naesin_solution_links`)는 트윈 인쇄 QR 이 같은 표를 읽으므로 남긴다.
+- 지움: `app/naesin/page.tsx`·`layout.tsx`, `api/naesin_list.py`, `scripts/make_naesin_note.py`(git rm). `app/page.tsx` 첫 화면 '내신 기출' 카드, `app/globals.css` 의 `editorial-choice-naesin`·`naesin-note-grid`, `next.config.ts` 개발용 `/api/naesin_list` 넘김, `api/generate.py` 의 `import naesin_source`·NAESIN_GRADES·prepare_naesin·naesin_solution_links·create_naesin_pdf·GET `?list=naesin`/`?naesinProblem`/`?naesinOriginals`(send_naesin_exams·send_naesin_gallery)·POST `textbook=='naesin'` 분기·naesin_heading. 이제 POST `textbook:'naesin'` 은 400 '지원하지 않는 교재입니다', GET 은 늘 교재 목록. `components/preview-pager.tsx`·`scripts/dev_python_api.py` 주석 정리.
+- 남김: `naesin_solution_links.py`, `scripts/sync_naesin_solution_links.py`, `scripts/load_naesin_solution_links.py`, `scripts/build_naesin_twin_index.py` + `data/naesin_twin_index.json`(운영 cron·관리자 버튼의 auto_sync 가 읽음), `api/sync_solution_links.py`, `supabase/naesin_solution_links.sql`, 관리자 사용량 화면의 내신 동기화 결과, `scripts/upload_naesin_to_r2.py` 와 R2 `naesin/` 데이터, `naesin_source.py`(동기화·load·upload 스크립트가 씀). `create_pdf` 의 labels·page_header·badge_override·answer_source·긴 표지 제목 축소는 공통 코드라 남김(지금 교재에서 안 씀).
+- 트윈 의존 확인(읽기만): `D:\변형문제` 에서 fix 의 `/naesin`·`/api/naesin_list`·`/api/generate?naesin…` 을 부르는 곳 없음. `book_print.py` 는 트윈 자체 `/api/naesin`(Supabase 표 직접)을 씀. `note_view.py` 는 주석에 'fix.kangmath.com/naesin 과 같은 모양' 이라고만 적혀 있음(호출 아님).
+- 검증: py_compile(generate·동기화·load·build·upload·dev 스크립트) 통과, naesin_solution_links·api/sync_solution_links import 와 `load_twin_index()` 정상. oxlint·tsc·`next build` 통과(라우트 목록에서 /naesin 사라짐). 옛 `next dev` 가 남긴 `.next/dev/types`(10-27, /naesin 참조)가 빌드 타입검사를 막아 scratchpad 로 옮김(다음 `next dev` 때 다시 생김). 가짜 요청으로 handler.do_POST 직접 호출(네트워크 함수는 가짜): 시너지 미적분 1034·1035·1100 미리보기 PDF 가 삭제 전(HEAD) 코드와 크기 477,207바이트·3쪽·추출 글자까지 같음.
+- 확인 못 함: 로그인 후 실제 브라우저 첫 화면(로그인 필요). 운영 배포 전.
+- 남은 일(선생님·강비): push(배포) 허락. 트윈 `note_view.py` 주석의 fix /naesin 언급은 트윈 쪽에서 정리 가능.

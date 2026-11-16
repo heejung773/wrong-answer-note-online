@@ -8,7 +8,6 @@ Next 쪽은 PYTHON_API_DEV_URL 로 /api/generate 요청을 이 서버에 넘긴�
 
 .env.local 의 Supabase·R2 설정을 이 프로세스 환경으로만 읽는다(값은 출력하지 않음).
 로그인 확인·사용량 기록·교재 그림은 운영과 같은 곳을 쓰므로, 로그인해서 PDF 를 받으면 사용량 기록이 남는다.
-내신 자료 폴더는 NAESIN_EXPORT_DIR 로 바꾼다(naesin_source.py).
 """
 from __future__ import annotations
 

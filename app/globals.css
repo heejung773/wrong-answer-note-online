@@ -154,31 +154,6 @@ html:has(.selection-canvas) {
 .editorial-choice-high .choice-footer h3 {
   color: #5eead4;
 }
-/* 내신 기출: 중등부·고등부 아래 한 줄 전체, 높이는 낮게 */
-.selection-grid .editorial-choice-naesin {
-  display: block;
-  grid-column: 1 / -1;
-  min-height: 10rem;
-}
-.editorial-choice-naesin .choice-icon,
-.editorial-choice-naesin .choice-footer h3 {
-  color: #7dd3fc;
-}
-.editorial-choice-naesin .choice-icon {
-  top: 1.25rem;
-  right: 1.5rem;
-  left: auto;
-  width: 3rem;
-  height: 3rem;
-  transform: none;
-}
-.editorial-choice-naesin:hover .choice-icon {
-  transform: translateY(-0.25rem);
-}
-.editorial-choice-naesin .choice-footer {
-  border-top: 0;
-  padding-top: 0;
-}
 .choice-footer {
   position: absolute;
   right: 1.5rem;
@@ -719,8 +694,5 @@ html:has(.selection-canvas) {
 .generator-step .generator-student-field label { margin-bottom: 0; white-space: nowrap; }
 .generator-student-field:first-child input { flex: 1 1 auto; min-width: 0; }
 .generator-student-field select { width: auto; }
-/* 내신 [오답노트 만들기]: 미리보기를 더 넓게 (입력 1 : 미리보기 2). 교재 화면에는 이 클래스가 없다 */
-.generator-grid.naesin-note-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
-@media (max-width: 959px) { .generator-grid.naesin-note-grid { grid-template-columns: 1fr; } }
 @media (max-width: 639px) { .generator-canvas { padding: 12px 14px 32px; } .generator-topbar { padding: 10px 12px; min-height: 52px; margin-bottom: 10px; gap: 8px; } .generator-topbar-brand { gap: 8px; } .generator-academy { display: none; } .generator-topbar h1 { font-size: 15px; } .generator-logout { padding: 7px 10px; } .generator-topbar-link { padding: 7px 10px; } .generator-topbar-tools { gap: 6px; } .generator-topbar-brand { flex-shrink: 0; } .generator-step > .p-4 { padding: 16px; } .generator-canvas .generator-step-header { padding: 16px; } .generator-preview-header { padding: 18px; } .generator-department { flex-wrap: wrap; } }
 @media (max-width: 419px) { .generator-topbar-link svg, .generator-logout svg { display: none; } .generator-topbar-link, .generator-logout { padding: 7px 9px; } }
