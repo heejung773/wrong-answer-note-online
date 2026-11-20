@@ -1,6 +1,6 @@
 'use client';
 
-import { SyntheticEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { SyntheticEvent, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -820,6 +820,7 @@ export default function Home() {
   const [previewViewMode, setPreviewViewMode] = useState<'Fit' | 'FitH'>('Fit');
   const [previewExpanded, setPreviewExpanded] = useState(false);
   const previewRequestRef = useRef<AbortController | null>(null);
+  const nextItemId = useRef(0);
   const [optionsCollapsed, setOptionsCollapsed] = useState(false);
   const [olympusQuickInput, setOlympusQuickInput] = useState('1-4');
   const [blacklabelQuickInput, setBlacklabelQuickInput] = useState('1-3');
@@ -957,9 +958,16 @@ export default function Home() {
     return basicSsenRanges[`${cSlug}/${subSlug}/${sSlug}`] || null;
   }, [basicSsenChapter, basicSsenSubunit, basicSsenStage, textbook]);
 
-  function selectTextbook(nextTb: TextbookId) {
-    previewRequestRef.current?.abort();
+  function cancelPreviewRequest() {
+    const request = previewRequestRef.current;
+    if (!request) return;
     previewRequestRef.current = null;
+    request.abort();
+    setPreviewLoading(false);
+  }
+
+  function selectTextbook(nextTb: TextbookId) {
+    cancelPreviewRequest();
     setTextbook(nextTb);
     const nextDept = textbooks.find((t) => t.id === nextTb)?.department;
     if (nextDept) setDepartment(nextDept);
@@ -1161,7 +1169,7 @@ export default function Home() {
         throw new Error('전체 목록에서 최대 100문제까지 추가할 수 있습니다.');
       }
       const newItem: OlympusItem = {
-        id: Date.now(),
+        id: ++nextItemId.current,
         unit: olympusUnit,
         problemType: olympusType,
         numbers: olympusQuickInput.trim(),
@@ -1221,7 +1229,7 @@ export default function Home() {
         }
       }
       const newItem: BlacklabelItem = {
-        id: Date.now(),
+        id: ++nextItemId.current,
         chapter: blacklabelChapter,
         subunit: blacklabelSubunit,
         stage: blacklabelStage,
@@ -1282,7 +1290,7 @@ export default function Home() {
         }
       }
       const newItem: ConceptItem = {
-        id: Date.now(),
+        id: ++nextItemId.current,
         chapter: conceptChapter,
         subunit: conceptSubunit,
         stage: conceptStage,
@@ -1345,7 +1353,7 @@ export default function Home() {
         }
       }
       const newItem: BasicSsenItem = {
-        id: Date.now(),
+        id: ++nextItemId.current,
         chapter: basicSsenChapter,
         subunit: basicSsenSubunit,
         stage: basicSsenStage,
@@ -1380,8 +1388,7 @@ export default function Home() {
       (typeof overrideTb === 'string' ? (overrideTb as TextbookId) : null) ||
       textbook;
     if (!sessionToken || !activeTb) return;
-    previewRequestRef.current?.abort();
-    previewRequestRef.current = null;
+    cancelPreviewRequest();
 
     const selectedTextbook = textbooks.find((item) => item.id === activeTb);
     if (!selectedTextbook?.available) {
@@ -1397,7 +1404,7 @@ export default function Home() {
         try {
           const count = countProblemNumbers(olympusQuickInput);
           const newItem: OlympusItem = {
-            id: Date.now(),
+            id: ++nextItemId.current,
             unit: olympusUnit,
             problemType: olympusType,
             numbers: olympusQuickInput.trim(),
@@ -1431,7 +1438,7 @@ export default function Home() {
           try {
             const count = countProblemTokens(blacklabelQuickInput);
             const newItem: BlacklabelItem = {
-              id: Date.now(),
+              id: ++nextItemId.current,
               chapter: blacklabelChapter,
               subunit: blacklabelSubunit,
               stage: blacklabelStage,
@@ -1468,7 +1475,7 @@ export default function Home() {
           try {
             const count = countProblemTokens(conceptQuickInput);
             const newItem: ConceptItem = {
-              id: Date.now(),
+              id: ++nextItemId.current,
               chapter: conceptChapter,
               subunit: conceptSubunit,
               stage: conceptStage,
@@ -1500,7 +1507,7 @@ export default function Home() {
           try {
             const count = countProblemTokens(basicSsenQuickInput);
             const newItem: BasicSsenItem = {
-              id: Date.now(),
+              id: ++nextItemId.current,
               chapter: basicSsenChapter,
               subunit: basicSsenSubunit,
               stage: basicSsenStage,
@@ -1666,23 +1673,14 @@ export default function Home() {
           .catch(() => ({ error: 'PDF 생성에 실패했습니다.' }));
         throw new Error(message.error);
       }
-      // 교재 전환 가드: 응답 도착 시 사용자가 다른 교재로 바꿨다면 렌더링을 폐기
-      if (activeTb !== textbook) {
-        return;
-      }
       const contentType = response.headers.get('content-type') ?? '';
-      if (contentType.includes('application/json')) {
-        const result = (await response.json()) as { downloadUrl?: string };
-        if (result.downloadUrl) {
-          setPreviewPdfUrl(result.downloadUrl);
-          setPreviewPage(1);
-          previewRecordRef.current = recordSnapshot;
-          setStatus('미리보기가 갱신되었습니다.');
-          return;
-        }
-      }
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
+      const result: { downloadUrl?: string } | Blob = contentType.includes('application/json')
+        ? await response.json()
+        : await response.blob();
+      // 응답 본문을 읽는 동안에도 교재나 문항이 바뀔 수 있다.
+      if (previewRequestRef.current !== controller) return;
+      const url = result instanceof Blob ? URL.createObjectURL(result) : result?.downloadUrl;
+      if (!url) throw new Error('미리보기 PDF를 받지 못했습니다.');
       if (previewPdfUrl) {
         URL.revokeObjectURL(previewPdfUrl);
       }
@@ -1691,6 +1689,7 @@ export default function Home() {
       previewRecordRef.current = recordSnapshot;
       setStatus('미리보기가 최신 상태로 갱신되었습니다.');
     } catch (error) {
+      if (previewRequestRef.current !== controller) return;
       setStatus(
         error instanceof DOMException && error.name === 'AbortError'
           ? '미리보기 생성이 오래 걸려 중단되었습니다. 다시 시도해 주세요.'
@@ -1736,8 +1735,9 @@ export default function Home() {
     if (match && match !== student) setStudent(match);
   }
 
-  const handleRefreshPreviewRef = useRef(handleRefreshPreview);
-  handleRefreshPreviewRef.current = handleRefreshPreview;
+  const refreshPreviewFromEffect = useEffectEvent(() => {
+    void handleRefreshPreview();
+  });
 
   // '창 대형 확대'는 화면 가득 덮는 창이 되므로 Esc 로 닫는다
   useEffect(() => {
@@ -1751,17 +1751,17 @@ export default function Home() {
 
   useEffect(() => {
     if (sessionToken && textbook) {
-      void handleRefreshPreviewRef.current(textbook);
+      refreshPreviewFromEffect();
     }
   }, [textbook, sessionToken]);
 
   useEffect(() => {
     if (!sessionToken || !textbook) return;
     const timer = window.setTimeout(() => {
-      void handleRefreshPreviewRef.current(textbook);
+      refreshPreviewFromEffect();
     }, 800);
     return () => window.clearTimeout(timer);
-  }, [grade, numbers, sessionToken, student, textbook]);
+  }, [academyName, coverAcademyName, grade, numbers, sessionToken, student, textbook]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -2150,6 +2150,7 @@ export default function Home() {
 
   async function logout() {
     await supabase?.auth.signOut();
+    cancelPreviewRequest();
     setSessionToken('');
     setDepartment(null);
     setTextbook(null);
@@ -2298,7 +2299,7 @@ export default function Home() {
       setOlympusItems((items) => [
         ...items,
         {
-          id: Date.now(),
+          id: ++nextItemId.current,
           unit: olympusUnit,
           problemType: olympusType,
           numbers: numbers.trim(),
@@ -2327,7 +2328,7 @@ export default function Home() {
       setBlacklabelItems((items) => [
         ...items,
         {
-          id: Date.now(),
+          id: ++nextItemId.current,
           chapter: blacklabelChapter,
           subunit: blacklabelSubunit,
           stage: blacklabelStage,
@@ -2357,7 +2358,7 @@ export default function Home() {
       setConceptItems((items) => [
         ...items,
         {
-          id: Date.now(),
+          id: ++nextItemId.current,
           chapter: conceptChapter,
           subunit: conceptSubunit,
           stage: conceptStage,
@@ -2434,8 +2435,7 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={() => {
-                        previewRequestRef.current?.abort();
-                        previewRequestRef.current = null;
+                        cancelPreviewRequest();
                         setDepartment(
                           department === 'middle' ? 'high' : 'middle',
                         );
