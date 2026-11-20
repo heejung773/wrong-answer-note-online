@@ -16,6 +16,7 @@ export type PdfOptions = {
   includeSolutionQr: boolean;
   /** 표지 제목(화면 currentCoverTitle: 직접 쓴 제목, 없으면 교재 이름) */
   coverTitle: string;
+  coverAcademyName: string;
   academyName: string;
   coverSubtitle: string;
   /** 표지 '응시 일자' 에 찍힌 글자 그대로 */
@@ -36,12 +37,17 @@ const text = (value: unknown) => (typeof value === 'string' ? value.trim().slice
 export function sanitizePdfOptions(raw: unknown): PdfOptions | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
   const o = raw as Record<string, unknown>;
+  const academyName = text(o.academyName);
   return {
     includeCover: bool(o.includeCover, PDF_DEFAULTS.includeCover),
     includeCharacter: bool(o.includeCharacter, PDF_DEFAULTS.includeCharacter),
     includeSolutionQr: bool(o.includeSolutionQr, PDF_DEFAULTS.includeSolutionQr),
     coverTitle: text(o.coverTitle),
-    academyName: text(o.academyName),
+    coverAcademyName:
+      typeof o.coverAcademyName === 'string'
+        ? text(o.coverAcademyName)
+        : academyName || PDF_DEFAULTS.academyName,
+    academyName,
     coverSubtitle: text(o.coverSubtitle),
     testDate: text(o.testDate),
     customCharacter: o.customCharacter === true,

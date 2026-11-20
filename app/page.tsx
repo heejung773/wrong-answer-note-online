@@ -831,6 +831,7 @@ export default function Home() {
   const [includeSolutionQr, setIncludeSolutionQr] = useState<boolean>(PDF_DEFAULTS.includeSolutionQr);
   const [customCharacter, setCustomCharacter] = useState<string | null>(null);
   const [coverTitle, setCoverTitle] = useState('');
+  const [coverAcademyName, setCoverAcademyName] = useState<string>(PDF_DEFAULTS.academyName);
   const [academyName, setAcademyName] = useState<string>(PDF_DEFAULTS.academyName);
   const [coverSubtitle, setCoverSubtitle] = useState<string>(PDF_DEFAULTS.coverSubtitle);
   const [testDate, setTestDate] = useState(() => {
@@ -910,6 +911,7 @@ export default function Home() {
       includeCharacter,
       includeSolutionQr,
       coverTitle: currentCoverTitle,
+      coverAcademyName,
       academyName,
       coverSubtitle,
       testDate,
@@ -1648,6 +1650,7 @@ export default function Home() {
           ),
           includeCover,
           coverTitle: currentCoverTitle,
+          coverAcademyName,
           academyName,
           coverSubtitle,
           testDate,
@@ -1925,6 +1928,7 @@ export default function Home() {
           ),
           includeCover,
           coverTitle: currentCoverTitle,
+          coverAcademyName,
           academyName,
           coverSubtitle,
           testDate,
@@ -2233,6 +2237,7 @@ export default function Home() {
           ),
           includeCover,
           coverTitle: currentCoverTitle,
+          coverAcademyName,
           academyName,
           coverSubtitle,
           testDate,
@@ -3792,10 +3797,25 @@ export default function Home() {
                       </div>
                       <div>
                         <label
+                          htmlFor="cover-academy-name-input"
+                          className="block text-[13px] font-semibold text-slate-300 mb-1.5"
+                        >
+                          표지 우측 상단 학원명
+                        </label>
+                        <input
+                          id="cover-academy-name-input"
+                          type="text"
+                          className="w-full px-3.5 py-2.5 bg-[#111c30] border border-[#334155] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-slate-100 text-[13px] outline-none"
+                          value={coverAcademyName}
+                          onChange={(e) => setCoverAcademyName(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <label
                           htmlFor="academy-name-input"
                           className="block text-[13px] font-semibold text-slate-300 mb-1.5"
                         >
-                          학원/기관명 (바닥글)
+                          소속 학원 / 바닥글
                         </label>
                         <input
                           id="academy-name-input"
@@ -3803,23 +3823,6 @@ export default function Home() {
                           className="w-full px-3.5 py-2.5 bg-[#111c30] border border-[#334155] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-slate-100 text-[13px] outline-none"
                           value={academyName}
                           onChange={(e) => setAcademyName(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label
-                          htmlFor="cover-subtitle-input"
-                          className="block text-[13px] font-semibold text-slate-300 mb-1.5"
-                        >
-                          표지 부제목
-                        </label>
-                        <input
-                          id="cover-subtitle-input"
-                          type="text"
-                          className="w-full px-3.5 py-2.5 bg-[#111c30] border border-[#334155] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-slate-100 text-[13px] outline-none"
-                          value={coverSubtitle}
-                          onChange={(e) => setCoverSubtitle(e.target.value)}
                         />
                       </div>
                       <div>
@@ -3835,6 +3838,21 @@ export default function Home() {
                           className="w-full px-3.5 py-2.5 bg-[#111c30] border border-[#334155] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-slate-100 text-[13px] outline-none"
                           value={testDate}
                           onChange={(e) => setTestDate(e.target.value)}
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label
+                          htmlFor="cover-subtitle-input"
+                          className="block text-[13px] font-semibold text-slate-300 mb-1.5"
+                        >
+                          표지 부제목
+                        </label>
+                        <input
+                          id="cover-subtitle-input"
+                          type="text"
+                          className="w-full px-3.5 py-2.5 bg-[#111c30] border border-[#334155] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-slate-100 text-[13px] outline-none"
+                          value={coverSubtitle}
+                          onChange={(e) => setCoverSubtitle(e.target.value)}
                         />
                       </div>
                     </div>

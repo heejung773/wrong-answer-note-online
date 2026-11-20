@@ -49,6 +49,7 @@ export type ReissuePayload = {
   basicSsenItems: HierItem[];
   includeCover: boolean;
   coverTitle: string;
+  coverAcademyName: string;
   academyName: string;
   coverSubtitle: string;
   testDate: string;
@@ -254,6 +255,7 @@ export function buildReissuePlan(issue: ReissueSource): ReissuePlan {
     includeCover: o ? o.includeCover : PDF_DEFAULTS.includeCover,
     // 설정이 남은 기록은 빈 글자까지 그대로 보낸다(서버가 처음과 같은 기본값을 고름).
     coverTitle: o ? o.coverTitle : coverTitleOf(textbook),
+    coverAcademyName: o ? o.coverAcademyName : PDF_DEFAULTS.academyName,
     academyName: o ? o.academyName : PDF_DEFAULTS.academyName,
     coverSubtitle: o ? o.coverSubtitle : PDF_DEFAULTS.coverSubtitle,
     // 처음 받을 때 표지에 찍힌 날짜 그대로. 옛 기록은 처음 받은 날(한국 날짜).

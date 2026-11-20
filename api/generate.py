@@ -666,6 +666,7 @@ def draw_test_cover(
     textbook: str = "synergy-calculus",
     department: str | None = None,
     badge_override: tuple[str, str] | None = None,
+    cover_academy_name: str | None = None,
 ) -> None:
     page_width, page_height = A4
     pdfmetrics.registerFont(UnicodeCIDFont("HYGothic-Medium"))
@@ -753,15 +754,18 @@ def draw_test_cover(
     c.drawString(badge_x + 16, badge_y + 8, badge_text)
 
     # Top Right Academy Name & Target Emblem Dot
-    c.setFont(font_name, 12.5)
-    acad_w = c.stringWidth(academy_name, font_name, 12.5)
-    rx = page_width - 52 - acad_w
-    c.setFillColorRGB(*C_COBALT)
-    c.circle(rx - 10, page_height - 68, 3.5, stroke=0, fill=1)
-    c.setFillColorRGB(1, 1, 1)
-    c.circle(rx - 10, page_height - 68, 1.5, stroke=0, fill=1)
-    c.setFillColorRGB(*C_MIDNIGHT)
-    c.drawString(rx, page_height - 72, academy_name)
+    if cover_academy_name is None:
+        cover_academy_name = academy_name
+    if cover_academy_name:
+        c.setFont(font_name, 12.5)
+        acad_w = c.stringWidth(cover_academy_name, font_name, 12.5)
+        rx = page_width - 52 - acad_w
+        c.setFillColorRGB(*C_COBALT)
+        c.circle(rx - 10, page_height - 68, 3.5, stroke=0, fill=1)
+        c.setFillColorRGB(1, 1, 1)
+        c.circle(rx - 10, page_height - 68, 1.5, stroke=0, fill=1)
+        c.setFillColorRGB(*C_MIDNIGHT)
+        c.drawString(rx, page_height - 72, cover_academy_name)
 
     center_x = page_width / 2.0
     slot_center_y = page_height - 195.0
@@ -979,6 +983,7 @@ def draw_cover(
         textbook=textbook,
         department=opts.get("department"),
         badge_override=opts.get("badge_override"),
+        cover_academy_name=opts.get("cover_academy_name"),
     )
 
 
@@ -2141,6 +2146,7 @@ class handler(BaseHTTPRequestHandler):
 
             cover_title = payload.get("coverTitle") or None
             academy_name = payload.get("academyName") or "다산미래학원"
+            cover_academy_name = payload.get("coverAcademyName")
             cover_subtitle = payload.get("coverSubtitle") or None
             test_date = payload.get("testDate") or None
             custom_character_str = payload.get("customCharacter")
@@ -2158,6 +2164,7 @@ class handler(BaseHTTPRequestHandler):
                 "include_character": include_character,
                 "title": cover_title,
                 "academy_name": academy_name,
+                "cover_academy_name": cover_academy_name.strip() if isinstance(cover_academy_name, str) else None,
                 "subtitle": cover_subtitle,
                 "date_str": test_date,
                 "custom_character_bytes": custom_character_bytes,
