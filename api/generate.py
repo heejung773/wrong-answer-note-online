@@ -753,19 +753,43 @@ def draw_test_cover(
     c.setFont(font_name, 9.5)
     c.drawString(badge_x + 16, badge_y + 8, badge_text)
 
-    # Top Right Academy Name & Target Emblem Dot
+    # Top Right Academy Name
     if cover_academy_name is None:
         cover_academy_name = academy_name
     if cover_academy_name:
-        c.setFont(font_name, 12.5)
-        acad_w = c.stringWidth(cover_academy_name, font_name, 12.5)
-        rx = page_width - 52 - acad_w
-        c.setFillColorRGB(*C_COBALT)
-        c.circle(rx - 10, page_height - 68, 3.5, stroke=0, fill=1)
-        c.setFillColorRGB(1, 1, 1)
-        c.circle(rx - 10, page_height - 68, 1.5, stroke=0, fill=1)
+        academy_right = page_width - badge_x
+        academy_padding = 15
+        academy_max_width = academy_right - (badge_x + badge_w) - 18
+        academy_font_size = 19.0
+        academy_text_width = c.stringWidth(cover_academy_name, font_name, academy_font_size)
+        academy_text_limit = academy_max_width - 2 * academy_padding
+        if academy_text_width > academy_text_limit:
+            academy_font_size *= academy_text_limit / academy_text_width
+            academy_text_width = academy_text_limit
+
+        academy_width = max(106, academy_text_width + 2 * academy_padding)
+        academy_height = 30
+        academy_x = academy_right - academy_width
+        academy_center_y = badge_y + badge_h / 2
+        academy_y = academy_center_y - academy_height / 2
+
+        c.saveState()
         c.setFillColorRGB(*C_MIDNIGHT)
-        c.drawString(rx, page_height - 72, cover_academy_name)
+        c.rect(academy_x, academy_y, academy_width, academy_height, stroke=0, fill=1)
+        c.setFillColorRGB(*C_COBALT)
+        c.rect(academy_x, academy_y, 5, academy_height, stroke=0, fill=1)
+
+        c.setFillColorRGB(1, 1, 1)
+        c.setStrokeColorRGB(1, 1, 1)
+        c.setLineWidth(academy_font_size * 0.016)
+        c.setFont(font_name, academy_font_size)
+        c.drawCentredString(
+            academy_x + (academy_width + 5) / 2,
+            academy_center_y - academy_font_size * 0.32,
+            cover_academy_name,
+            mode=2,
+        )
+        c.restoreState()
 
     center_x = page_width / 2.0
     slot_center_y = page_height - 195.0
