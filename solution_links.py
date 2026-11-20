@@ -13,7 +13,7 @@ import urllib.request
 
 # 교재 id → 노션 '문제별 손풀이 영상' DB id
 SOLUTION_SOURCES = {
-    "synergy-calculus": "b5b90f91-7e63-42ad-857f-6bc63ac7d619",       # 고2 미적분 시너지 문제별 손풀이 영상
+    "synergy-calculus": "aa701abe-0bdc-4d63-8528-f3ef20048123",       # 고2 미적분 시너지 문제별 손풀이 영상 new
     "synergy-common-math-2": "40febbb8-1949-47ca-ab8f-7bd03c60db47",  # 고1 공수2 시너지 문제별 손풀이 영상 new
     "synergy-algebra": "3fde091f-51e9-81b2-b5d0-f51d701d2ba1",        # 고2 대수 시너지 문제별 손풀이 영상
     "synergy-common-math-1": "3437452b-0e1e-4614-b7e2-dbe5497d4262",  # 고1 공수1 시너지 문제별 손풀이 영상 new
