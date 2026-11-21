@@ -17,7 +17,11 @@ SOLUTION_SOURCES = {
     "synergy-common-math-2": "40febbb8-1949-47ca-ab8f-7bd03c60db47",  # 고1 공수2 시너지 문제별 손풀이 영상 new
     "synergy-algebra": "3fde091f-51e9-81b2-b5d0-f51d701d2ba1",        # 고2 대수 시너지 문제별 손풀이 영상
     "synergy-common-math-1": "3437452b-0e1e-4614-b7e2-dbe5497d4262",  # 고1 공수1 시너지 문제별 손풀이 영상 new
+    "olympus-calculus": "07fe091f-51e9-82b2-9ca6-81f786e6d4c3",       # 미적분1 올림푸스 문제별 손풀이 new
 }
+# 전권 순번은 테스트지만들기 OLYMPUS_SEQ_MAP, lib/wrong-records.ts와 같은 순서.
+# 각 단원의 유형완성하기, 서술형완성하기, 고난도도전 문항 수.
+OLYMPUS_COUNTS = ((56, 6, 3), (46, 6, 6), (72, 6, 4), (129, 6, 8), (88, 6, 3), (56, 6, 6))
 TABLE = "solution_links"
 # PDF 에 QR 로 인쇄되는 주소이므로 유튜브 https 주소만 받는다
 ALLOWED_LINK = re.compile(r"https://(youtu\.be/[A-Za-z0-9_-]{11}|(www\.|m\.)?youtube\.com/watch\?)\S*")
@@ -122,6 +126,21 @@ def _plain(prop: dict | None) -> str:
     return ""
 
 
+def _olympus_problem_number(unit: str, title: str) -> int | None:
+    unit_match = re.match(r"([1-6])\.", unit)
+    title_match = re.fullmatch(r"(?:(서술형|고난도)\s*)?(\d+)", title)
+    if not unit_match or not title_match:
+        return None
+    unit_index = int(unit_match[1]) - 1
+    type_index = {None: 0, "서술형": 1, "고난도": 2}[title_match[1]]
+    number = int(title_match[2])
+    if not 1 <= number <= OLYMPUS_COUNTS[unit_index][type_index]:
+        return None
+    previous_units = sum(sum(counts) for counts in OLYMPUS_COUNTS[:unit_index])
+    previous_types = sum(OLYMPUS_COUNTS[unit_index][:type_index])
+    return previous_units + previous_types + number
+
+
 def _notion_rows(textbook: str, database_id: str) -> tuple[dict[int, dict], list[str]]:
     rows: dict[int, dict] = {}
     problems: list[str] = []
@@ -129,10 +148,16 @@ def _notion_rows(textbook: str, database_id: str) -> tuple[dict[int, dict], list
         props = page["properties"]
         title = _plain(props.get("문제 번호"))
         link = _plain(props.get("손풀이링크"))
-        if not title.isdigit() or int(title) <= 0:
+        unit = _plain(props.get("단원"))
+        if textbook == "olympus-calculus":
+            number = _olympus_problem_number(unit, title)
+        else:
+            number = int(title) if title.isdigit() else None
+        if not number or number <= 0:
             problems.append(f"번호 형식 오류: '{title}' ({page['id']})")
             continue
-        number = int(title)
+        if textbook == "olympus-calculus" and not link:
+            continue
         if not ALLOWED_LINK.fullmatch(link):
             problems.append(f"{number}번 링크 없음 또는 유튜브 주소 아님: '{link}'")
             continue
@@ -143,7 +168,7 @@ def _notion_rows(textbook: str, database_id: str) -> tuple[dict[int, dict], list
             "link_url": link,
             "start_seconds": int(seconds) if seconds is not None else None,
             "video_url": _plain(props.get("원본영상URL")) or None,
-            "unit": _plain(props.get("단원")) or None,
+            "unit": unit or None,
             "notion_page_id": page["id"],
             "notion_edited_at": page["last_edited_time"],
         }
