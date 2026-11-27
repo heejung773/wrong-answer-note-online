@@ -95,6 +95,12 @@ TEXTBOOKS = {
         "minimum_answers": 1895,
         "answer_source": "출처: 마플시너지 공통수학2 빠른정답",
     },
+    "synergy-probability-statistics": {
+        # 빠른정답 PDF 파싱 없음: 확인된 정답표(R2 answers.json → data json)만 쓴다.
+        "title": "시너지 확률과 통계",
+        "minimum_answers": 1531,
+        "answer_source": "출처: [2022개정] 마플 시너지 확률과 통계 바로 보는 정답",
+    },
     "olympus-calculus": {
         "title": "올림포스 미적분Ⅰ",
         "answer_source": "출처: EBS 올림포스 유형편 미적분Ⅰ (22개정) - 해설",
@@ -439,6 +445,9 @@ VERIFIED_ANSWER_FILES: dict[str, list[Path]] = {
     "synergy-common-math-2": [
         _PROJECT_ROOT / "data" / "synergy_common_math_2_answers_simple.json",
     ],
+    "synergy-probability-statistics": [
+        _PROJECT_ROOT / "data" / "synergy_probability_statistics_answers_simple.json",
+    ],
 }
 
 
@@ -488,6 +497,8 @@ def load_quick_answers(supabase_url: str, secret_key: str, bucket: str, textbook
                     pass
 
     config = TEXTBOOKS[textbook]
+    if "answer_pages" not in config:
+        raise ValueError("정답표를 읽지 못했습니다.")
     headers = {"apikey": secret_key}
     object_path = urllib.parse.quote(f"{bucket}/{textbook}/quick-answer.pdf", safe="/")
     pdf_data = request_bytes(f"{supabase_url}/storage/v1/object/authenticated/{object_path}", headers)
@@ -715,6 +726,9 @@ def draw_test_cover(
     if "대수" in title or "algebra" in textbook:
         badge_text = "고등 수학 영역  |  대수"
         eng_sub = "SYNERGY ALGEBRA CUSTOM TEST" if "시너지" in title else "ALGEBRA CUSTOM TEST"
+    elif "확률과 통계" in title or "probability-statistics" in textbook:
+        badge_text = "고등 수학 영역  |  확률과 통계"
+        eng_sub = "SYNERGY PROBABILITY & STATISTICS CUSTOM TEST" if "시너지" in title else "PROBABILITY & STATISTICS CUSTOM TEST"
     elif "미적분" in title or "calculus" in textbook:
         badge_text = "고등 수학 영역  |  미적분"
         eng_sub = "SYNERGY CALCULUS CUSTOM TEST" if "시너지" in title else "CALCULUS CUSTOM TEST"

@@ -20,6 +20,7 @@ export const WRONG_RECORD_TEXTBOOKS = [
   'synergy-algebra',
   'synergy-common-math-1',
   'synergy-common-math-2',
+  'synergy-probability-statistics',
   'olympus-calculus',
   'gojaengi-common-math-2',
   'ssen-common-math-1',
@@ -219,13 +220,37 @@ const SYNERGY_CM1_UNITS: [number, number, string][] = [
   [1734, 1883, '13 행렬과 그 연산'],
 ];
 
-/** 번호 교재의 단원. 지금은 시너지 공통수학1 만 범위표가 있다(나머지는 null, 나중에 채움). */
+/**
+ * 시너지 확률과 통계 단원 범위 (data/synergy_probability_statistics_answers.json 의 units 와 같음).
+ * 근거: 문제편 목차 쪽수 + '바로 보는 정답' 단원 제목(2026-11-27).
+ */
+const SYNERGY_PS_UNITS: [number, number, string][] = [
+  [1, 137, '01 중복순열과 같은 것이 있는 순열'],
+  [138, 242, '02 중복조합'],
+  [243, 367, '03 이항정리'],
+  [368, 481, '04 확률의 뜻과 기본 성질'],
+  [482, 636, '05 확률의 덧셈정리와 여사건의 확률'],
+  [637, 741, '06 조건부확률'],
+  [742, 942, '07 사건의 독립과 종속'],
+  [943, 1023, '08 확률변수와 확률분포'],
+  [1024, 1113, '09 이항분포'],
+  [1114, 1303, '10 정규분포'],
+  [1304, 1403, '11 모집단과 표본'],
+  [1404, 1463, '12 모평균의 추정'],
+  [1464, 1531, '13 모비율의 추정'],
+];
+
+/** 번호 교재의 단원. 시너지 공통수학1·확률과 통계만 범위표가 있다(나머지는 null, 나중에 채움). */
 function numberedUnit(textbook: string, num: number): string | null {
-  if (textbook === 'synergy-common-math-1') {
-    const hit = SYNERGY_CM1_UNITS.find(([s, e]) => num >= s && num <= e);
-    return hit ? hit[2] : null;
-  }
-  return null;
+  const table =
+    textbook === 'synergy-common-math-1'
+      ? SYNERGY_CM1_UNITS
+      : textbook === 'synergy-probability-statistics'
+        ? SYNERGY_PS_UNITS
+        : null;
+  if (!table) return null;
+  const hit = table.find(([s, e]) => num >= s && num <= e);
+  return hit ? hit[2] : null;
 }
 
 /** 중등 3단 교재의 단원 이름: 대단원과 소단원이 같으면 하나만. */

@@ -24,6 +24,7 @@ BASIC_SSEN = Path(r"D:\중등부교재작업\중2학년2학기\베이직쎈")
 SSEN_31 = Path(r"D:\중등부교재작업\중3학년1학기\쎈수학")
 BLACKLABEL_31 = Path(r"D:\중등부교재작업\중3학년1학기\블랙라벨")
 CONCEPT_31 = Path(r"D:\중등부교재작업\중3학년1학기\개념유형(파워)")
+PROB_STAT = Path(r"D:\시너지_확률과통계")
 
 
 def read(path: Path) -> bytes:
@@ -132,6 +133,19 @@ def main() -> None:
         cp31_img2 = read(CONCEPT_31 / "문제모음" / cp31_ch / "단원마무리" / "0001.png")
         cp31_items = [(cp31_ch, cp31_ch, "유형별", "1", cp31_img1), (cp31_ch, cp31_ch, "단원마무리", "1", cp31_img2)]
         assert_pdf("concept-middle-3-1", generate.create_concept_pdf("테스트", "3학년", cp31_items, textbook="concept-middle-3-1"), 2)
+
+        # 13. 시너지 확률과 통계 (고등부): 확인된 정답표(data json)만 쓴다. R2 answers.json 은 없는 것으로 흉내.
+        def no_storage(url, headers):
+            raise generate.urllib.error.HTTPError(url, 404, "not found", {}, None)
+
+        generate.request_bytes = no_storage
+        generate.clear_caches()
+        ps_answers = generate.load_quick_answers("https://local", "secret", "bucket", "synergy-probability-statistics")
+        if len(ps_answers) != 1531:
+            raise AssertionError(f"synergy-probability-statistics: expected 1531 answers, got {len(ps_answers)}")
+        ps_numbers = [1, 943, 1531]
+        ps_images = [(number, read(PROB_STAT / "문제모음" / f"{number:04d}.png")) for number in ps_numbers]
+        assert_pdf("synergy-probability-statistics", generate.create_pdf("테스트", "2학년", ps_images, {n: ps_answers[n] for n in ps_numbers}, "synergy-probability-statistics"), 3)
 
     finally:
         generate.request_bytes = original_request

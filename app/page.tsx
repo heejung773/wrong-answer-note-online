@@ -105,7 +105,7 @@ function getTextbookGroupMeta(item: TextbookItem): TextbookGroupMeta {
   return {
     key: 'high-2',
     title: '고등 2학년',
-    subtitle: '대수 · 미적분Ⅰ',
+    subtitle: '대수 · 미적분Ⅰ · 확률과 통계',
     headerClass: 'semester-high-2',
     rowClass: 'textbook-row-high-2',
   };
@@ -573,6 +573,12 @@ const allTextbookInfo: Record<string, TextbookInfoDetail> = {
     min_num: 1,
     max_num: 1895,
     range_text: '1 ~ 1895번',
+  },
+  'synergy-probability-statistics': {
+    name: '마플시너지 확률과 통계',
+    min_num: 1,
+    max_num: 1531,
+    range_text: '1 ~ 1531번',
   },
   'olympus-calculus': {
     name: 'EBS 올림포스 미적분',
@@ -2481,13 +2487,14 @@ export default function Home() {
                                 </option>
                               ))}
                           </optgroup>
-                          <optgroup label="고등 2학년 (대수 · 미적분Ⅰ)">
+                          <optgroup label="고등 2학년 (대수 · 미적분Ⅰ · 확률과 통계)">
                             {textbooks
                               .filter(
                                 (tb) =>
                                   tb.department === 'high' &&
                                   (tb.subject === '대수' ||
-                                    tb.subject === '미적분Ⅰ'),
+                                    tb.subject === '미적분Ⅰ' ||
+                                    tb.subject === '확률과 통계'),
                               )
                               .map((tb) => (
                                 <option key={tb.id} value={tb.id}>

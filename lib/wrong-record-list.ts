@@ -13,6 +13,7 @@ export const TEXTBOOK_NAMES: Record<string, string> = {
   'gojaengi-common-math-2': '고쟁이 공통수학2',
   'synergy-algebra': '시너지 대수',
   'synergy-calculus': '시너지 미적분',
+  'synergy-probability-statistics': '시너지 확률과 통계',
   'olympus-calculus': '올림포스 미적분Ⅰ',
   'ssen-middle-2-2': '쎈 중2-2',
   'blacklabel-middle-2-2': '블랙라벨 중2-2',

@@ -9,6 +9,7 @@ export type TextbookId =
   | 'synergy-algebra'
   | 'synergy-common-math-1'
   | 'synergy-common-math-2'
+  | 'synergy-probability-statistics'
   | 'olympus-calculus'
   | 'gojaengi-common-math-2'
   | 'ssen-common-math-1'
@@ -79,6 +80,13 @@ export const textbooks: TextbookItem[] = [
     id: 'olympus-calculus',
     title: '올림푸스',
     subject: '미적분Ⅰ',
+    available: true,
+    department: 'high',
+  },
+  {
+    id: 'synergy-probability-statistics',
+    title: '시너지 확률과 통계',
+    subject: '확률과 통계',
     available: true,
     department: 'high',
   },

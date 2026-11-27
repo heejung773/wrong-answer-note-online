@@ -1,4 +1,4 @@
-"""시너지 공통수학1·2 확인된 정답표 → R2 textbook-problems 버킷의 {교재}/answers.json.
+"""시너지 공통수학1·2·확률과 통계 확인된 정답표 → R2 textbook-problems 버킷의 {교재}/answers.json.
 
 오답노트(fix)와 테스트지만들기(test)가 같은 R2 파일을 읽는다(2026-11-05 선생님 결정).
 읽는 쪽 순서: ① R2 {교재}/answers.json → ② 각 저장소 data json(비상용 사본) → 빠른정답 PDF 파싱.
@@ -8,7 +8,8 @@
   python scripts/upload_answers_to_r2.py --only synergy-common-math-2 --common-math-2 path\\to\\answers.json
 
 규칙
-- 키는 synergy-common-math-1/answers.json, synergy-common-math-2/answers.json 두 개뿐(그 밖의 키는 막는다). 지우기 기능 없음.
+- 키는 synergy-common-math-1/answers.json, synergy-common-math-2/answers.json,
+  synergy-probability-statistics/answers.json 세 개뿐(그 밖의 키는 막는다). 지우기 기능 없음.
 - 파일 모양: 평평한 {"1": "...", ...}, 키는 앞에 0 없는 숫자 문자열, 값은 빈칸 아닌 문자열, UTF-8(BOM 없음).
   문항 수가 교재 최소 문항 수보다 적으면 중단. 파일 바이트를 그대로 올린다.
 - R2 접속 설정은 .env.local / 환경변수(R2_*)에서 storage_backend 가 읽는다. 값은 출력하지 않는다.
@@ -29,6 +30,7 @@ TARGETS = {
     # 교재: (기본 파일, 최소 문항 수 = api/generate.py TEXTBOOKS minimum_answers)
     "synergy-common-math-1": (ROOT / "data" / "synergy_common_math_1_answers_simple.json", 1883),
     "synergy-common-math-2": (ROOT / "data" / "synergy_common_math_2_answers_simple.json", 1895),
+    "synergy-probability-statistics": (ROOT / "data" / "synergy_probability_statistics_answers_simple.json", 1531),
 }
 ALLOWED_KEYS = {f"{textbook}/answers.json" for textbook in TARGETS}
 SAMPLE_NUMBERS = ("1422", "113", "286")
@@ -65,11 +67,16 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--common-math-1", type=Path, default=TARGETS["synergy-common-math-1"][0], help="공수1 정답 json")
     parser.add_argument("--common-math-2", type=Path, default=TARGETS["synergy-common-math-2"][0], help="공수2 정답 json")
+    parser.add_argument("--probability-statistics", type=Path, default=TARGETS["synergy-probability-statistics"][0], help="확통 정답 json")
     parser.add_argument("--only", choices=sorted(TARGETS), help="이 교재 하나만")
     parser.add_argument("--apply", action="store_true", help="실제로 R2 에 올린다(기본은 미리보기)")
     args = parser.parse_args()
 
-    files = {"synergy-common-math-1": args.common_math_1, "synergy-common-math-2": args.common_math_2}
+    files = {
+        "synergy-common-math-1": args.common_math_1,
+        "synergy-common-math-2": args.common_math_2,
+        "synergy-probability-statistics": args.probability_statistics,
+    }
     plan: list[tuple[str, Path, bytes]] = []
     for textbook in sorted(TARGETS):
         if args.only and textbook != args.only:

@@ -20,9 +20,9 @@
 
 ---
 
-## 2. 지원 교재 구성 및 문항 현황 (총 14종: 고등부 7종 + 중등부 7종)
+## 2. 지원 교재 구성 및 문항 현황 (총 15종: 고등부 8종 + 중등부 7종, 확률과 통계는 2026-11-27 로컬 준비·R2 올리기 전)
 
-### A. 고등부 교재 (7종)
+### A. 고등부 교재 (8종)
 
 | 교재 ID | 교재명 | 과목 | 총 문항 수 | 문항 번호 체계 | 정답 소스 및 처리 방식 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -33,6 +33,7 @@
 | `synergy-algebra` | 시너지 대수 | 대수 | **1,968제** | 순차 번호 (`0001.png` ~ `1968.png`) | 빠른정답 이미지 Pillow 크롭 및 투명화 표 (고2) |
 | `synergy-calculus` | 시너지 미적분 | 미적분Ⅰ | **1,568제** | 순차 번호 (`0001.png` ~ `1568.png`) | 마플 빠른정답 PDF (1~7p) 실시간 파싱 (고2) |
 | `olympus-calculus` | 올림포스 미적분Ⅰ | 미적분Ⅰ | **513제 (6개 단원)**| 대단원-유형-문항번호 계층형 | EBS 해설 PDF 실시간 파싱 (고2) |
+| `synergy-probability-statistics` | 시너지 확률과 통계 | 확률과 통계 | **1,531제 (13단원)** | 순차 번호 (`0001.png` ~ `1531.png`) | 확인된 정답표: ① R2 `{교재}/answers.json` → ② `data/synergy_probability_statistics_answers_simple.json`(빠른정답 PDF 파싱 없음). 단원·STEP 범위는 `data/synergy_probability_statistics_answers.json` units (고2 묶음). 2026-11-27 로컬 준비, R2·배포 전 |
 
 ### B. 중등부 교재 (총 7종: 중2-2 4종 & 중3-1 3종)
 
@@ -117,6 +118,7 @@
    - 로컬 디렉터리에 해당 교재 이미지가 존재할 경우 디스크에서 즉시 로드하여 처리 속도 극대화.
 2. **Cloudflare R2 비공개 저장소 (`textbook-problems` 버킷, 기존 객체 경로 유지)**:
    - 시너지 / 고쟁이 / 쎈 공통수학1: `<교재id>/<num:04d>.png` (예: `synergy-algebra/0001.png`, `ssen-common-math-1/0040.png`)
+   - 시너지 확률과 통계(2026-11-27 준비): 원본 `D:\시너지_확률과통계\문제모음`(읽기만) → `python scripts/prepare_synergy_probability_statistics.py` 가 올릴 사본(바깥 여백·꼬리말 4개만 정리)과 manifest 를 `tmp/` 에 만들고, `python scripts/upload_textbook_images_to_r2.py --manifest tmp/synergy-probability-statistics-upload-manifest.json` 이 R2 로 올린다(기본 미리보기, `--check-remote` 읽기만, `--apply` 올리고 다시 받아 SHA256 비교, 있는 키는 `--overwrite` 없이는 안 덮음).
    - 올림포스 미적분: `olympus-calculus/unit-<단원번호>/<유형id>/<num:04d>.png` (예: `unit-5/standard/0001.png`)
    - 중등부 교재: 기존 영문 ASCII 슬러그 매핑 유지 (`ch01/sub01/concept/0001.png`).
    - 베이직쎈 중2-2: `basic-ssen-middle-2-2/<ch>/<sub>/<stage>/<num:04d>.png` (예: `ch1/sub01/basic1/0001.png`), `문제모음_인쇄용` 고해상도(300 DPI) 609개 문항 전수 업로드 완료.
@@ -150,7 +152,7 @@
 - 한 줄 = 학생 1명 × 문항 1개 × 한국 날짜. 고유 색인 `(source, student_key, textbook, problem_key, recorded_on)` 으로 같은 날 재다운로드·재인쇄는 1줄.
 - 이름: `student_name_raw`(입력 그대로), `student_name`(공백 정리), `student_key`(NFKC → 공백 모두 제거 → 소문자). 빈 이름·`학생`·`홍길동`·예시 이름(김민준·이서진·박도윤·정시우)·쉼표가 든 이름은 기록 제외. 예전 이름은 `GET /api/wrong-records`(RPC `wrong_record_student_names`)로 자동완성.
 - `problem_key`(R2 경로에서 교재 폴더·`.png` 를 뺀 모양): 번호 교재 `0040`, 올림포스 `unit-1/standard/0005`, 블랙라벨 중2-2 `ch1/sub01/must/0012`, 블랙라벨 중3-1 `ch01/step1/0012`, 개념유형파워 중2-2 `ch01/sub01/concept/0012`, 중3-1 `ch01/type/0012`, 베이직쎈 `ch1/sub01/basic1/0012`. `problem_number`: 번호 교재는 교재 번호, 올림포스는 전권 순번(1~513), 중등 3단은 단계 내 번호. 테스트지만들기 `test_sheets.sql` 과 같은 규칙.
-- `unit`: 올림포스(단원명), 중등 3단(대단원 > 소단원), 시너지 공통수학1(13단원 범위)만 채움. 나머지 교재는 null(범위표 생기면 채움).
+- `unit`: 올림포스(단원명), 중등 3단(대단원 > 소단원), 시너지 공통수학1(13단원 범위), 시너지 확률과 통계(13단원 범위, 2026-11-27)만 채움. 나머지 교재는 null(범위표 생기면 채움).
 - 규칙 코드: `lib/wrong-records.ts`, 서버: `app/api/wrong-records/route.ts`, 표 SQL: `supabase/wrong_answer_records.sql`(선생님이 SQL Editor 에서 실행).
 - 서버 환경변수 `NEXT_PUBLIC_SUPABASE_URL`·`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`·`SUPABASE_SECRET_KEY` 가 없거나 `WRONG_RECORDS_ENABLED=0` 이면 `{status:'off'}` 로 조용히 건너뛴다. 기록 실패는 PDF 에 영향 없음(별도 요청).
 - 관리자 '다운목록' 화면 `/admin/downloads`(2026-10-23, 사용량 화면 옆 탭): 발급 1건 = 같은 한국 날짜 · 같은 `student_key` · 같은 교재(source='fix'만). 칸: 발급 날짜(마지막 시각), 학생(누르면 그 학생 전체 이력 펼침, 두 번 이상 틀린 문항 노란색 ×n), 교재, 틀린 문항(단원·단계별 묶음, 개수, 단원), 방식(다운로드/인쇄·학년), 삭제. 위에 '이번 달 n건 · 학생 n명', 이름 검색(student_key ilike), 교재·기간(전체/오늘/최근 7일/이번 달/지난 30일/지난 달), 새로고침. API `GET/DELETE /api/admin/wrong-records`(lib/admin-auth.ts: 메인과 같은 Supabase 로그인 토큰 확인, 아니면 401). DELETE `{id:'YYYY-MM-DD|student_key|textbook'}` 는 그 묶음 줄 전체 삭제(확인 창 뒤). 묶기 규칙: `lib/wrong-record-list.ts`. 표 구조 변경 없음. 한 번에 최대 20,000줄(1,000줄씩) 읽음.
