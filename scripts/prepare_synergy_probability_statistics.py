@@ -12,6 +12,8 @@
      'STEP1 내신정복 기출유형 109' 등)이 딸려 들어와 아래 줄을 흰색으로 덮는다(2026-11-27 그림으로 확인한 y).
   2) 여백: 잉크(밝기 <235) 덩어리 중 큰 것(면적 >40)에서 시작해 40px 안에 닿는 작은 덩어리(점선·말줄임표 등)를
      사슬처럼 포함한 상자 + 18px 로 자른다. 어디에도 닿지 않는 먼지 점 때문에 남던 큰 빈칸이 없어진다.
+  3) 좁은 그림: 정리 뒤 폭이 997px(기준 1084px 의 92%) 이하면 오른쪽에 종이색(가장자리 색) 여백을 붙여
+     폭 1084px 로 맞춘다(2026-11-27 선생님 결정: 좁은 그림은 PDF 칸 폭에 맞춰 늘어나 글씨가 크게 찍힘, 예 0943).
   바뀌지 않는 그림은 원본 바이트 그대로 복사한다.
 검사: 번호 1~1531 빠짐·남음 없음, PNG, RGB, 300 DPI.
 R2 키: synergy-probability-statistics/<번호 4자리>.png (api/generate.py 가 읽는 경로, 공통수학1 시너지와 같은 형식).
@@ -33,6 +35,8 @@ TOTAL = 1531
 PAD = 18
 # 원본 그림 안 꼬리말 시작 y(px). 이 줄부터 아래를 흰색으로.
 FOOTER_CUT_Y = {125: 963, 226: 1039, 572: 886, 575: 882}
+PAD_TO_WIDTH = 1084  # 1531개 폭 중앙값
+PAD_IF_AT_MOST = int(PAD_TO_WIDTH * 0.92)  # 997
 
 
 def sha256(data: bytes) -> str:
@@ -82,8 +86,16 @@ def make_copy(src: Path, dst: Path, num: int) -> dict:
         changes.append(f"trim {W}x{H}->{x1 - x0}x{y1 - y0}")
     else:
         x0, y0, x1, y1 = 0, 0, W, H
+    out = rgb[y0:y1, x0:x1]
+    if out.shape[1] <= PAD_IF_AT_MOST:
+        color = np.median(out[:, -6:].reshape(-1, 3), axis=0).astype(np.uint8)
+        wide = np.empty((out.shape[0], PAD_TO_WIDTH, 3), np.uint8)
+        wide[:] = color
+        wide[:, :out.shape[1]] = out
+        changes.append(f"pad {out.shape[1]}->{PAD_TO_WIDTH}")
+        out = wide
     if changes:
-        Image.fromarray(rgb[y0:y1, x0:x1]).save(dst, format="PNG", dpi=dpi or (300, 300))
+        Image.fromarray(out).save(dst, format="PNG", dpi=dpi or (300, 300))
     else:
         dst.write_bytes(raw)
     return {"changes": changes, "source_sha256": sha256(raw)}

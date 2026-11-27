@@ -118,7 +118,7 @@
    - 로컬 디렉터리에 해당 교재 이미지가 존재할 경우 디스크에서 즉시 로드하여 처리 속도 극대화.
 2. **Cloudflare R2 비공개 저장소 (`textbook-problems` 버킷, 기존 객체 경로 유지)**:
    - 시너지 / 고쟁이 / 쎈 공통수학1: `<교재id>/<num:04d>.png` (예: `synergy-algebra/0001.png`, `ssen-common-math-1/0040.png`)
-   - 시너지 확률과 통계(2026-11-27 준비): 원본 `D:\시너지_확률과통계\문제모음`(읽기만) → `python scripts/prepare_synergy_probability_statistics.py` 가 올릴 사본(바깥 여백·꼬리말 4개만 정리)과 manifest 를 `tmp/` 에 만들고, `python scripts/upload_textbook_images_to_r2.py --manifest tmp/synergy-probability-statistics-upload-manifest.json` 이 R2 로 올린다(기본 미리보기, `--check-remote` 읽기만, `--apply` 올리고 다시 받아 SHA256 비교, 있는 키는 `--overwrite` 없이는 안 덮음).
+   - 시너지 확률과 통계(2026-11-27 준비): 원본 `D:\시너지_확률과통계\문제모음`(읽기만) → `python scripts/prepare_synergy_probability_statistics.py` 가 올릴 사본(바깥 여백·꼬리말 4개 정리, 폭 997px 이하 36개는 오른쪽 종이색 여백으로 폭 1084px — 좁은 그림이 PDF 에서 크게 찍히지 않게)과 manifest 를 `tmp/` 에 만들고, `python scripts/upload_textbook_images_to_r2.py --manifest tmp/synergy-probability-statistics-upload-manifest.json` 이 R2 로 올린다(기본 미리보기, `--check-remote` 읽기만, `--apply` 올리고 다시 받아 SHA256 비교, 있는 키는 `--overwrite` 없이는 안 덮음).
    - 올림포스 미적분: `olympus-calculus/unit-<단원번호>/<유형id>/<num:04d>.png` (예: `unit-5/standard/0001.png`)
    - 중등부 교재: 기존 영문 ASCII 슬러그 매핑 유지 (`ch01/sub01/concept/0001.png`).
    - 베이직쎈 중2-2: `basic-ssen-middle-2-2/<ch>/<sub>/<stage>/<num:04d>.png` (예: `ch1/sub01/basic1/0001.png`), `문제모음_인쇄용` 고해상도(300 DPI) 609개 문항 전수 업로드 완료.
